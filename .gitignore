@@ -127,7 +127,17 @@ pygeoapi/db.sqlite3
 # Pycharm project files
 .idea
 
+
 # ES data folder
 .pygeoapi/docker/examples/elastic/ES/data
 .pygeoapi/docker/examples/mvt-elastic/ES/data
 .pygeoapi/docker/examples/mvt-tippecanoe/ES/data
+
+# AquaINFRA specific
+TRASH
+TRASH/*
+IGNORE
+IGNORE/*
+pygeoapi/process/TRASH
+pygeoapi/process/TRASH/*
+pygeoapi/process/TEMPLATEPROCESS.py

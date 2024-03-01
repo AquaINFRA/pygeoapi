@@ -17,3 +17,8 @@ shapely
 SQLAlchemy<2.0.0
 tinydb
 unicodecsv
+
+# Needed for the GeoFRESH case:
+psycopg2
+sshtunnel
+geomet

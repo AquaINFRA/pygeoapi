@@ -302,3 +302,43 @@ resources:
         type: process
         processor:
             name: HelloWorld
+
+    get-upstream-catchment-ids:
+        type: process
+        processor:
+            name: GetUpstreamCatchmentIds
+
+    get-snapped-point:
+        type: process
+        processor:
+            name: SnappedPointsGetter
+
+    get-subcatchment-id:
+        type: process
+        processor:
+            name: SubcatchmentGetter
+
+    get-stream-segment:
+        type: process
+        processor:
+            name: StreamSegmentGetter
+
+    get-upstream-stream-segments:
+        type: process
+        processor:
+            name: UpstreamStreamSegmentGetter
+
+    get-upstream-bbox:
+        type: process
+        processor:
+            name: UpstreamBboxGetter
+
+    get-upstream-polygons:
+        type: process
+        processor:
+            name: UpstreamPolygonGetter
+
+    get-upstream-dissolved:
+        type: process
+        processor:
+            name: UpstreamDissolvedGetter

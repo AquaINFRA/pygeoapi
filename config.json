@@ -1,0 +1,11 @@
+{
+    "geofresh_server": "<ip>",
+    "geofresh_port": 5432,
+    "database_name": "geofresh_data",
+    "database_username": "",
+    "database_password": "",
+    "use_tunnel": false,
+    "ssh_username": "john",
+    "ssh_password": "",
+    "localhost": "127.0.0.1"
+}

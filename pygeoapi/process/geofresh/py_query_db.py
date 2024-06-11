@@ -352,9 +352,7 @@ def get_upstream_catchment_dissolved_geometry(conn, subc_id, upstream_ids):
     dissolved_geojson = geomet.wkt.loads(dissolved_wkt)
     return dissolved_geojson
 
-
-
-def get_upstream_catchment_linestrings_feature_coll(conn, subc_id, upstream_ids, basin_id=None, reg_id=None):
+def get_upstream_catchment_linestrings_feature_coll(conn, subc_id, upstream_ids, basin_id, reg_id):
     print("Getting upstream catchment linestrings for subc_id: %s" % subc_id)
     query = _get_query_upstream_linestrings(upstream_ids)
     num_rows = len(upstream_ids)
@@ -369,15 +367,11 @@ def get_upstream_catchment_linestrings_feature_coll(conn, subc_id, upstream_ids,
                 "subcatchment_id": row[0],
                 "strahler_order": row[1],
                 "part_of_upstream_catchment_of": subc_id,
+                "basin_id": basin_id,
+                "reg_id": reg_id
             }
 
         }
-
-        if basin_id is not None:
-            feature["properties"]["basin_id"] = basin_id
-
-        if reg_id is not None:
-            feature["properties"]["reg_id"] = reg_id
 
         features_geojson.append(feature)
 
@@ -389,7 +383,7 @@ def get_upstream_catchment_linestrings_feature_coll(conn, subc_id, upstream_ids,
     return feature_coll
 
 
-def get_upstream_catchment_polygons_feature_coll(conn, subc_id, upstream_ids, basin_id=None, reg_id=None):
+def get_upstream_catchment_polygons_feature_coll(conn, subc_id, upstream_ids, basin_id, reg_id):
     print("Getting upstream catchment geometries for subc_id: %s" % subc_id)
     query = _get_query_upstream_polygons(upstream_ids)
     num_rows = len(upstream_ids)
@@ -403,15 +397,11 @@ def get_upstream_catchment_polygons_feature_coll(conn, subc_id, upstream_ids, ba
             "properties": {
                 "subcatchment_id": row[0],
                 "part_of_upstream_catchment_of": subc_id,
+                "basin_id": basin_id,
+                "reg_id": reg_id
             }
 
         }
-
-        if basin_id is not None:
-            feature["properties"]["basin_id"] = basin_id
-
-        if reg_id is not None:
-            feature["properties"]["reg_id"] = reg_id
 
         features_geojson.append(feature)
 
@@ -458,7 +448,7 @@ def get_upstream_catchment_ids(conn, subc_id, reg_id, basin_id):
     return upstream_catchment_subcids
 
 
-def get_snapped_point_feature(conn, lon, lat, subc_id, basin_id=None, reg_id=None):
+def get_snapped_point_feature(conn, lon, lat, subc_id, basin_id, reg_id):
     """
     Example result:
     2, {"type": "Point", "coordinates": [9.931555, 54.69625]}, {"type": "LineString", "coordinates": [[9.929583333333333, 54.69708333333333], [9.930416666666668, 54.69625], [9.932083333333335, 54.69625], [9.933750000000002, 54.694583333333334], [9.934583333333334, 54.694583333333334]]}
@@ -487,6 +477,8 @@ def get_snapped_point_feature(conn, lon, lat, subc_id, basin_id=None, reg_id=Non
             "subcatchment_id": subc_id,
             "lon_original": lon,
             "lat_original": lat,
+            "basin_id": basin_id,
+            "reg_id": reg_id
         }
     }
 
@@ -495,38 +487,28 @@ def get_snapped_point_feature(conn, lon, lat, subc_id, basin_id=None, reg_id=Non
         "geometry": streamsegment_geojson,
         "properties": {
             "subcatchment_id": subc_id,
-            "strahler_order": strahler
+            "strahler_order": strahler,
+            "basin_id": basin_id,
+            "reg_id": reg_id
         }
     }
-
-    if basin_id is not None:
-        snappedpoint_feature['properties']['basin_id'] = basin_id
-        streamsegment_feature['properties']['basin_id'] = basin_id
-
-    if reg_id is not None:
-        snappedpoint_feature['properties']['reg_id'] = reg_id
-        streamsegment_feature['properties']['reg_id'] = reg_id
 
     #return strahler, snappedpoint_geojson, streamsegment_geojson
     return strahler, snappedpoint_feature, streamsegment_feature
 
 
-def get_strahler_and_stream_segment_feature(conn, subc_id, basin_id=None, reg_id=None):
+def get_strahler_and_stream_segment_feature(conn, subc_id, basin_id, reg_id):
     strahler, geojson_linestring = get_strahler_and_stream_segment(conn, subc_id)
     feature = {
         "type": "Feature",
         "geometry": geojson_linestring,
         "properties": {
             "subcatchment_id": subc_id,
-            "strahler_order": strahler
+            "strahler_order": strahler,
+            "basin_id": basin_id,
+            "reg_id": reg_id
         }
     }
-
-    if basin_id is not None:
-        feature['properties']['basin_id'] = basin_id
-
-    if reg_id is not None:
-        feature['properties']['reg_id'] = reg_id
 
     return strahler, feature
 
@@ -754,12 +736,15 @@ if __name__ == "__main__":
     print(streamsegment_geojson)
     
     print("\n(5) strahler, stream segment: ")
-    strahler, streamsegment_geojson = get_strahler_and_stream_segment_feature(conn, subc_id, basin_id=basin_id, reg_id=reg_id)
+    strahler, streamsegment_geojson = get_strahler_and_stream_segment_feature(conn, subc_id, basin_id, reg_id)
     print(strahler)
     print(streamsegment_geojson)
 
-    print("\n(6) upstream catchment bbox: ")
+    print("\n(6a) upstream catchment bbox as geometry: ")
     bbox_geojson = get_upstream_catchment_bbox_polygon(conn, subc_id, upstream_ids)
+    print("BBOX\n%s" % bbox_geojson)
+
+    print("\n(6b) upstream catchment bbox as feature: ")
     bbox_geojson = get_upstream_catchment_bbox_feature(
         conn, subc_id, upstream_ids, basin_id=basin_id, reg_id=reg_id)
     print("BBOX\n%s" % bbox_geojson)
@@ -768,9 +753,17 @@ if __name__ == "__main__":
     poly_collection = get_upstream_catchment_polygons_feature_coll(conn, subc_id, upstream_ids)
     print("POLYCOLL \n%s" % poly_collection)
 
-    print("\n(8): dissolved polygon")
-    dissolved_polygon = get_upstream_catchment_dissolved_feature(conn, subc_id, upstream_ids)
+    print("\n(8a): dissolved polygon as geometry/polygon")
+    dissolved_polygon = get_upstream_catchment_dissolved_geometry(conn, subc_id, upstream_ids)
     print("DISSOLVED POLYGON: \n%s" % dissolved_polygon)
+
+    print("\n(8b): dissolved polygon as feature")
+    dissolved_feature = get_upstream_catchment_dissolved_feature(conn, subc_id, upstream_ids)
+    print("DISSOLVED FEATURE: \n%s" % dissolved_feature)
+
+    print("\n(8c): dissolved polygon as feature coll")
+    dissolved_feature_coll = get_upstream_catchment_dissolved_feature_coll(conn, subc_id, upstream_ids, lonlat=None, basin_id=basin_id, reg_id=reg_id)
+    print("DISSOLVED FEATURE COLL: \n%s" % dissolved_feature_coll)
 
     print("Closing connection...")
     conn.close()

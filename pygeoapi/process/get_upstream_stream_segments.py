@@ -164,11 +164,11 @@ class UpstreamStreamSegmentGetter(BaseProcessor):
             subc_id, basin_id = get_subc_id_basin_id(conn, lon, lat, reg_id)
             
             print('Getting upstream catchment for subc_id: %s' % subc_id)
-            strahler, streamsegment_geojson_feature = get_strahler_and_stream_segment_feature(conn, subc_id)
+            strahler, streamsegment_geojson_feature = get_strahler_and_stream_segment_feature(conn, subc_id, basin_id, reg_id)
 
             ### Now upstream!
             upstream_ids = get_upstream_catchment_ids(conn, subc_id, reg_id, basin_id)
-            feature_coll = get_upstream_catchment_linestrings_feature_coll(conn, subc_id, upstream_ids, basin_id=basin_id, reg_id=reg_id)
+            feature_coll = get_upstream_catchment_linestrings_feature_coll(conn, subc_id, upstream_ids, basin_id, reg_id)
 
             '''
             upstream_catchment_streamsegments = []

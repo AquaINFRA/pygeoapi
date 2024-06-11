@@ -161,7 +161,7 @@ class UpstreamPolygonGetter(BaseProcessor):
             
             print('Getting upstream catchment for subc_id: %s' % subc_id)
             upstream_catchment_subcids = get_upstream_catchment_ids(conn, subc_id, reg_id, basin_id)
-            feature_coll = get_upstream_catchment_polygons_feature_coll(conn, subc_id, upstream_catchment_subcids)        
+            feature_coll = get_upstream_catchment_polygons_feature_coll(conn, subc_id, upstream_catchment_subcids, basin_id, reg_id)
 
         except ValueError as e2: # TODO: Other exceptions? Database?
             error_message = str(e2)

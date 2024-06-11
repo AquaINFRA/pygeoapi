@@ -165,7 +165,7 @@ class StreamSegmentGetter(BaseProcessor):
             subc_id, basin_id = get_subc_id_basin_id(conn, lon, lat, reg_id)
             print('Getting strahler and stream segment for subc_id: %s' % subc_id)
             strahler, streamsegment_geojson_feature = get_strahler_and_stream_segment_feature(
-                conn, subc_id, basin_id=basin_id, reg_id=reg_id)
+                conn, subc_id, basin_id, reg_id)
 
         except ValueError as e2: # TODO: Other exceptions? Database?
             error_message = str(e2)

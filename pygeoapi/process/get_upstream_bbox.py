@@ -14,6 +14,7 @@ from pygeoapi.process.geofresh.py_query_db import get_reg_id
 from pygeoapi.process.geofresh.py_query_db import get_subc_id_basin_id
 from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_ids
 from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_bbox_feature
+from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_bbox_polygon
 
 
 
@@ -85,6 +86,15 @@ PROCESS_METADATA = {
             'maxOccurs': 1,
             'metadata': None,  # TODO how to use the Metadata item?
             'keywords': ['comment']
+        },
+        'get_type': {
+            'title': 'Get GeoJSON Feature',
+            'description': 'Can be "feature" or "polygon".',
+            'schema': {'type': 'string'},
+            'minOccurs': 0,
+            'maxOccurs': 1,
+            'metadata': None,  # TODO how to use the Metadata item?
+            'keywords': ['comment']
         }
     },
     'outputs': {
@@ -139,6 +149,7 @@ class UpstreamBboxGetter(BaseProcessor):
         lon = float(data.get('lon'))
         lat = float(data.get('lat'))
         comment = data.get('comment') # optional
+        get_type = data.get('get_type', 'polygon')
 
         with open('config.json') as myfile:
             config = json.load(myfile)
@@ -167,8 +178,14 @@ class UpstreamBboxGetter(BaseProcessor):
             reg_id = get_reg_id(conn, lon, lat)
             subc_id, basin_id = get_subc_id_basin_id(conn, lon, lat, reg_id)
             upstream_catchment_subcids = get_upstream_catchment_ids(conn, subc_id, reg_id, basin_id)
-            bbox_feature = get_upstream_catchment_bbox_feature(
-                conn, subc_id, upstream_catchment_subcids, basin_id=basin_id, reg_id=reg_id)
+
+            if get_type == 'polygon':
+                output = get_upstream_catchment_bbox_polygon(
+                    conn, subc_id, upstream_catchment_subcids)
+            elif get_type == 'feature':
+                output = get_upstream_catchment_bbox_feature(
+                    conn, subc_id, upstream_catchment_subcids,
+                    basin_id=basin_id, reg_id=reg_id, comment=comment)
 
         except ValueError as e2: # TODO: Other exceptions? Database?
             error_message = str(e2)
@@ -192,7 +209,7 @@ class UpstreamBboxGetter(BaseProcessor):
         ################
 
         if error_message is None:
-            return 'application/json', bbox_feature
+            return 'application/json', output
 
         else:
             outputs = {

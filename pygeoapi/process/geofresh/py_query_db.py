@@ -276,7 +276,7 @@ def get_subc_id_basin_id(conn, lon, lat, reg_id):
     return subc_id, basin_id 
 
 
-def get_upstream_catchment_bbox(conn, subc_id, upstream_ids):
+def get_upstream_catchment_bbox_polygon(conn, subc_id, upstream_ids):
     """
     Example result:
     {"type": "Polygon", "coordinates": [[[9.913333333333334, 54.68833333333333], [9.913333333333334, 54.70583333333333], [9.931666666666667, 54.70583333333333], [9.931666666666667, 54.68833333333333], [9.913333333333334, 54.68833333333333]]]}
@@ -289,8 +289,8 @@ def get_upstream_catchment_bbox(conn, subc_id, upstream_ids):
     return bbox_geojson
 
 
-def get_upstream_catchment_bbox_feature(conn, subc_id, upstream_ids, basin_id=None, reg_id=None):
-    bbox_geojson = get_upstream_catchment_bbox(conn, subc_id, upstream_ids)
+def get_upstream_catchment_bbox_feature(conn, subc_id, upstream_ids, **kwargs):
+    bbox_geojson = get_upstream_catchment_bbox_polygon(conn, subc_id, upstream_ids)
     feature = {
         "type": "Feature",
         "geometry": bbox_geojson,
@@ -301,16 +301,46 @@ def get_upstream_catchment_bbox_feature(conn, subc_id, upstream_ids, basin_id=No
         }
     }
 
-    if reg_id is not None:
-        feature['properties']['reg_id'] = reg_id
-
-    if basin_id is not None:
-        feature['properties']['basin_id'] = basin_id
+    if len(kwargs) > 0:
+        feature["properties"].update(kwargs)
 
     return feature
 
+def get_upstream_catchment_dissolved_feature_coll(conn, subc_id, upstream_ids, lonlat=None, **kwargs):
+    feature = get_upstream_catchment_dissolved_feature(conn, subc_id, upstream_ids, **kwargs)
+    point = {
+        "type": "Feature",
+        "geometry": {
+            "type": "Point",
+            "coordinates": [lonlat[0], lonlat[1]]
+        },
+        "properties": kwargs
+    }
+    feature_coll = {
+        "type": "FeatureCollection",
+        "features": [feature, point]
+    }
+    return feature_coll
 
-def get_upstream_catchment_dissolved_feature(conn, subc_id, upstream_ids, basin_id=None, reg_id=None):
+def get_upstream_catchment_dissolved_feature(conn, subc_id, upstream_ids, **kwargs):
+    geometry_polygon = get_upstream_catchment_dissolved_geometry(conn, subc_id, upstream_ids)
+    feature = {
+        "type": "Feature",
+        "geometry": geometry_polygon,
+        "properties": {
+            "description": "Polygon of the upstream catchment of subcatchment %s" % subc_id,
+            "num_upstream_catchments": len(upstream_ids),
+            "upstream_subc_ids": upstream_ids,
+            "downstream_subc_id": subc_id,
+        }
+    }
+
+    if len(kwargs) > 0:
+        feature["properties"].update(kwargs)
+
+    return feature
+
+def get_upstream_catchment_dissolved_geometry(conn, subc_id, upstream_ids):
     """
     Example result:
     {"type": "Polygon", "coordinates": [[[9.916666666666668, 54.7025], [9.913333333333334, 54.7025], [9.913333333333334, 54.705], [9.915000000000001, 54.705], [9.915833333333333, 54.705], [9.915833333333333, 54.70583333333333], [9.916666666666668, 54.70583333333333], [9.916666666666668, 54.705], [9.918333333333335, 54.705], [9.918333333333335, 54.704166666666666], [9.919166666666667, 54.704166666666666], [9.919166666666667, 54.70333333333333], [9.920833333333334, 54.70333333333333], [9.920833333333334, 54.704166666666666], [9.924166666666668, 54.704166666666666], [9.925, 54.704166666666666], [9.925, 54.705], [9.926666666666668, 54.705], [9.9275, 54.705], [9.9275, 54.70583333333333], [9.928333333333335, 54.70583333333333], [9.928333333333335, 54.70333333333333], [9.929166666666667, 54.70333333333333], [9.929166666666667, 54.7025], [9.931666666666667, 54.7025], [9.931666666666667, 54.7], [9.930833333333334, 54.7], [9.930833333333334, 54.69833333333333], [9.930000000000001, 54.69833333333333], [9.929166666666667, 54.69833333333333], [9.929166666666667, 54.6975], [9.929166666666667, 54.696666666666665], [9.928333333333335, 54.696666666666665], [9.928333333333335, 54.695], [9.9275, 54.695], [9.9275, 54.693333333333335], [9.928333333333335, 54.693333333333335], [9.928333333333335, 54.69166666666666], [9.9275, 54.69166666666666], [9.9275, 54.69083333333333], [9.926666666666668, 54.69083333333333], [9.926666666666668, 54.69], [9.925833333333333, 54.69], [9.925, 54.69], [9.925, 54.68833333333333], [9.922500000000001, 54.68833333333333], [9.922500000000001, 54.69083333333333], [9.921666666666667, 54.69083333333333], [9.921666666666667, 54.69166666666666], [9.919166666666667, 54.69166666666666], [9.919166666666667, 54.692499999999995], [9.918333333333335, 54.692499999999995], [9.918333333333335, 54.693333333333335], [9.9175, 54.693333333333335], [9.9175, 54.695], [9.918333333333335, 54.695], [9.918333333333335, 54.69833333333333], [9.9175, 54.69833333333333], [9.9175, 54.700833333333335], [9.9175, 54.70166666666667], [9.916666666666668, 54.70166666666667], [9.916666666666668, 54.7025]]]}
@@ -320,23 +350,8 @@ def get_upstream_catchment_dissolved_feature(conn, subc_id, upstream_ids, basin_
     result_row = get_only_row(execute_query(conn, query))
     dissolved_wkt = result_row[0]
     dissolved_geojson = geomet.wkt.loads(dissolved_wkt)
-    feature = {
-        "type": "Feature",
-        "geometry": dissolved_geojson,
-        "properties": {
-            "description": "Polygon of the upstream catchment of subcatchment %s" % subc_id,
-            "upstream_subc_ids": upstream_ids,
-            "downstream_subc_id": subc_id,
-        }
-    }
+    return dissolved_geojson
 
-    if reg_id is not None:
-        feature['properties']['reg_id'] = reg_id
-
-    if basin_id is not None:
-        feature['properties']['basin_id'] = basin_id
-
-    return feature
 
 
 def get_upstream_catchment_linestrings_feature_coll(conn, subc_id, upstream_ids, basin_id=None, reg_id=None):
@@ -744,7 +759,7 @@ if __name__ == "__main__":
     print(streamsegment_geojson)
 
     print("\n(6) upstream catchment bbox: ")
-    bbox_geojson = get_upstream_catchment_bbox(conn, subc_id, upstream_ids)
+    bbox_geojson = get_upstream_catchment_bbox_polygon(conn, subc_id, upstream_ids)
     bbox_geojson = get_upstream_catchment_bbox_feature(
         conn, subc_id, upstream_ids, basin_id=basin_id, reg_id=reg_id)
     print("BBOX\n%s" % bbox_geojson)

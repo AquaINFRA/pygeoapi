@@ -20,8 +20,13 @@ from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_bbox_fe
 
 
 '''
-
 curl -X POST "http://localhost:5000/processes/get-upstream-bbox/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Nordoestliche Schlei, bei Rabenholz\"}}"
+
+Mitten in der ELbe:
+53.537158298376575, 9.99475350366553
+curl -o tmp.tmp -X POST "http://localhost:5000/processes/get-upstream-bbox/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.994753, \"lat\": 53.537158, \"comment\":\"Nordoestliche Schlei, bei Rabenholz\"}}"
+curl --insecure 195.148.30.163/pygeoapi/ -u aqua:infra
+curl -X POST --insecure 195.148.30.163/pygeoapi/processes/get-upstream-bbox/execution -u aqua:infra -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Nordoestliche Schlei, bei Rabenholz\"}}"
 
 
 '''
@@ -187,13 +192,7 @@ class UpstreamBboxGetter(BaseProcessor):
         ################
 
         if error_message is None:
-            # TODO: Maybe leave out this addition wrapping thingy, and add the comment to the properties?
-            outputs = {
-                'feature': bbox_feature
-            }
-            if comment is not None:
-                outputs['comment'] = comment
-            return 'application/json', outputs
+            return 'application/json', bbox_feature
 
         else:
             outputs = {

@@ -20,7 +20,9 @@ import psycopg2
 
 curl -X POST "http://localhost:5000/processes/get-upstream-dissolved/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Nordoestliche Schlei, bei Rabenholz\"}}"
 
-
+Mitten in der ELbe:
+53.537158298376575, 9.99475350366553
+curl -X POST "http://localhost:5000/processes/get-upstream-dissolved/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.994753, \"lat\": 53.537158, \"comment\":\"Mitten inner Elbe bei Hamburg\"}}"
 '''
 
 #: Process metadata and description
@@ -184,13 +186,7 @@ class UpstreamDissolvedGetter(BaseProcessor):
         ################
 
         if error_message is None:
-            # TODO: Maybe leave out this addition wrapping thingy, and add the comment to the properties?
-            outputs = {
-                'feature': feature
-            }
-            if comment is not None:
-                outputs['comment'] = comment
-            return 'application/json', outputs
+            return 'application/json', feature
 
         else:
             outputs = {

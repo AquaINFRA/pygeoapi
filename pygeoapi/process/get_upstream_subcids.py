@@ -164,10 +164,7 @@ class UpstreamCatchmentIdGetter(BaseProcessor):
 
     def _execute(self, data):
 
-        ### USER INPUTS
-        #subc_id = int(data.get('subc_id'))
-        #basin_id = int(data.get('basin_id'))
-        #reg_id = int(data.get('reg_id'))
+        ## User inputs
         lon = float(data.get('lon'))
         lat = float(data.get('lat'))
         comment = data.get('comment') # optional
@@ -195,19 +192,20 @@ class UpstreamCatchmentIdGetter(BaseProcessor):
             error_message = str(e1)
 
         try:
-            print('Getting subcatchment for lon, lat: %s, %s' % (lon, lat))
-            reg_id = get_reg_id(conn, lon, lat)
-            subc_id, basin_id = get_subc_id_basin_id(conn, lon, lat, reg_id)
-            
-            print('Getting upstream catchment for subc_id: %s' % subc_id)
-            upstream_catchment_subcids = get_upstream_catchment_ids_incl_itself(conn, subc_id, basin_id, reg_id)
+            # Overall goal: Get the upstream subc_ids!
+            LOGGER.info('START: Getting upstream subc_ids for lon, lat: %s, %s' % (lon, lat))
+
+            # Get reg_id, basin_id, subc_id, upstream_catchment_subcids
+            subc_id, basin_id, reg_id = helpers.get_subc_id_basin_id_reg_id(conn, lon, lat, LOGGER)
+            upstream_catchment_subcids = helpers.get_upstream_catchment_ids(conn, subc_id, basin_id, reg_id, LOGGER)
+            LOGGER.debug('END: Received ids : %s' % upstream_catchment_subcids)
 
         # TODO move this to execute! and the database stuff!
         except ValueError as e2:
             error_message = str(e2)
             conn.close()
             raise ValueError(e2)
-        
+
         except psycopg2.Error as e3:
             err = f"{type(e3).__module__.removesuffix('.errors')}:{type(e3).__name__}: {str(e3).rstrip()}"
             LOGGER.error(err)

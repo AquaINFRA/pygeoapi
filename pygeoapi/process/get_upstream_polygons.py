@@ -8,10 +8,8 @@ import os
 import sys
 import traceback
 import json
+import pygeoapi.process.geofresh.upstream_helpers as helpers
 from pygeoapi.process.geofresh.py_query_db import get_connection_object
-from pygeoapi.process.geofresh.py_query_db import get_reg_id
-from pygeoapi.process.geofresh.py_query_db import get_subc_id_basin_id
-from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_ids_incl_itself
 from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_polygons_feature_coll
 import psycopg2
 
@@ -156,26 +154,17 @@ class UpstreamPolygonGetter(BaseProcessor):
             error_message = str(e1)
 
         try:
-            LOGGER.debug('Getting subcatchment for lon, lat: %s, %s' % (lon, lat))
+            # Overall goal: Get the upstream polygons (individual ones)
+            LOGGER.info('START: Getting upstream polygons (individual ones) for lon, lat: %s, %s' % (lon, lat))
 
-            # First step: reg_id
-            reg_id = get_reg_id(conn, lon, lat)
-            if reg_id is None: # Might be in the ocean!
-                error_message = "Caught an error that should have been caught before! (reg_id = None)!"
-                LOGGER.error(error_message)
-                raise ValueError(error_message)
+            # Get reg_id, basin_id, subc_id, upstream_catchment_subcids
+            subc_id, basin_id, reg_id = helpers.get_subc_id_basin_id_reg_id(conn, lon, lat, LOGGER)
+            upstream_catchment_subcids = helpers.get_upstream_catchment_ids(conn, subc_id, basin_id, reg_id, LOGGER)
 
-            # Second step: subc_id, basin_id
-            subc_id, basin_id = get_subc_id_basin_id(conn, lon, lat, reg_id)
-            if basin_id is None:
-                LOGGER.error('No basin_id id found for lon %s, lat %s !' % (lon, lat))
-            
-            # Third step: upstream catchment subc_ids:
-            LOGGER.debug('Getting upstream catchment for subc_id: %s' % subc_id)
-            upstream_catchment_subcids = get_upstream_catchment_ids_incl_itself(conn, subc_id, basin_id, reg_id)
-            LOGGER.debug('Getting upstream catchment polygons for subc_id: %s' % subc_id)
+            # Get geometry (feature collection only!)
+            LOGGER.debug('...Getting upstream catchment polygons for subc_id: %s' % subc_id)
             feature_coll = get_upstream_catchment_polygons_feature_coll(conn, subc_id, upstream_catchment_subcids, basin_id, reg_id)        
-            LOGGER.debug('Received feature collection: %s' % str(feature_coll)[0:50])
+            LOGGER.debug('END: Received feature collection: %s' % str(feature_coll)[0:50])
 
 
         # TODO move this to execute! and the database stuff!

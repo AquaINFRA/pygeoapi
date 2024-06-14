@@ -125,11 +125,11 @@ class SubcatchmentGetter(BaseProcessor):
         except Exception as e:
             LOGGER.error(e)
             print(traceback.format_exc())
+            raise ProcessorExecuteError(e)
 
     def _execute(self, data):
 
-        ### USER INPUTS
-
+        ## User inputs
         lon = float(data.get('lon'))
         lat = float(data.get('lat'))
         comment = data.get('comment') # optional
@@ -161,8 +161,11 @@ class SubcatchmentGetter(BaseProcessor):
             reg_id = get_reg_id(conn, lon, lat)
             subc_id, basin_id = get_subc_id_basin_id(conn, lon, lat, reg_id)
 
-        except ValueError as e2: # TODO: Other exceptions? Database?
+        # TODO move this to execute! and the database stuff!
+        except ValueError as e2:
             error_message = str(e2)
+            conn.close()
+            raise ValueError(e2)
 
         except psycopg2.Error as e3:
             err = f"{type(e3).__module__.removesuffix('.errors')}:{type(e3).__name__}: {str(e3).rstrip()}"
@@ -182,6 +185,7 @@ class SubcatchmentGetter(BaseProcessor):
         ################
 
         if error_message is None:
+            # Note: This is not GeoJSON (on purpose), as we did not look for geometry yet.
             outputs = {
                 'region_id': reg_id,
                 'subcatchment_id': subc_id,

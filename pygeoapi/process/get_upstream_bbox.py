@@ -12,9 +12,10 @@ import psycopg2
 from pygeoapi.process.geofresh.py_query_db import get_connection_object
 from pygeoapi.process.geofresh.py_query_db import get_reg_id
 from pygeoapi.process.geofresh.py_query_db import get_subc_id_basin_id
-from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_ids
+from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_ids_incl_itself
 from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_bbox_feature
 from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_bbox_polygon
+from pygeoapi.process.geofresh.py_query_db import get_strahler_and_stream_segment_feature
 
 
 
@@ -142,10 +143,11 @@ class UpstreamBboxGetter(BaseProcessor):
         except Exception as e:
             LOGGER.error(e)
             print(traceback.format_exc())
+            raise ProcessorExecuteError(e)
 
     def _execute(self, data):
 
-        ### USER INPUTS
+        ## User inputs
         lon = float(data.get('lon'))
         lat = float(data.get('lat'))
         comment = data.get('comment') # optional
@@ -174,10 +176,12 @@ class UpstreamBboxGetter(BaseProcessor):
             error_message = str(e1)
 
         try:
-            print('Getting subcatchment for lon, lat: %s, %s' % (lon, lat))
+            LOGGER.info('Getting upstream bbox for lon, lat: %s, %s in several steps' % (lon, lat))
+            LOGGER.debug('... First, getting reg_id, basin_id, subc_id for lon, lat: %s, %s' % (lon, lat))
             reg_id = get_reg_id(conn, lon, lat)
             subc_id, basin_id = get_subc_id_basin_id(conn, lon, lat, reg_id)
-            upstream_catchment_subcids = get_upstream_catchment_ids(conn, subc_id, reg_id, basin_id)
+            LOGGER.debug('... Now, getting upstream catchment ids...')
+            upstream_catchment_subcids = get_upstream_catchment_ids_incl_itself(conn, subc_id, basin_id, reg_id)
 
             if get_type == 'polygon':
                 output = get_upstream_catchment_bbox_polygon(
@@ -187,8 +191,22 @@ class UpstreamBboxGetter(BaseProcessor):
                     conn, subc_id, upstream_catchment_subcids,
                     basin_id=basin_id, reg_id=reg_id, comment=comment)
 
-        except ValueError as e2: # TODO: Other exceptions? Database?
+            LOGGER.debug('... Now, getting the bounding box...')
+            if get_type == 'polygon':
+                output = get_upstream_catchment_bbox_polygon(
+                    conn, subc_id, upstream_catchment_subcids, basin_id, reg_id)
+                LOGGER.debug('Output polygon: %s' % output)
+            elif get_type == 'feature':
+                output = get_upstream_catchment_bbox_feature(
+                    conn, subc_id, upstream_catchment_subcids,
+                    basin_id, reg_id, comment=comment)
+                LOGGER.debug('Output feature: %s' % output)
+
+        # TODO move this to execute! and the database stuff!
+        except ValueError as e2:
             error_message = str(e2)
+            conn.close()
+            raise ValueError(e2)
 
         except psycopg2.Error as e3:
             err = f"{type(e3).__module__.removesuffix('.errors')}:{type(e3).__name__}: {str(e3).rstrip()}"

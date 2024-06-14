@@ -8,12 +8,8 @@ import os
 import sys
 import traceback
 import json
+import pygeoapi.process.geofresh.upstream_helpers as helpers
 from pygeoapi.process.geofresh.py_query_db import get_connection_object
-from pygeoapi.process.geofresh.py_query_db import get_reg_id
-from pygeoapi.process.geofresh.py_query_db import get_subc_id_basin_id
-from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_ids_incl_itself
-from pygeoapi.process.geofresh.py_query_db import get_strahler_and_stream_segment_linestring
-from pygeoapi.process.geofresh.py_query_db import get_strahler_and_stream_segment_feature
 from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_linestrings_feature_coll
 
 
@@ -160,27 +156,19 @@ class UpstreamStreamSegmentGetter(BaseProcessor):
             error_message = str(e1)
 
         try:
-            ### Get the local subcatchment and its stream segment in three steps:
+            # Overall goal: Get the upstream stream segments
             LOGGER.info('Getting upstream line segments for lon, lat: %s, %s' % (lon, lat))
 
-            # First step: reg_id, basin_id, subc_id
-            LOGGER.info('... Getting subcatchment for lon, lat: %s, %s' % (lon, lat))
-            reg_id = get_reg_id(conn, lon, lat)
-            subc_id, basin_id = get_subc_id_basin_id(conn, lon, lat, reg_id)
-            LOGGER.debug('... Subcatchment has id %s and is in basin %s.' % (subc_id, basin_id))
-            
-            print('Getting upstream catchment for subc_id: %s' % subc_id)
-            strahler, streamsegment_geojson_feature = get_strahler_and_stream_segment_feature(conn, subc_id, basin_id, reg_id)
+            # Get reg_id, basin_id, subc_id, upstream_catchment_subcids
+            subc_id, basin_id, reg_id = helpers.get_subc_id_basin_id_reg_id(conn, lon, lat, LOGGER)
+            upstream_catchment_subcids = helpers.get_upstream_catchment_ids(conn, subc_id, basin_id, reg_id, LOGGER)
 
-
-            ### Get the upstream catchment in two steps:
-            LOGGER.debug('... Now asking for upstream ids...')
-            upstream_ids = get_upstream_catchment_ids_incl_itself(conn, subc_id, basin_id, reg_id)
-            LOGGER.debug('...Now asking for upstream line segments, from ids...')
-            # TODO: Does this contain the line itself?
-            # The feature collection contains the strahler order for each feature (each upstream stream segment)
+            # Get geometry (feature coll only):
+            LOGGER.debug('... Getting upstream catchment line segments for subc_id: %s' % subc_id)
+            # Note: The feature collection contains the strahler order for each feature (each stream segment)
             feature_coll = get_upstream_catchment_linestrings_feature_coll(conn, subc_id, upstream_ids, basin_id, reg_id)
-            LOGGER.debug('...Got a feature collection: %s' % str(feature_coll)[0:50])
+            LOGGER.debug('END: Received feature collection: %s' % str(feature_coll)[0:50])
+
 
         # TODO move this to execute! and the database stuff!
         except ValueError as e2:

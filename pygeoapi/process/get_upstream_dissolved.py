@@ -9,10 +9,8 @@ import sys
 import traceback
 import json
 import psycopg2
+import pygeoapi.process.geofresh.upstream_helpers as helpers
 from pygeoapi.process.geofresh.py_query_db import get_connection_object
-from pygeoapi.process.geofresh.py_query_db import get_reg_id
-from pygeoapi.process.geofresh.py_query_db import get_subc_id_basin_id
-from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_ids_incl_itself
 from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_dissolved_feature
 from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_dissolved_geometry
 from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_dissolved_feature_coll
@@ -172,37 +170,33 @@ class UpstreamDissolvedGetter(BaseProcessor):
             error_message = str(e1)
 
         try:
-            LOGGER.debug('Getting subcatchment for lon, lat: %s, %s' % (lon, lat))
+            # Overall goal: Get the upstream polygon (as one dissolved)!
+            LOGGER.info('START: Getting upstream dissolved polygon for lon, lat: %s, %s' % (lon, lat))
 
-            # First step: reg_id
-            reg_id = get_reg_id(conn, lon, lat)
-            if reg_id is None: # Might be in the ocean!
-                error_message = "Caught an error that should have been caught before! (reg_id = None)!"
-                LOGGER.error(error_message)
-                raise ValueError(error_message)
+            # Get reg_id, basin_id, subc_id, upstream_catchment_subcids
+            subc_id, basin_id, reg_id = helpers.get_subc_id_basin_id_reg_id(conn, lon, lat, LOGGER)
+            upstream_catchment_subcids = helpers.get_upstream_catchment_ids(conn, subc_id, basin_id, reg_id, LOGGER)
 
-            # Second step: subc_id, basin_id
-            subc_id, basin_id = get_subc_id_basin_id(conn, lon, lat, reg_id)
-            if basin_id is None:
-                LOGGER.error('No basin_id id found for lon %s, lat %s !' % (lon, lat))
-
-            # Third step: upstream catchment subc_ids:
-            upstream_catchment_subcids = get_upstream_catchment_ids_incl_itself(conn, subc_id, basin_id, reg_id)
-
-            output = {}
+            # Get geometry (three types)
+            LOGGER.debug('...Getting upstream catchment dissolved polygon for subc_id: %s' % subc_id)
+            geojson_object = {}
             if get_type == 'polygon':
-                output = get_upstream_catchment_dissolved_geometry(
+                geojson_object = get_upstream_catchment_dissolved_geometry(
                     conn, subc_id, upstream_catchment_subcids)
-            
+                LOGGER.debug('END: Received simple polygon : %s' % str(geojson_object)[0:50])
+
             elif get_type == 'feature':
-                output = get_upstream_catchment_dissolved_feature(
+                geojson_object = get_upstream_catchment_dissolved_feature(
                     conn, subc_id, upstream_catchment_subcids,
                     basin_id=basin_id, reg_id=reg_id, comment=comment)
+                LOGGER.debug('END: Received feature : %s' % str(geojson_object)[0:50])
            
             elif get_type == 'feature_collection':
-                output = get_upstream_catchment_dissolved_feature_coll(
+                geojson_object = get_upstream_catchment_dissolved_feature_coll(
                     conn, subc_id, upstream_catchment_subcids, lonlat=(lon, lat),
                     basin_id=basin_id, reg_id=reg_id, comment=comment)
+                LOGGER.debug('END: Received feature collection: %s' % str(geojson_object)[0:50])
+
                 
 
         # TODO move this to execute! and the database stuff!
@@ -230,6 +224,7 @@ class UpstreamDissolvedGetter(BaseProcessor):
         ################
 
         if error_message is None:
+            output = geojson_object
             return 'application/json', output
 
         else:

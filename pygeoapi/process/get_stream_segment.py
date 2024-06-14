@@ -182,9 +182,9 @@ class StreamSegmentGetter(BaseProcessor):
             error_message = 'Database error. '
             #if conn: conn.rollback()
 
-        print('Closing connection...')
+        LOGGER.debug('Closing connection...')
         conn.close()
-        print('Done')
+        LOGGER.debug('Closing connection... Done.')
 
 
         ################

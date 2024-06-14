@@ -20,7 +20,7 @@ def get_subc_id_basin_id_reg_id(conn, lon, lat, LOGGER):
     if basin_id is None:
         LOGGER.error('No basin_id id found for lon %s, lat %s !' % (lon, lat))
     
-    LOGGER.debug('... Subcatchment has subc_id %s, basin_id %s, reg_id.' % (subc_id, basin_id, reg_id))
+    LOGGER.debug('... Subcatchment has subc_id %s, basin_id %s, reg_id %s.' % (subc_id, basin_id, reg_id))
 
     return subc_id, basin_id, reg_id
 

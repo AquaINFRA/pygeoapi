@@ -182,7 +182,7 @@ class UpstreamDissolvedGetter(BaseProcessor):
             geojson_object = {}
             if get_type == 'polygon':
                 geojson_object = get_upstream_catchment_dissolved_geometry(
-                    conn, subc_id, upstream_catchment_subcids)
+                    conn, subc_id, upstream_catchment_subcids, basin_id, reg_id)
                 LOGGER.debug('END: Received simple polygon : %s' % str(geojson_object)[0:50])
 
             elif get_type == 'feature':

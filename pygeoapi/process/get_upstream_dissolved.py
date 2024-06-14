@@ -12,7 +12,7 @@ import psycopg2
 from pygeoapi.process.geofresh.py_query_db import get_connection_object
 from pygeoapi.process.geofresh.py_query_db import get_reg_id
 from pygeoapi.process.geofresh.py_query_db import get_subc_id_basin_id
-from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_ids
+from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_ids_incl_itself
 from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_dissolved_feature
 from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_dissolved_geometry
 from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_dissolved_feature_coll
@@ -139,10 +139,11 @@ class UpstreamDissolvedGetter(BaseProcessor):
         except Exception as e:
             LOGGER.error(e)
             print(traceback.format_exc())
+            raise ProcessorExecuteError(e)
 
     def _execute(self, data):
 
-        ### USER INPUTS
+        ## User inputs
         lon = float(data.get('lon'))
         lat = float(data.get('lat'))
         comment = data.get('comment') # optional
@@ -171,10 +172,22 @@ class UpstreamDissolvedGetter(BaseProcessor):
             error_message = str(e1)
 
         try:
-            print('Getting subcatchment for lon, lat: %s, %s' % (lon, lat))
+            LOGGER.debug('Getting subcatchment for lon, lat: %s, %s' % (lon, lat))
+
+            # First step: reg_id
             reg_id = get_reg_id(conn, lon, lat)
+            if reg_id is None: # Might be in the ocean!
+                error_message = "Caught an error that should have been caught before! (reg_id = None)!"
+                LOGGER.error(error_message)
+                raise ValueError(error_message)
+
+            # Second step: subc_id, basin_id
             subc_id, basin_id = get_subc_id_basin_id(conn, lon, lat, reg_id)
-            upstream_catchment_subcids = get_upstream_catchment_ids(conn, subc_id, reg_id, basin_id)
+            if basin_id is None:
+                LOGGER.error('No basin_id id found for lon %s, lat %s !' % (lon, lat))
+
+            # Third step: upstream catchment subc_ids:
+            upstream_catchment_subcids = get_upstream_catchment_ids_incl_itself(conn, subc_id, basin_id, reg_id)
 
             output = {}
             if get_type == 'polygon':
@@ -192,8 +205,11 @@ class UpstreamDissolvedGetter(BaseProcessor):
                     basin_id=basin_id, reg_id=reg_id, comment=comment)
                 
 
-        except ValueError as e2: # TODO: Other exceptions? Database?
+        # TODO move this to execute! and the database stuff!
+        except ValueError as e2:
             error_message = str(e2)
+            conn.close()
+            raise ValueError(e2)
 
         except psycopg2.Error as e3:
             err = f"{type(e3).__module__.removesuffix('.errors')}:{type(e3).__name__}: {str(e3).rstrip()}"

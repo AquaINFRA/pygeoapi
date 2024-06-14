@@ -128,11 +128,11 @@ class StreamSegmentGetter(BaseProcessor):
         except Exception as e:
             LOGGER.error(e)
             print(traceback.format_exc())
+            raise ProcessorExecuteError(e)
 
     def _execute(self, data):
 
-        ### USER INPUTS
-
+        ## User inputs
         lon = float(data.get('lon'))
         lat = float(data.get('lat'))
         comment = data.get('comment') # optional
@@ -160,15 +160,19 @@ class StreamSegmentGetter(BaseProcessor):
             error_message = str(e1)
 
         try:
-            print('Getting subcatchment for lon, lat: %s, %s' % (lon, lat))
+            LOGGER.info('Retrieving stream segment for lon, lat: %s, %s' % (lon, lat))
+            LOGGER.debug('First, getting subcatchment for lon, lat: %s, %s' % (lon, lat))
             reg_id = get_reg_id(conn, lon, lat)
             subc_id, basin_id = get_subc_id_basin_id(conn, lon, lat, reg_id)
-            print('Getting strahler and stream segment for subc_id: %s' % subc_id)
-            strahler, streamsegment_geojson_feature = get_strahler_and_stream_segment_feature(
+            LOGGER.debug('Now, getting stream segment (incl. strahler order) for subc_id: %s' % subc_id)
+            streamsegment_feature = get_strahler_and_stream_segment_feature(
                 conn, subc_id, basin_id, reg_id)
 
-        except ValueError as e2: # TODO: Other exceptions? Database?
+        # TODO move this to execute! and the database stuff!
+        except ValueError as e2:
             error_message = str(e2)
+            conn.close()
+            raise ValueError(e2)
 
         except psycopg2.Error as e3:
             err = f"{type(e3).__module__.removesuffix('.errors')}:{type(e3).__name__}: {str(e3).rstrip()}"
@@ -188,12 +192,9 @@ class StreamSegmentGetter(BaseProcessor):
         ################
 
         if error_message is None:
-            outputs = {
-                'stream_segment': streamsegment_geojson_feature,
-                'strahler_order': strahler
-            }
             if comment is not None:
-                outputs['comment'] = comment
+                streamsegment_feature['properties']['comment'] = comment
+            outputs = streamsegment_feature
             return 'application/json', outputs
 
         else:

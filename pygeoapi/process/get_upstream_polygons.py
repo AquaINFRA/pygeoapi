@@ -11,7 +11,7 @@ import json
 from pygeoapi.process.geofresh.py_query_db import get_connection_object
 from pygeoapi.process.geofresh.py_query_db import get_reg_id
 from pygeoapi.process.geofresh.py_query_db import get_subc_id_basin_id
-from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_ids
+from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_ids_incl_itself
 from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_polygons_feature_coll
 import psycopg2
 
@@ -124,10 +124,11 @@ class UpstreamPolygonGetter(BaseProcessor):
         except Exception as e:
             LOGGER.error(e)
             print(traceback.format_exc())
+            raise ProcessorExecuteError(e)
 
     def _execute(self, data):
 
-        ### USER INPUTS
+        ## User inputs
         lon = float(data.get('lon'))
         lat = float(data.get('lat'))
         comment = data.get('comment') # optional
@@ -155,16 +156,33 @@ class UpstreamPolygonGetter(BaseProcessor):
             error_message = str(e1)
 
         try:
-            print('Getting subcatchment for lon, lat: %s, %s' % (lon, lat))
-            reg_id = get_reg_id(conn, lon, lat)
-            subc_id, basin_id = get_subc_id_basin_id(conn, lon, lat, reg_id)
-            
-            print('Getting upstream catchment for subc_id: %s' % subc_id)
-            upstream_catchment_subcids = get_upstream_catchment_ids(conn, subc_id, reg_id, basin_id)
-            feature_coll = get_upstream_catchment_polygons_feature_coll(conn, subc_id, upstream_catchment_subcids, basin_id, reg_id)
+            LOGGER.debug('Getting subcatchment for lon, lat: %s, %s' % (lon, lat))
 
-        except ValueError as e2: # TODO: Other exceptions? Database?
+            # First step: reg_id
+            reg_id = get_reg_id(conn, lon, lat)
+            if reg_id is None: # Might be in the ocean!
+                error_message = "Caught an error that should have been caught before! (reg_id = None)!"
+                LOGGER.error(error_message)
+                raise ValueError(error_message)
+
+            # Second step: subc_id, basin_id
+            subc_id, basin_id = get_subc_id_basin_id(conn, lon, lat, reg_id)
+            if basin_id is None:
+                LOGGER.error('No basin_id id found for lon %s, lat %s !' % (lon, lat))
+            
+            # Third step: upstream catchment subc_ids:
+            LOGGER.debug('Getting upstream catchment for subc_id: %s' % subc_id)
+            upstream_catchment_subcids = get_upstream_catchment_ids_incl_itself(conn, subc_id, basin_id, reg_id)
+            LOGGER.debug('Getting upstream catchment polygons for subc_id: %s' % subc_id)
+            feature_coll = get_upstream_catchment_polygons_feature_coll(conn, subc_id, upstream_catchment_subcids, basin_id, reg_id)        
+            LOGGER.debug('Received feature collection: %s' % str(feature_coll)[0:50])
+
+
+        # TODO move this to execute! and the database stuff!
+        except ValueError as e2:
             error_message = str(e2)
+            conn.close()
+            raise ValueError(e2)
 
         except psycopg2.Error as e3:
             err = f"{type(e3).__module__.removesuffix('.errors')}:{type(e3).__name__}: {str(e3).rstrip()}"
@@ -184,14 +202,7 @@ class UpstreamPolygonGetter(BaseProcessor):
         ################
 
         if error_message is None:
-            outputs = {
-                'subcatchment': subc_id,
-                'feature_coll': feature_coll,
-                #'region_id': reg_id,
-                #'basin_id': basin_id
-            }
-            if comment is not None:
-                outputs['comment'] = comment
+            outputs = feature_coll
             return 'application/json', outputs
 
         else:

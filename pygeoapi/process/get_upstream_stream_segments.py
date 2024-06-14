@@ -11,8 +11,8 @@ import json
 from pygeoapi.process.geofresh.py_query_db import get_connection_object
 from pygeoapi.process.geofresh.py_query_db import get_reg_id
 from pygeoapi.process.geofresh.py_query_db import get_subc_id_basin_id
-from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_ids
-from pygeoapi.process.geofresh.py_query_db import get_strahler_and_stream_segment
+from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_ids_incl_itself
+from pygeoapi.process.geofresh.py_query_db import get_strahler_and_stream_segment_linestring
 from pygeoapi.process.geofresh.py_query_db import get_strahler_and_stream_segment_feature
 from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_linestrings_feature_coll
 
@@ -128,10 +128,11 @@ class UpstreamStreamSegmentGetter(BaseProcessor):
         except Exception as e:
             LOGGER.error(e)
             print(traceback.format_exc())
+            raise ProcessorExecuteError(e)
 
     def _execute(self, data):
 
-        ### USER INPUTS
+        ## User inputs
         lon = float(data.get('lon'))
         lat = float(data.get('lat'))
         comment = data.get('comment') # optional
@@ -159,50 +160,33 @@ class UpstreamStreamSegmentGetter(BaseProcessor):
             error_message = str(e1)
 
         try:
-            print('Getting subcatchment for lon, lat: %s, %s' % (lon, lat))
+            ### Get the local subcatchment and its stream segment in three steps:
+            LOGGER.info('Getting upstream line segments for lon, lat: %s, %s' % (lon, lat))
+
+            # First step: reg_id, basin_id, subc_id
+            LOGGER.info('... Getting subcatchment for lon, lat: %s, %s' % (lon, lat))
             reg_id = get_reg_id(conn, lon, lat)
             subc_id, basin_id = get_subc_id_basin_id(conn, lon, lat, reg_id)
+            LOGGER.debug('... Subcatchment has id %s and is in basin %s.' % (subc_id, basin_id))
             
             print('Getting upstream catchment for subc_id: %s' % subc_id)
             strahler, streamsegment_geojson_feature = get_strahler_and_stream_segment_feature(conn, subc_id, basin_id, reg_id)
 
-            ### Now upstream!
-            upstream_ids = get_upstream_catchment_ids(conn, subc_id, reg_id, basin_id)
+
+            ### Get the upstream catchment in two steps:
+            LOGGER.debug('... Now asking for upstream ids...')
+            upstream_ids = get_upstream_catchment_ids_incl_itself(conn, subc_id, basin_id, reg_id)
+            LOGGER.debug('...Now asking for upstream line segments, from ids...')
+            # TODO: Does this contain the line itself?
+            # The feature collection contains the strahler order for each feature (each upstream stream segment)
             feature_coll = get_upstream_catchment_linestrings_feature_coll(conn, subc_id, upstream_ids, basin_id, reg_id)
+            LOGGER.debug('...Got a feature collection: %s' % str(feature_coll)[0:50])
 
-            '''
-            upstream_catchment_streamsegments = []
-            upstream_catchment_multi_coordinates = []
-
-            for upstr_subc_id in upstream_catchment_subcids:
-                print('Getting strahler and stream segment for subc_id: %s' % upstr_subc_id)
-                strahler_i, streamsegment_geojson_i = get_strahler_and_stream_segment(conn, upstr_subc_id)
-                #upstream_catchment_streamsegments.append(streamsegment_geojson_i)
-                #print('MY COORDINATES: %s' % streamsegment_geojson_i['coordinates'])
-                upstream_catchment_multi_coordinates.append(streamsegment_geojson_i['coordinates'])
-
-            # Now make multilinestring from list of linestrings:
-            upstream_geojson_multilinestring = {
-                "type": "MultiLineString",
-                "coordinates": upstream_catchment_multi_coordinates
-            }
-            upstream_geojson_feature = {
-                "type": "Feature",
-                "geometry": upstream_geojson_multilinestring,
-                "properties": {
-                    "upstream_of_subc_id": subc_id,
-                    "subc_ids": upstream_catchment_subcids
-                }
-            }
-
-            feature_coll = {
-                "type": "FeatureCollection",
-                "features": [streamsegment_geojson_feature, upstream_geojson_feature]
-            }
-            '''
-
-        except ValueError as e2: # TODO: Other exceptions? Database?
+        # TODO move this to execute! and the database stuff!
+        except ValueError as e2:
             error_message = str(e2)
+            conn.close()
+            raise ValueError(e2)
 
         except psycopg2.Error as e3:
             err = f"{type(e3).__module__.removesuffix('.errors')}:{type(e3).__name__}: {str(e3).rstrip()}"
@@ -222,17 +206,7 @@ class UpstreamStreamSegmentGetter(BaseProcessor):
         ################
 
         if error_message is None:
-            outputs = {
-                'subcatchment': subc_id,
-                #'upstream_catchment_ids': upstream_catchment_subcids,
-                #'stream_segment': streamsegment_geojson_feature,
-                #'upstream_catchment_stream_segments': upstream_geojson_feature,
-                'feature_coll': feature_coll,
-                #'region_id': reg_id,
-                #'basin_id': basin_id
-            }
-            if comment is not None:
-                outputs['comment'] = comment
+            outputs = feature_coll
             return 'application/json', outputs
 
         else:

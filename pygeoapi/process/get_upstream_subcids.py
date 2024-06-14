@@ -11,7 +11,7 @@ import json
 from pygeoapi.process.geofresh.py_query_db import get_connection_object
 from pygeoapi.process.geofresh.py_query_db import get_reg_id
 from pygeoapi.process.geofresh.py_query_db import get_subc_id_basin_id
-from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_ids
+from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_ids_incl_itself
 import psycopg2
 
 '''
@@ -160,6 +160,7 @@ class UpstreamCatchmentIdGetter(BaseProcessor):
         except Exception as e:
             LOGGER.error(e)
             print(traceback.format_exc())
+            raise ProcessorExecuteError(e)
 
     def _execute(self, data):
 
@@ -199,11 +200,14 @@ class UpstreamCatchmentIdGetter(BaseProcessor):
             subc_id, basin_id = get_subc_id_basin_id(conn, lon, lat, reg_id)
             
             print('Getting upstream catchment for subc_id: %s' % subc_id)
-            upstream_catchment_subcids = get_upstream_catchment_ids(conn, subc_id, reg_id, basin_id)
+            upstream_catchment_subcids = get_upstream_catchment_ids_incl_itself(conn, subc_id, basin_id, reg_id)
 
-        except ValueError as e2: # TODO: Other exceptions? Database?
+        # TODO move this to execute! and the database stuff!
+        except ValueError as e2:
             error_message = str(e2)
-
+            conn.close()
+            raise ValueError(e2)
+        
         except psycopg2.Error as e3:
             err = f"{type(e3).__module__.removesuffix('.errors')}:{type(e3).__name__}: {str(e3).rstrip()}"
             LOGGER.error(err)

@@ -8,7 +8,7 @@ import os
 import sys
 import traceback
 import json
-import pygeoapi.process.geofresh.upstream_helpers as helpers
+import pygeoapi.process.upstream_helpers as helpers
 from pygeoapi.process.geofresh.py_query_db import get_connection_object
 from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_polygons_feature_coll
 import psycopg2

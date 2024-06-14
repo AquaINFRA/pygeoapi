@@ -166,7 +166,7 @@ class UpstreamStreamSegmentGetter(BaseProcessor):
             # Get geometry (feature coll only):
             LOGGER.debug('... Getting upstream catchment line segments for subc_id: %s' % subc_id)
             # Note: The feature collection contains the strahler order for each feature (each stream segment)
-            feature_coll = get_upstream_catchment_linestrings_feature_coll(conn, subc_id, upstream_ids, basin_id, reg_id)
+            feature_coll = get_upstream_catchment_linestrings_feature_coll(conn, subc_id, upstream_catchment_subcids, basin_id, reg_id)
             LOGGER.debug('END: Received feature collection: %s' % str(feature_coll)[0:50])
 
 

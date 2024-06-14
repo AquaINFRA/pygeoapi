@@ -8,10 +8,8 @@ import os
 import sys
 import traceback
 import json
+import pygeoapi.process.geofresh.upstream_helpers as helpers
 from pygeoapi.process.geofresh.py_query_db import get_connection_object
-from pygeoapi.process.geofresh.py_query_db import get_reg_id
-from pygeoapi.process.geofresh.py_query_db import get_subc_id_basin_id
-from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_ids_incl_itself
 import psycopg2
 
 '''

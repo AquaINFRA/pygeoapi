@@ -50,8 +50,8 @@ def _get_query_subc_id_basin_id(lon, lat, reg_id):
     sub.basin_id
     FROM sub_catchments sub
     WHERE st_intersects(ST_SetSRID(ST_MakePoint({longitude}, {latitude}),4326), sub.geom)
-    AND sub.reg_id = {poi_reg_id}
-    """.format(longitude = lon, latitude = lat, poi_reg_id = reg_id)
+    AND sub.reg_id = {reg_id}
+    """.format(longitude = lon, latitude = lat, reg_id = reg_id)
     query = query.replace("\n", " ")
     return query 
 
@@ -126,7 +126,7 @@ def _get_query_upstream(subc_id, reg_id, basin_id):
     """
 
     query = '''
-    SELECT {poi_subc_id}, array_agg(node)::bigint[] AS nodes 
+    SELECT {subc_id}, array_agg(node)::bigint[] AS nodes 
     FROM pgr_connectedComponents('
         SELECT
         basin_id,
@@ -135,11 +135,11 @@ def _get_query_upstream(subc_id, reg_id, basin_id):
         target,
         length AS cost
         FROM hydro.stream_segments
-        WHERE reg_id = {poi_reg_id}
-        AND basin_id = {poi_basin_id}
-        AND subc_id != {poi_subc_id}
+        WHERE reg_id = {reg_id}
+        AND basin_id = {basin_id}
+        AND subc_id != {subc_id}
     ') WHERE component > 0 GROUP BY component;
-    '''.format(poi_subc_id = subc_id, poi_reg_id = reg_id, poi_basin_id = basin_id)
+    '''.format(subc_id = subc_id, reg_id = reg_id, basin_id = basin_id)
 
     query = query.replace("\n", " ")
     query = query.replace("    ", "")
@@ -170,13 +170,13 @@ def _get_query_upstream_dissolved(upstream_ids, basin_id, reg_id):
     """.format(ids = ids, basin_id = basin_id, reg_id = reg_id)
     return query
 
-def _get_query_upstream_linestrings(upstream_ids, basin_id, reg_id):
+def _get_query_linestrings_for_subc_ids(subc_ids, basin_id, reg_id):
     '''
     Example query:
     SELECT  seg.subc_id, seg.strahler, ST_AsText(seg.geom)
     FROM hydro.stream_segments seg WHERE seg.subc_id IN (506250459, 506251015, 506251126, 506251712);
     '''
-    ids = ", ".join([str(elem) for elem in upstream_ids])
+    ids = ", ".join([str(elem) for elem in subc_ids])
     # e.g. 506250459, 506251015, 506251126, 506251712
 
     query = '''
@@ -363,11 +363,10 @@ def get_upstream_catchment_bbox_feature(conn, subc_id, upstream_ids, basin_id, r
     LOGGER.debug('LEAVING: %s for subc_id %s --> Feature/Polygon (bbox)' % (name, subc_id))
     return feature
 
-def get_upstream_catchment_dissolved_feature_coll(conn, subc_id, upstream_ids, basin_id, reg_id, lonlat=None, **kwargs):
+
+def get_upstream_catchment_dissolved_feature_coll(conn, subc_id, upstream_ids, lonlat, basin_id, reg_id, **kwargs):
     name = "get_upstream_catchment_dissolved_feature_coll"
     LOGGER.debug('ENTERING: %s for subc_id %s' % (name, subc_id))
-
-    # Getting information from other function:
     feature_dissolved_upstream = get_upstream_catchment_dissolved_feature(conn, subc_id, upstream_ids, basin_id, reg_id, **kwargs)
     # This feature's geometry can be None/null, which is the valid value for unlocated Features in GeoJSON spec:
     # https://datatracker.ietf.org/doc/html/rfc7946#section-3.2
@@ -381,13 +380,16 @@ def get_upstream_catchment_dissolved_feature_coll(conn, subc_id, upstream_ids, b
         },
         "properties": kwargs
     }
+
     # Assembling GeoJSON Feature Collection (point and dissolved upstream catchment):
     feature_coll = {
         "type": "FeatureCollection",
         "features": [feature_dissolved_upstream, feature_point]
     }
+
     LOGGER.debug('LEAVING: %s for subc_id %s --> Feature collection' % (name, subc_id))
     return feature_coll
+
 
 def get_upstream_catchment_dissolved_feature(conn, subc_id, upstream_ids, basin_id, reg_id, **kwargs):
     name = "get_upstream_catchment_dissolved_feature"
@@ -411,7 +413,8 @@ def get_upstream_catchment_dissolved_feature(conn, subc_id, upstream_ids, basin_
         feature_dissolved_upstream["properties"].update(kwargs)
 
     LOGGER.debug('LEAVING: %s for subc_id %s --> Feature (dissolved)' % (name, subc_id))
-    return feature_dissolved_upsteram
+    return feature_dissolved_upstream
+
 
 def get_upstream_catchment_dissolved_geometry(conn, subc_id, upstream_ids, basin_id, reg_id):
     """
@@ -444,8 +447,7 @@ def get_upstream_catchment_dissolved_geometry(conn, subc_id, upstream_ids, basin
     return dissolved_geojson
 
 
-
-def get_upstream_catchment_linestrings_feature_coll(conn, subc_id, upstream_ids, basin_id, reg_id):
+def get_upstream_catchment_linestrings_feature_coll(conn, subc_id, upstream_ids, basin_id, reg_id, **kwargs):
     name = "get_upstream_catchment_linestrings_feature_coll"
     LOGGER.debug('ENTERING: %s for subcid %s' % (name, subc_id))
     
@@ -463,13 +465,21 @@ def get_upstream_catchment_linestrings_feature_coll(conn, subc_id, upstream_ids,
 
     if len(upstream_ids) == 1 and subc_id == upstream_ids[0]:
         LOGGER.debug('Upstream catchments equals subcatchment!')
-    
-    # Getting info from database:
-    query = _get_query_upstream_linestrings(upstream_ids, basin_id, reg_id)
-    num_rows = len(upstream_ids)
+
+    kwargs.update({"part_of_upstream_catchment_of": subc_id})
+    feature_coll = get_linestrings_for_subc_ids_feature_coll(conn, upstream_ids, basin_id, reg_id, **kwargs)
+    LOGGER.debug('LEAVING: %s for subcid %s' % (name, subc_id))
+    return feature_coll
+
+
+def get_linestrings_for_subc_ids_feature_coll(conn, subc_ids, basin_id, reg_id, **kwargs):
+    name = "get_linestrings_for_subc_ids_feature_coll"
+    LOGGER.debug('ENTERING: %s for %s subc_ids...' % (name, len(subc_ids)))
+    query = _get_query_linestrings_for_subc_ids(subc_ids, basin_id, reg_id)
+    num_rows = len(subc_ids)
     result_rows = get_rows(execute_query(conn, query), num_rows, name)
 
-    # Assembling GeoJSON from that:
+    # Create GeoJSON feature from each linestring:
     features_geojson = []
     for row in result_rows:
         feature = {
@@ -479,23 +489,27 @@ def get_upstream_catchment_linestrings_feature_coll(conn, subc_id, upstream_ids,
                 "subcatchment_id": row[0],
                 "basin_id": basin_id,
                 "reg_id": reg_id,
-                "strahler_order": row[1],
-                "part_of_upstream_catchment_of": subc_id,
+                "strahler_order": row[1]
             }
 
         }
 
+        if len(kwargs) > 0:
+            feature["properties"].update(kwargs)
+
         features_geojson.append(feature)
 
+    # Create GeoJSON Feature Collection from all features:
     feature_coll = {
         "type": "FeatureCollection",
         "features": features_geojson
     }
 
-    LOGGER.debug('LEAVING: %s for subcid %s' % (name, subc_id))
+    LOGGER.debug('LEAVING: %s for %s subc_ids...' % (name, len(subc_ids)))
     return feature_coll
 
-def get_polygon_for_subcid_feature(conn, subc_id, basin_id, reg_id):
+
+def get_polygon_for_subcid_feature(conn, subc_id, basin_id, reg_id, **kwargs):
     name = "get_polygon_for_subcid_feature"
     LOGGER.debug('ENTERING: %s for subc_id %s' % (name, subc_id))
     
@@ -523,11 +537,14 @@ def get_polygon_for_subcid_feature(conn, subc_id, basin_id, reg_id):
             "subcatchment_id": subc_id
         }
     }
+    if len(kwargs) > 0:
+        feature_subcatchment["properties"].update(kwargs)
+    
     LOGGER.debug('LEAVING: %s: Returning a single polygon feature: %s' % (name, str(feature_subcatchment)[0:50]))
     return feature_subcatchment
 
 
-def get_upstream_catchment_polygons_feature_coll(conn, subc_id, upstream_ids, basin_id, reg_id):
+def get_upstream_catchment_polygons_feature_coll(conn, subc_id, upstream_ids, basin_id, reg_id, **kwargs):
     name = "get_upstream_catchment_polygons_feature_coll"
     LOGGER.info("ENTERING: %s for subc_id: %s" % (name, subc_id))
     
@@ -566,6 +583,9 @@ def get_upstream_catchment_polygons_feature_coll(conn, subc_id, upstream_ids, ba
             }
 
         }
+        
+        if len(kwargs) > 0:
+            feature["properties"].update(kwargs)
 
         features_geojson.append(feature)
 
@@ -697,7 +717,7 @@ def get_snapped_point_simple(conn, lon, lat, subc_id, basin_id, reg_id):
         LOGGER.debug("LEAVING: %s for point: lon=%s, lat=%s (subc_id %s)" % (name, lon, lat, subc_id))
         return strahler, snappedpoint_point, streamsegment_linestring
 
-def get_snapped_point_feature(conn, lon, lat, subc_id, basin_id, reg_id):
+def get_snapped_point_feature(conn, lon, lat, subc_id, basin_id, reg_id, **kwargs):
     name = "get_snapped_point_feature"
     LOGGER.debug("ENTERING: %s for point: lon=%s, lat=%s (subc_id %s)" % (name, lon, lat, subc_id))
 
@@ -725,11 +745,15 @@ def get_snapped_point_feature(conn, lon, lat, subc_id, basin_id, reg_id):
         }
     }
 
+    if len(kwargs) > 0:
+        feature_snappedpoint["properties"].update(kwargs)
+        feature_streamsegment["properties"].update(kwargs)
+
     LOGGER.debug("LEAVING: %s for point: lon=%s, lat=%s (subc_id %s)" % (name, lon, lat, subc_id))
     return strahler, feature_snappedpoint, feature_streamsegment
 
 
-def get_strahler_and_stream_segment_feature(conn, subc_id, basin_id, reg_id):
+def get_strahler_and_stream_segment_feature(conn, subc_id, basin_id, reg_id, **kwargs):
     name = "get_strahler_and_stream_segment_feature"
     LOGGER.debug('ENTERING: %s for subcid %s' % (name, subc_id))
 
@@ -747,6 +771,9 @@ def get_strahler_and_stream_segment_feature(conn, subc_id, basin_id, reg_id):
             "reg_id": reg_id
         }
     }
+
+    if len(kwargs) > 0:
+        feature["properties"].update(kwargs)
 
     LOGGER.debug('LEAVING: %s for subcid %s' % (name, subc_id))
     return feature
@@ -864,7 +891,7 @@ def get_rows(cursor, num_rows, comment='unspecified function'):
         elif this_row is None:
             break
         elif i <= num_rows:
-            return_rows.append(this_row)
+            return_rows.append(this_row) # TODO: Do we need this? Just leave out the expected num_rows and let the "if this_row is None" do its job
         else:
             LOGGER.warning("Found more than %s rows in result! Row %s: %s" % (num_rows, i, this_row))
             LOGGER.info("WARNING: More than one row output! Will ignore row %s..." % i)
@@ -890,11 +917,14 @@ def get_only_row(cursor, comment='unspecified function'):
             LOGGER.debug("First and only row: %s" % str(this_row))
         else:
             # We are asking for one point, so the result should be just one row!
-            err_msg = "Found more than 1 row in result! Row %s: %s" % (i, str(this_row))
-            raise ValueError(err_msg)
+            # But if the point is exactly on a boundary, two can be returned! TODO how to deal with?
+            # Example:
+            # SELECT sub.subc_id, sub.basin_id FROM sub_catchments sub WHERE st_intersects(ST_SetSRID(ST_MakePoint(9.921666666666667, 54.69166666666666),4326), sub.geom) AND sub.reg_id = 58;
+            LOGGER.warning("Found more than 1 row in result! Row %s: %s" % (i, this_row))
+            print("WARNING: More than one row output! Will ignore row %s..." % i)
 
-    #if return_row is None:
-    #    LOGGER.error('Returning none, because we expected one row but got none (for %s).' % comment)
+    if return_row is None:
+        LOGGER.error('Returning none, because we expected one row but got none (for %s).' % comment)
 
     return return_row
 
@@ -952,6 +982,14 @@ if __name__ == "__main__":
         verbose=verbose, use_tunnel=use_tunnel,
         ssh_username=ssh_username, ssh_password=ssh_password)
 
+    # Data for testing:
+    # These coordinates are in Vantaanjoki, reg_id = 65, basin_id = 1274183, subc_id = 553495421
+    #lat = 60.7631596
+    #lon = 24.8919571
+    # These coordinates are in Schlei, reg_id = 58, basin_id = 1292547, subc_id = 506251252
+    lat = 54.695070
+    lon = 9.931555
+
     # Run all queries:
     print("\n(1) reg_id: ")
     reg_id = get_reg_id(conn, lon, lat)
@@ -962,38 +1000,59 @@ if __name__ == "__main__":
     print("\nRESULT BASIN_ID, SUBC_ID: %s, %s" % (basin_id, subc_id))
     
     print("\n(3) upstream catchment ids: ")
-    upstream_ids = get_upstream_catchment_ids_incl_itself(conn, subc_id, basin_id, reg_id)
+    upstream_ids = get_upstream_catchment_ids_incl_itself(
+        conn, subc_id, basin_id, reg_id)
     print("\nRESULT UPSTREAM IDS:\n%s" % upstream_ids)
     
     print("\n(4) strahler, snapped point, stream segment: ")
-    strahler, snappedpoint_geojson, streamsegment_geojson = get_snapped_point_feature(
-        conn, lon, lat, subc_id, basin_id=basin_id, reg_id=reg_id)
+    strahler, feature_snappedpoint, feature_streamsegment = get_snapped_point_feature(
+        conn, lon, lat, subc_id, basin_id, reg_id, bla='test')
     print("\nRESULT STRAHLER: %s" % strahler)
-    print("RESULT SNAPPED:\n%s" % snappedpoint_geojson)
-    print("\nRESULT SEGMENT:\n%s" % streamsegment_geojson)
-    
+    print("RESULT SNAPPED (Feature/Point):\n%s" % feature_snappedpoint)
+    print("\nRESULT SEGMENT (Feature/Linestring):\n%s" % feature_streamsegment)
+
     print("\n(5) strahler, stream segment: ")
     strahler, streamsegment_linestring = get_strahler_and_stream_segment_linestring(conn, subc_id, basin_id, reg_id)
-    streamsegment_feature = get_strahler_and_stream_segment_feature(conn, subc_id, basin_id, reg_id)
+    streamsegment_feature = get_strahler_and_stream_segment_feature(conn, subc_id, basin_id, reg_id, bla='test')
     print("\nRESULT STRAHLER: %s" % strahler)
-    print("RESULT SEGMENT:\n%s" % streamsegment_linestring)
-    print("\nRESULT SEGMENT FEATURE:\n%s" % streamsegment_feature)
+    print("RESULT SEGMENT (Geometry/Linestring):\n%s" % streamsegment_linestring)
+    print("\nRESULT SEGMENT FEATURE (Feature/Linestring):\n%s" % streamsegment_feature)
 
-    print("\n(6) upstream catchment bbox: ")
-    bbox_geojson = get_upstream_catchment_bbox_polygon(conn, subc_id, upstream_ids, basin_id, reg_id)
+    print("\n(6a) upstream catchment bbox as geometry: ")
+    bbox_geojson = get_upstream_catchment_bbox_polygon(
+        conn, subc_id, upstream_ids, basin_id, reg_id)
+    print("\nRESULT BBOX (Geometry/Polygon)\n%s" % bbox_geojson)
+
+    print("\n(6b) upstream catchment bbox as feature: ")
     bbox_geojson = get_upstream_catchment_bbox_feature(
-        conn, subc_id, upstream_ids, basin_id, reg_id, bla="blobb")
-    print("\nRESULT BBOX\n%s" % bbox_geojson)
+        conn, subc_id, upstream_ids, basin_id, reg_id, bla='test')
+    print("\nRESULT BBOX (Feature/Polygon)\n%s" % bbox_geojson)
 
     print("\n(7) upstream catchment polygons: ")
-    poly_collection = get_upstream_catchment_polygons_feature_coll(conn, subc_id, upstream_ids, basin_id, reg_id)
-    print("\nRESULT POLYCOLL \n%s" % poly_collection)
+    poly_collection = get_upstream_catchment_polygons_feature_coll(
+        conn, subc_id, upstream_ids, basin_id, reg_id, bla='test')
+    print("\nRESULT UPSTREAM POLYGONS (FeatureCollection/MultiPolygons)\n%s" % poly_collection)
 
-    print("\n(8): dissolved polygon")
-    dissolved_polygon = get_upstream_catchment_dissolved_feature(conn, subc_id, upstream_ids, basin_id, reg_id, bla="blub")
-    print("\nRESULT DISSOLVED POLYGON: \n%s" % dissolved_polygon)
+    print("\n(8a): dissolved polygon as geometry/polygon")
+    dissolved_polygon = get_upstream_catchment_dissolved_geometry(
+        conn, subc_id, upstream_ids, basin_id, reg_id)
+    print("\nRESULT DISSOLVED (Geometry/Polygon): \n%s" % dissolved_polygon)
 
-    print("\n\nClosing connection...")
+    print("\n(8b): dissolved polygon as feature")
+    dissolved_feature = get_upstream_catchment_dissolved_feature(
+        conn, subc_id, upstream_ids, basin_id, reg_id, bla='test')
+    print("\nRESULT DISSOLVED (Feature/Polygon)): \n%s" % dissolved_feature)
+
+    print("\n(8c): dissolved polygon as feature coll")
+    dissolved_feature_coll = get_upstream_catchment_dissolved_feature_coll(
+        conn, subc_id, upstream_ids, (lon, lat), basin_id, reg_id, bla='test')
+    print("\nRESULT DISSOLVED (FeatureCollection/Polygon): \n%s" % dissolved_feature_coll)
+
+    print("\n(9) Catchment polygon: ")
+    feature = get_polygon_for_subcid_feature(conn, subc_id, basin_id, reg_id, bla='test')
+    print("\nRESULT CATCHMENT (Feature/Polygon)\n%s\n" % feature)
+
+
+    print("Closing connection...")
     conn.close()
     print("Done")
-

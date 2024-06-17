@@ -146,6 +146,29 @@ def _get_query_upstream(subc_id, reg_id, basin_id):
     query = query.strip()
     return query
 
+
+def _get_query_dijkstra(start_subc_id, end_subc_id, reg_id, basin_id):
+    query = '''
+    SELECT edge
+    FROM pgr_dijkstra('
+        SELECT
+        subc_id AS id,
+        subc_id AS source,
+        target,
+        length AS cost
+        FROM hydro.stream_segments
+        WHERE reg_id = {reg_id}
+        AND basin_id = {basin_id}',
+        {start_subc_id}, {end_subc_id},
+        directed := false);
+    '''.format(reg_id = reg_id, basin_id = basin_id, start_subc_id = start_subc_id, end_subc_id = end_subc_id)
+
+    query = query.replace("\n", " ")
+    query = query.replace("    ", "")
+    query = query.strip()
+    return query
+
+
 def _get_query_upstream_dissolved(upstream_ids, basin_id, reg_id):
     """
     Example query:
@@ -472,6 +495,41 @@ def get_upstream_catchment_linestrings_feature_coll(conn, subc_id, upstream_ids,
     return feature_coll
 
 
+def get_linestrings_for_subc_ids_geometry_coll(conn, subc_ids, basin_id, reg_id):
+    name = "get_linestrings_for_subc_ids_geometry_coll"
+    LOGGER.debug('ENTERING: %s for %s subc_ids...' % (name, len(subc_ids)))
+    query = _get_query_linestrings_for_subc_ids(subc_ids, basin_id, reg_id)
+    num_rows = len(subc_ids)
+    result_rows = get_rows(execute_query(conn, query), num_rows, name)
+
+    # Create GeoJSON geometry from each linestring:
+    # In case we want a GeometryCollection, which is more lightweight to return:
+    linestrings_geojson = []
+    for row in result_rows:
+
+        geometry = None
+        if row[2] is not None:
+            geometry = geomet.wkt.loads(row[2])
+        else:
+            # Geometry errors that happen when two segments flow into one outlet (Vanessa, 17 June 2024)
+            # For example, subc_id 506469602, when routing from 507056424 to outlet -1294020
+            LOGGER.error('Subcatchment %s has no geometry!' % row[0]) # for example: 506469602
+            # Features with empty geometries:
+            # A geometry can be None/null, which is the valid value for unlocated Features in GeoJSON spec:
+            # https://datatracker.ietf.org/doc/html/rfc7946#section-3.2
+
+        linestrings_geojson.append(geometry)
+
+
+    geometry_coll = {
+         "type": "GeometryCollection",
+         "geometries": linestrings_geojson
+    }
+
+    LOGGER.debug('LEAVING: %s for %s subc_ids...' % (name, len(subc_ids)))
+    return geometry_coll
+
+
 def get_linestrings_for_subc_ids_feature_coll(conn, subc_ids, basin_id, reg_id, **kwargs):
     name = "get_linestrings_for_subc_ids_feature_coll"
     LOGGER.debug('ENTERING: %s for %s subc_ids...' % (name, len(subc_ids)))
@@ -482,16 +540,27 @@ def get_linestrings_for_subc_ids_feature_coll(conn, subc_ids, basin_id, reg_id, 
     # Create GeoJSON feature from each linestring:
     features_geojson = []
     for row in result_rows:
+
+        geometry = None
+        if row[2] is not None:
+            geometry = geomet.wkt.loads(row[2])
+        else:
+            # Geometry errors that happen when two segments flow into one outlet (Vanessa, 17 June 2024)
+            # For example, subc_id 506469602, when routing from 507056424 to outlet -1294020
+            LOGGER.error('Subcatchment %s has no geometry!' % row[0]) # for example: 506469602
+            # Features with empty geometries:
+            # A geometry can be None/null, which is the valid value for unlocated Features in GeoJSON spec:
+            # https://datatracker.ietf.org/doc/html/rfc7946#section-3.2
+
         feature = {
             "type": "Feature",
-            "geometry": geomet.wkt.loads(row[2]),
+            "geometry": geometry,
             "properties": {
                 "subcatchment_id": row[0],
                 "basin_id": basin_id,
                 "reg_id": reg_id,
                 "strahler_order": row[1]
             }
-
         }
 
         if len(kwargs) > 0:
@@ -607,8 +676,54 @@ def get_upstream_catchment_polygons_feature_coll(conn, subc_id, upstream_ids, ba
     #}
     #return geometry_coll
 
+def get_dijkstra_ids(conn, subc_id_start, subc_id_end, reg_id, basin_id):
+    '''
+    INPUT: subc_ids (start and end)
+    OUTPUT: subc_ids (the entire path, incl. start and end)
+    '''
+    name = "get_dijkstra_ids"
+    LOGGER.info("ENTERING: %s for subc_ids: %s and %s" % (name, subc_id_start, subc_id_end))
+    query = _get_query_dijkstra(subc_id_start, subc_id_end, reg_id, basin_id)
+    num_rows = 10000 # TODO WIP we don't know how many!
+    result_rows = get_rows(execute_query(conn, query), num_rows, name)
 
-# TODO MOVE TO OTHER SECTION
+    all_ids = [subc_id_start] # Adding start segment, as it is not included in database return!
+    i = 0
+    for row in result_rows:
+        i += 1
+        if row[0] == -1: # pgr_dijkstra returns -1 as the last row...
+            pass
+        else:
+            all_ids.append(row[0]) # these are already integer!
+
+    LOGGER.debug('LEAVING: %s: Returning %s subc_ids...' % (name, len(all_ids)))
+    return all_ids
+
+
+def get_dijkstra_linestrings_geometry_coll(conn, subc_id_start, subc_id_end, reg_id, basin_id):
+    name = "get_dijkstra_linestrings_geometry_coll"
+    LOGGER.info("ENTERING: %s for subc_ids: %s and %s" % (name, subc_id_start, subc_id_end))
+    subc_ids = get_dijkstra_ids(conn, subc_id_start, subc_id_end, reg_id, basin_id)
+
+    dijkstra_path_geometry_coll = get_linestrings_for_subc_ids_geometry_coll(
+        conn, subc_ids, basin_id, reg_id)
+
+    LOGGER.debug('LEAVING: %s: Returning GeometryCollection of LineStrings...' % (name))
+    return dijkstra_path_geometry_coll
+
+
+def get_dijkstra_linestrings_feature_coll(conn, subc_id_start, subc_id_end, reg_id, basin_id, **kwargs):
+    name = "get_dijkstra_linestrings_feature_coll"
+    LOGGER.info("ENTERING: %s for subc_ids: %s and %s" % (name, subc_id_start, subc_id_end))
+    subc_ids = get_dijkstra_ids(conn, subc_id_start, subc_id_end, reg_id, basin_id)
+
+    dijkstra_path_feature_coll = get_linestrings_for_subc_ids_feature_coll(
+        conn, subc_ids, basin_id, reg_id, subc_id_start=subc_id_start, subc_id_end=subc_id_end, **kwargs)
+
+    LOGGER.debug('LEAVING: %s: Returning FeatureCollection of LineStrings...' % (name))
+    return dijkstra_path_feature_coll
+
+
 def get_upstream_catchment_ids_incl_itself(conn, subc_id, basin_id, reg_id, include_itself = True):
     name = "get_upstream_catchment_ids_incl_itself"
     LOGGER.info("ENTERING: %s for subc_id: %s" % (name, subc_id))
@@ -1048,7 +1163,54 @@ if __name__ == "__main__":
         conn, subc_id, upstream_ids, (lon, lat), basin_id, reg_id, bla='test')
     print("\nRESULT DISSOLVED (FeatureCollection/Polygon): \n%s" % dissolved_feature_coll)
 
-    print("\n(9) Catchment polygon: ")
+    print("\n(9) DIJKSTRA ")
+    # Falls into: 506 519 922, basin 1285755
+    #lat2 = 53.695070
+    #lon2 = 9.751555
+    # Falls on boundary, error:
+    #lon2 = 9.921666666666667 # falls on boundary!
+    #lat2 = 54.69166666666666 # falls on boundary!
+    # Falls into 506 251 713
+    lon1 = 9.937520027160646
+    lat1 = 54.69422745526058
+    # Falls into: 506 251 712, basin 1292547
+    lon2 = 9.9217
+    lat2 = 54.6917
+    subc_id_start, basin_id_dijkstra = get_subc_id_basin_id(conn, lon1, lat1, reg_id)
+    subc_id_end, basin_id_end = get_subc_id_basin_id(conn, lon2, lat2, reg_id)
+    print('Using start  subc_id: %s (%s)' % (subc_id_start, basin_id_dijkstra))
+    print('Using target subc_id: %s (%s)' % (subc_id_end, basin_id_end))
+    subc_ids = get_dijkstra_ids(conn, subc_id_start, subc_id_end, reg_id, basin_id_dijkstra)
+    print('\nRESULT DIJKSTRA PATH subc_ids: %s\n' % subc_ids)
+    coll = get_dijkstra_linestrings_feature_coll(conn, subc_id_start, subc_id_end, reg_id, basin_id_dijkstra)
+    print('\nRESULT DIJKSTRA PATH (FeatureCollection/LineStrings):\n%s' % coll)
+
+
+    print("\n(9b) DIJKSTRA TO SEA")
+    # Falls into: 506 251 712, basin 1292547
+    lon1 = 9.937520027160646
+    lat1 = 54.69422745526058
+    # Far away from sea, but yields no result at all!
+    lon1 = 10.599210072990063
+    lat1 = 51.31162492387419
+    # bei bremervoerde, leads to one non-geometry subcatchment, subc_id : 506469602
+    lat1 = 53.397626302268684
+    lon1 = 9.155709977606723
+
+    lat1 = 52.76220968996532
+    lon1 = 11.558802055604199
+    subc_id_start, basin_id_dijkstra = get_subc_id_basin_id(conn, lon1, lat1, reg_id)
+    subc_id_end = -basin_id_dijkstra
+    print('Using start  subc_id: %s (%s)' % (subc_id_start, basin_id_dijkstra))
+    print('Using target subc_id: %s (%s)' % (subc_id_end, basin_id_dijkstra))
+    subc_ids = get_dijkstra_ids(conn, subc_id_start, subc_id_end, reg_id, basin_id_dijkstra)
+    print('\nRESULT DIJKSTRA PATH TO SEA subc_ids: %s\n' % subc_ids)
+    coll = get_dijkstra_linestrings_feature_coll(conn, subc_id_start, subc_id_end, reg_id, basin_id_dijkstra, destination="sea")
+    print('\nRESULT DIJKSTRA PATH TO SEA (FeatureCollection/LineStrings):\n%s' % coll)
+    coll = get_dijkstra_linestrings_geometry_coll(conn, subc_id_start, subc_id_end, reg_id, basin_id_dijkstra)
+    print('\nRESULT DIJKSTRA PATH TO SEA (GeometryCollection/LineStrings):\n%s' % coll)
+
+    print("\n(10) Catchment polygon: ")
     feature = get_polygon_for_subcid_feature(conn, subc_id, basin_id, reg_id, bla='test')
     print("\nRESULT CATCHMENT (Feature/Polygon)\n%s\n" % feature)
 

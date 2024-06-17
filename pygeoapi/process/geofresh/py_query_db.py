@@ -910,47 +910,20 @@ if __name__ == "__main__":
     #    where dbpw is the database passwort for postgresql, can be found in ~/.pgpass if you have access.
     #    where pw is your personal LDAP password for the ssh tunnel.
 
-
-    # Data for testing:
-    # These coordinates are in Vantaanjoki, reg_id = 65, basin_id = 1274183, subc_id = 553495421
-    #lat = 60.7631596
-    #lon = 24.8919571
-    # These coordinates are in Schlei, reg_id = 58, basin_id = 1292547, subc_id = 506251252
-    #lat = 54.695070
-    #lon = 9.931555
-
     if len(sys.argv) == 2:
         dbpw = sys.argv[1]
         mbpw = None
         use_tunnel = False
-        lat = 54.695070
-        lon = 9.931555
+
     elif len(sys.argv) == 3:
         dbpw = sys.argv[1]
         mbpw = sys.argv[2]
         use_tunnel = True
-        lat = 54.695070
-        lon = 9.931555
-    elif len(sys.argv) == 4:
-        lon = float(sys.argv[1])
-        lat = float(sys.argv[2])
-        dbpw = sys.argv[3]
-        mbpw = None
-        use_tunnel = False
-    elif len(sys.argv) == 5:
-        lon = float(sys.argv[1])
-        lat = float(sys.argv[2])
-        dbpw = sys.argv[3]
-        mbpw = sys.argv[4] # only when ssh tunnel is used!
-        use_tunnel = True
         print('Will try to make ssh tunnel with password "%s..."' % mbpw[0:1])
-    else:
-        print('Please provide a point and a database password...')
-        sys.exit(1)
 
-    #print("POINT LON %s LAT %s" % (lon, lat))
-    #print("DB PW %s" % dbpw)
-    #print("MB PW %s" % mbpw)
+    else:
+        print('Please provide a database password and (possibly an ssh tunnel password)...')
+        sys.exit(1)
 
     verbose = True
 
@@ -969,10 +942,9 @@ if __name__ == "__main__":
     # Logging
     LOGGER = logging.getLogger()
     console = logging.StreamHandler()
-    console.setLevel(logging.DEBUG)
-    formatter = logging.Formatter("%(name)-12s: %(levelname)-8s %(message)s")
+    LOGGER.setLevel(logging.DEBUG)
+    formatter = logging.Formatter("xxx %(name)-12s: %(levelname)-8s %(message)s")
     console.setFormatter(formatter)
-    #logging.getLogger("").addHandler(console)
     LOGGER.addHandler(console)
 
     conn = get_connection_object(geofresh_server, geofresh_port,

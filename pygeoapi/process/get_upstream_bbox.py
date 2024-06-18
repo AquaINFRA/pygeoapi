@@ -149,7 +149,7 @@ class UpstreamBboxGetter(BaseProcessor):
         lon = float(data.get('lon'))
         lat = float(data.get('lat'))
         comment = data.get('comment') # optional
-        get_type = data.get('get_type', 'polygon')
+        get_type = data.get('get_type', 'Polygon')
 
         with open('config.json') as myfile:
             config = json.load(myfile)
@@ -183,16 +183,21 @@ class UpstreamBboxGetter(BaseProcessor):
 
             # Get geometry (two types)
             LOGGER.debug('...Getting upstream catchment bbox for subc_id: %s' % subc_id)
-            if get_type == 'polygon':
+            if get_type.lower() == 'polygon':
                 geojson_object = get_upstream_catchment_bbox_polygon(
                     conn, subc_id, upstream_catchment_subcids, basin_id, reg_id)
                 LOGGER.debug('END: Received simple polygon: %s' % str(geojson_object)[0:50])
 
-            elif get_type == 'feature':
+            elif get_type.lower() == 'feature':
                 geojson_object = get_upstream_catchment_bbox_feature(
                     conn, subc_id, upstream_catchment_subcids,
                     basin_id=basin_id, reg_id=reg_id, comment=comment)
                 LOGGER.debug('END: Received feature: %s' % str(geojson_object)[0:50])
+
+            else:
+                err_msg = "Input parameter 'get_type' can only be one of Polygon or Feature!"
+                LOGGER.error(err_msg)
+                raise ProcessorExecuteError(user_msg=err_msg)
 
         # TODO move this to execute! and the database stuff!
         except ValueError as e2:
@@ -219,8 +224,11 @@ class UpstreamBboxGetter(BaseProcessor):
         ################
 
         if error_message is None:
-            output = geojson_object
-            return 'application/json', output
+
+            if comment is not None:
+                geojson_object['comment'] = comment
+
+            return 'application/json', geojson_object
 
         else:
             outputs = {

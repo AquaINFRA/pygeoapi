@@ -84,13 +84,13 @@ PROCESS_METADATA = {
         },
         'get_type': {
             'title': 'Get GeoJSON Feature',
-            'description': 'Can be "feature", "polygon" or "feature_collection".',
+            'description': 'Can be "Feature", "Polygon" or "FeatureCollection".',
             'schema': {'type': 'string'},
             'minOccurs': 0,
             'maxOccurs': 1,
             'metadata': None,  # TODO how to use the Metadata item?
             'keywords': ['comment']
-        }
+        },
     },
     'outputs': {
         'subcatchment': {
@@ -180,22 +180,27 @@ class UpstreamDissolvedGetter(BaseProcessor):
             # Get geometry (three types)
             LOGGER.debug('...Getting upstream catchment dissolved polygon for subc_id: %s' % subc_id)
             geojson_object = {}
-            if get_type == 'polygon':
+            if get_type.lower() == 'polygon':
                 geojson_object = get_upstream_catchment_dissolved_geometry(
                     conn, subc_id, upstream_catchment_subcids, basin_id, reg_id)
                 LOGGER.debug('END: Received simple polygon : %s' % str(geojson_object)[0:50])
 
-            elif get_type == 'feature':
+            elif get_type.lower() == 'feature':
                 geojson_object = get_upstream_catchment_dissolved_feature(
                     conn, subc_id, upstream_catchment_subcids,
                     basin_id, reg_id, comment=comment)
                 LOGGER.debug('END: Received feature : %s' % str(geojson_object)[0:50])
            
-            elif get_type == 'feature_collection':
+            elif get_type.lower() == 'featurecollection':
                 geojson_object = get_upstream_catchment_dissolved_feature_coll(
                     conn, subc_id, upstream_catchment_subcids, (lon, lat),
                     basin_id, reg_id, comment=comment)
                 LOGGER.debug('END: Received feature collection: %s' % str(geojson_object)[0:50])
+
+            else:
+                err_msg = "Input parameter 'get_type' can only be one of Polygon or Feature or FeatureCollection!"
+                LOGGER.error(err_msg)
+                raise ProcessorExecuteError(user_msg=err_msg)
 
                 
 
@@ -224,8 +229,11 @@ class UpstreamDissolvedGetter(BaseProcessor):
         ################
 
         if error_message is None:
-            output = geojson_object
-            return 'application/json', output
+
+            if comment is not None:
+                geojson_object['comment'] = comment
+
+            return 'application/json', geojson_object
 
         else:
             outputs = {

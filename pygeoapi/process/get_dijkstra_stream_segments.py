@@ -97,7 +97,16 @@ PROCESS_METADATA = {
             'maxOccurs': 1,
             'metadata': None,
             'keywords': ['comment']
-        }
+        },
+        'get_type': {
+            'title': 'Get GeoJSON Feature',
+            'description': 'Can be "GeometryCollection" or "FeatureCollection".',
+            'schema': {'type': 'string'},
+            'minOccurs': 0,
+            'maxOccurs': 1,
+            'metadata': None,
+            'keywords': ['comment']
+        },
     },
     'outputs': {
         'path': { # TODO: We return a GeoJSON object without a name, how to put that here?
@@ -194,14 +203,14 @@ class DijkstraShortestPathGetter(BaseProcessor):
 
             # Get subc_ids of the whole connection...
             LOGGER.debug('Getting network connection for subc_id: start = %s, end = %s' % (subc_id1, subc_id2))
-            if get_type == 'GeometryCollection':
+            if get_type.lower() == 'geometrycollection':
                 geojson_object = get_dijkstra_linestrings_geometry_coll(conn, subc_id1, subc_id2, reg_id1, basin_id1)
-            elif get_type == 'FeatureCollection':
+            elif get_type.lower() == 'featurecollection':
                 geojson_object = get_dijkstra_linestrings_feature_coll(conn, subc_id1, subc_id2, reg_id1, basin_id1)
             else:
-                err_msg = 'get_type can only be one of GeometryCollection and FeatureCollection!'
+                err_msg = "Input parameter 'get_type' can only be one of GeometryCollection and FeatureCollection!"
                 LOGGER.error(err_msg)
-                raise ArgumentError(err_msg)
+                raise ProcessorExecuteError(user_msg=err_msg)
 
         # TODO move this to execute! and the database stuff!
         except ValueError as e2:

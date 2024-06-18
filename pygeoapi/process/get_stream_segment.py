@@ -100,7 +100,16 @@ PROCESS_METADATA = {
                 'type': 'object',
                 'contentMediaType': 'application/json'
             }
-        }
+        },
+        'get_type': {
+            'title': 'Get GeoJSON Feature',
+            'description': 'Can be "LineString" or "Feature".',
+            'schema': {'type': 'string'},
+            'minOccurs': 0,
+            'maxOccurs': 1,
+            'metadata': None,
+            'keywords': ['comment']
+        },
     },
     'example': {
         'inputs': {
@@ -136,6 +145,7 @@ class StreamSegmentGetter(BaseProcessor):
         lon = float(data.get('lon'))
         lat = float(data.get('lat'))
         comment = data.get('comment') # optional
+        get_type = data.get('get_type', 'LineString')
 
         with open('config.json') as myfile:
             config = json.load(myfile)
@@ -165,8 +175,22 @@ class StreamSegmentGetter(BaseProcessor):
             reg_id = get_reg_id(conn, lon, lat)
             subc_id, basin_id = get_subc_id_basin_id(conn, lon, lat, reg_id)
             LOGGER.debug('Now, getting stream segment (incl. strahler order) for subc_id: %s' % subc_id)
-            streamsegment_feature = get_strahler_and_stream_segment_feature(
-                conn, subc_id, basin_id, reg_id)
+
+            if get_type.lower() == 'feature':
+                streamsegment_feature = get_strahler_and_stream_segment_feature(
+                    conn, subc_id, basin_id, reg_id)
+                geojson_object = streamsegment_feature
+
+            elif get_type.lower() == 'linestring':
+                streamsegment_simple_geometry = get_strahler_and_stream_segment_linestring(
+                    conn, subc_id, basin_id, reg_id)
+                geojson_object = streamsegment_simple_geometry
+
+            else:
+                err_msg = "Input parameter 'get_type' can only be one of LineString or Feature!"
+                # TODO: API definition: What is better: Feature vs SimpleGeometry, or Feature vs LineString / Point / Polygon / ... ?
+                LOGGER.error(err_msg)
+                raise ProcessorExecuteError(user_msg=err_msg)
 
         # TODO move this to execute! and the database stuff!
         except ValueError as e2:
@@ -193,9 +217,9 @@ class StreamSegmentGetter(BaseProcessor):
 
         if error_message is None:
             if comment is not None:
-                streamsegment_feature['properties']['comment'] = comment
-            outputs = streamsegment_feature
-            return 'application/json', outputs
+                geojson_object['comment'] = comment
+
+            return 'application/json', geojson_object
 
         else:
             outputs = {

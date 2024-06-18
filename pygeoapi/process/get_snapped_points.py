@@ -86,7 +86,16 @@ PROCESS_METADATA = {
             'maxOccurs': 1,
             'metadata': None,  # TODO how to use the Metadata item?
             'keywords': ['comment']
-        }
+        },
+        'get_type': {
+            'title': 'Get GeoJSON Feature',
+            'description': 'Can be "Point" or "GeometryCollection" or "FeatureCollection".',
+            'schema': {'type': 'string'},
+            'minOccurs': 0,
+            'maxOccurs': 1,
+            'metadata': None,
+            'keywords': ['comment']
+        },
     },
     'outputs': {
         'snapped_point': {
@@ -140,7 +149,7 @@ class SnappedPointsGetter(BaseProcessor):
         ### USER INPUTS
         lon = float(data.get('lon'))
         lat = float(data.get('lat'))
-        get_type = data.get('get_type', 'not-feature') # 'feature' or something else...
+        get_type = data.get('get_type', 'Point')
         comment = data.get('comment') # optional
 
         with open('config.json') as myfile:
@@ -171,17 +180,47 @@ class SnappedPointsGetter(BaseProcessor):
             reg_id = get_reg_id(conn, lon, lat)
             subc_id, basin_id = get_subc_id_basin_id(conn, lon, lat, reg_id)
 
-            if get_type.lower() == 'feature':
-                # Returned as feature "Point", and feature "LineString"
+            # Returned as FeatureCollection containing "Point" and "LineString"
+            if get_type.lower() == 'featurecollection':
                 LOGGER.debug('... Now, getting snapped point for subc_id (as feature): %s' % subc_id)
                 strahler, feature_snappedpoint, feature_streamsegment = get_snapped_point_feature(
-                conn, lon, lat, subc_id, basin_id, reg_id)
-            else:
-                # Returned as simple GeoJSON geometries "Point" and "LineString"
+                    conn, lon, lat, subc_id, basin_id, reg_id)
+
+                # Construct connecting line:
+                snap_lon = feature_snappedpoint["geometry"]["coordinates"][0]
+                snap_lat = feature_snappedpoint["geometry"]["coordinates"][1]
+                feature_connecting_line = {
+                        "type": "Feature",
+                        "properties": {"description": "connecting line"},
+                        "geometry": {
+                            "type": "LineString",
+                            "coordinates":[[lon,lat],[snap_lon,snap_lat]]
+                        }
+                }
+                geojson_object = {
+                    "type": "FeatureCollection",
+                    "features": [feature_snappedpoint, feature_streamsegment, feature_connecting_line]
+                }
+
+            
+            # Returned as simple GeoJSON geometry "Point"
+            elif get_type.lower() == 'point':
                 LOGGER.debug('... Now, getting snapped point for subc_id (as simple geometries): %s' % subc_id)
                 strahler, point_snappedpoint, linestring_streamsegment = get_snapped_point_simple(
-                conn, lon, lat, subc_id, basin_id, reg_id)
+                    conn, lon, lat, subc_id, basin_id, reg_id)
+                geojson_object = point_snappedpoint
+            
+            # Returned as collection of simple GeoJSON geometries "Point" and LineString:
+            elif get_type.lower() == 'geometrycollection':
+                geojson_object = {
+                     "type": "GeometryCollection",
+                     "geometries": [point_snappedpoint, linestring_streamsegment]
+                }
 
+            else:
+                err_msg = "Input parameter 'get_type' can only be one of Point, GeometryCollection and FeatureCollection!"
+                LOGGER.error(err_msg)
+                raise ProcessorExecuteError(user_msg=err_msg)
 
         # TODO move this to execute! and the database stuff!
         except ValueError as e2:
@@ -206,29 +245,12 @@ class SnappedPointsGetter(BaseProcessor):
         ### Results: ###
         ################
 
-        if error_message is None and not get_type.lower() == 'feature':
-            outputs = point_snappedpoint
-            LOGGER.info('Returning a single simple point geometry.')
-            return 'application/json', outputs
+        if error_message is None:
 
-        elif error_message is None and get_type.lower() == 'feature':
-            # Construct connecting line:
-            snap_lon = feature_snappedpoint["geometry"]["coordinates"][0]
-            snap_lat = feature_snappedpoint["geometry"]["coordinates"][1]
-            feature_connecting_line = {
-                    "type": "Feature",
-                    "properties": {"description": "connecting line"},
-                    "geometry": {
-                        "type": "LineString",
-                        "coordinates":[[lon,lat],[snap_lon,snap_lat]]
-                    }
-            }
-            outputs = {
-                "type": "FeatureCollection",
-                "features": [feature_snappedpoint, feature_streamsegment, feature_connecting_line]
-            }
-            LOGGER.info('Returning snapped point and its stream segment as FeatureCollection')
-            return 'application/json', outputs
+            if comment is not None:
+                geojson_object['comment'] = comment
+
+            return 'application/json', geojson_object
 
         else:
             outputs = {

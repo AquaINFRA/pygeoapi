@@ -348,3 +348,9 @@ resources:
         processor:
             name: SubsetterBbox
 
+    get-subset-by-polygon:
+        type: process
+        processor:
+            name: SubsetterPolygon
+
+

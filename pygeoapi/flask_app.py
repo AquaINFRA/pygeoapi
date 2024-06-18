@@ -49,6 +49,48 @@ from pygeoapi.openapi import load_openapi_document
 from pygeoapi.config import get_config
 from pygeoapi.util import get_mimetype, get_api_rules
 
+## Added by Merret:
+from logging.config import dictConfig
+dictConfig(
+    {
+        "version": 1,
+        "formatters": {
+            "default": {
+                #"format": "[%(levelname)5s in %(filename)s:%(lineno)d] %(message)s",
+                "format": "%(asctime)s [%(levelname)5s in %(filename)s:%(lineno)d] %(message)s",
+                #"format": "[%(asctime)s] %(levelname)s in %(module)s: %(message)s",
+            }
+        },
+        "handlers": {
+            #"console": {
+            #    "level": "DEBUG",
+            #    "class": "logging.StreamHandler",
+            #    "stream": "ext://sys.stdout",
+            #    "formatter": "default",
+            #},
+            'debug_rotating_file_handler': {
+               'level': 'DEBUG',
+               'formatter': 'default',
+               #'class': 'logging.handlers.RotatingFileHandler',
+               'class': 'logging.FileHandler',
+               'filename': '/opt/.../debug-pygeoapi.log',
+               'mode': 'a',
+               #'maxBytes': 1048576,
+               #'backupCount': 10
+            },
+            'error_file_handler': {
+              'level': 'WARNING',
+              'formatter': 'default',
+              'class': 'logging.FileHandler',
+              'filename': '/opt/.../error-pygeoapi.log',
+              'mode': 'a',
+            }
+        },
+        #"root": {"level": "DEBUG", "handlers": ["console", "error_file_handler", "debug_rotating_file_handler"]},
+        "root": {"level": "DEBUG", "handlers": ["error_file_handler", "debug_rotating_file_handler"]},
+    }
+)
+
 
 CONFIG = get_config()
 OPENAPI = load_openapi_document()
@@ -62,8 +104,21 @@ STATIC_FOLDER = 'static'
 if 'templates' in CONFIG['server']:
     STATIC_FOLDER = CONFIG['server']['templates'].get('static', 'static')
 
+## Added by Merret:
+import os
+os.environ['PYGEOAPI_CONFIG'] = '/opt/.../pygeoapi-config.yml'
+os.environ['PYGEOAPI_OPENAPI'] = '/opt/.../pygeoapi-openapi.yml'
+
 APP = Flask(__name__, static_folder=STATIC_FOLDER, static_url_path='/static')
 APP.url_map.strict_slashes = API_RULES.strict_slashes
+
+## Added by Merret:
+## See: https://flask.palletsprojects.com/en/2.3.x/deploying/proxy_fix/
+from werkzeug.middleware.proxy_fix import ProxyFix
+APP.wsgi_app = ProxyFix(
+    APP.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
+)
+
 
 BLUEPRINT = Blueprint(
     'pygeoapi',

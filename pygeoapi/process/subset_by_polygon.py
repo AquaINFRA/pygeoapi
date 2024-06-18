@@ -127,9 +127,9 @@ class SubsetPolygonProcessor(BaseProcessor):
         result_filepath_compressed = r'/tmp/subset_%s_%s_compressed.tiff' % (now, randomstring)
         # TODO: Must delete result files!
 
-
         # Run it:
-        _execute(polygon, input_raster_filepath, result_filepath_uncompressed, result_filepath_compressed)
+        _subset_by_polygon(polygon, input_raster_filepath, result_filepath_uncompressed)
+        _compress_tiff(result_filepath_uncompressed, result_filepath_compressed)
 
         # Read bytestream from disk and return to user as application/octet-stream:
         with open(result_filepath_compressed, 'r+b') as myraster:
@@ -142,7 +142,7 @@ class SubsetPolygonProcessor(BaseProcessor):
         return f'<SubsetPolygonProcessor> {self.name}'
 
 
-def _execute(shape, input_raster_filepath, result_filepath_uncompressed, result_filepath_compressed):
+def _subset_by_polygon(shape, input_raster_filepath, result_filepath_uncompressed):
 
     # Subset raster
     # The values must be a GeoJSON-like dict or an object that implements the Python geo interface protocol (such as a Shapely Polygon).
@@ -162,6 +162,10 @@ def _execute(shape, input_raster_filepath, result_filepath_uncompressed, result_
     # Write raster to disk as GeoTIFF:
     with rasterio.open(fp=result_filepath_uncompressed, mode='w',**result_metadata) as dst:
         dst.write(subset)
+
+
+def _compress_tiff(result_filepath_uncompressed, result_filepath_compressed):
+    # TODO: Is same for all tiff handling functions - put into different module!
 
     # Compress
     # https://gis.stackexchange.com/questions/368874/read-and-then-write-rasterio-geotiff-file-without-loading-all-data-into-memory

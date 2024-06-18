@@ -30,6 +30,8 @@
 import logging
 import rasterio
 from rasterio import warp
+#import rasterio
+#import rasterio.mask
 from osgeo import gdal
 import uuid
 import json
@@ -163,7 +165,13 @@ class SubsetBboxProcessor(BaseProcessor):
         result_filepath_compressed = r'/tmp/subset_%s_%s_compressed.tiff' % (now, randomstring)
         # TODO: Must delete result files!
 
+        LOGGER.info('Subsetting by window (bbox)')
         _subset_by_window(input_raster_filepath, result_filepath_uncompressed, north_lat, south_lat, east_lon, west_lon)
+
+        #LOGGER.info('Subsetting by polygon (bbox)') # Note: This is slower!
+        #polygon = _make_bbox_geojson(north_lat, south_lat, east_lon, west_lon)
+        #_subset_by_polygon(polygon, input_raster_filepath, result_filepath_uncompressed) # same function as subset_by_polygon
+
         helpers.compress_tiff(result_filepath_uncompressed, result_filepath_compressed, LOGGER)
 
         # Read bytestream from disk and return to user as application/octet-stream:
@@ -199,8 +207,22 @@ def _check_boundaries(north_lat, south_lat, east_lon, west_lon):
             west = west_lon, east = east_lon))
 
 
+def _make_bbox_geojson(north_lat, south_lat, east_lon, west_lon):
+
+    NE_corner = [east_lon, north_lat]
+    SE_corner = [east_lon, south_lat]
+    SW_corner = [west_lon, south_lat]
+    NW_corner = [west_lon, north_lat]
+
+    polygon = {
+        "type": "Polygon",
+        "coordinates": [[NE_corner, SE_corner, SW_corner, NW_corner, NE_corner]]
+    }
+    #print('Bbox polygon:\n%s\n' % polygon)
+    return polygon
+
+
 def _subset_by_window(input_raster_filepath, result_filepath_uncompressed, north_lat, south_lat, east_lon, west_lon):
-    # TODO: Probably we can use subset_by_mask here too! Try it and then make everything more simple! Just one process!
 
     # Make windows in col/row/pixels instead of WGS84
     win = _win_rows_cols(input_raster_filepath, west_lon, east_lon, south_lat, north_lat)

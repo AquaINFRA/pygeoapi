@@ -60,7 +60,7 @@ PROCESS_METADATA = {
             'schema': {'type': 'string'},
             'minOccurs': 1,
             'maxOccurs': 1,
-            'metadata': None,  # TODO how to use the Metadata item?
+            'metadata': None,
             'keywords': ['latitude', 'wgs84']
         },
         'comment': {
@@ -69,7 +69,7 @@ PROCESS_METADATA = {
             'schema': {'type': 'string'},
             'minOccurs': 0,
             'maxOccurs': 1,
-            'metadata': None,  # TODO how to use the Metadata item?
+            'metadata': None,
             'keywords': ['comment']
         }
     },
@@ -185,22 +185,27 @@ class SubcatchmentGetter(BaseProcessor):
         ################
 
         if error_message is None:
+
             # Note: This is not GeoJSON (on purpose), as we did not look for geometry yet.
-            outputs = {
+            output = {
                 'region_id': reg_id,
                 'subcatchment_id': subc_id,
                 'basin_id': basin_id
             }
+
             if comment is not None:
-                outputs['comment'] = comment
-            return 'application/json', outputs
+                output['comment'] = comment
+
+            return 'application/json', output
 
         else:
-            outputs = {
+            output = {
                 'error_message': 'getting subcatchment id failed.',
                 'details': error_message}
+
             if comment is not None:
-                outputs['comment'] = comment
+                output['comment'] = comment
+
             LOGGER.warning('Getting subcatchment id failed. Returning error message.')
-            return 'application/json', outputs
+            return 'application/json', output
 

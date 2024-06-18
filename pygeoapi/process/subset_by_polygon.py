@@ -84,7 +84,7 @@ PROCESS_METADATA = {
             },
             'minOccurs': 1,
             'maxOccurs': 1,
-            'metadata': None,  # TODO how to use?
+            'metadata': None,  # TODO how to use the Metadata item?
             'keywords': ['north', 'coordinate', 'wgs84']
         }
     },

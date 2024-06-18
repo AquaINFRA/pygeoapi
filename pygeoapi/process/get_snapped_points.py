@@ -51,15 +51,6 @@ PROCESS_METADATA = {
         'hreflang': 'en-US'
     }],
     'inputs': {
-        #'subc_id': {
-        #    'title': 'Subcatchment Id',
-        #    'description': 'Id of the subcatchment where the point is located. Example: 553495421.',
-        #    'schema': {'type': 'string'},
-        #    'minOccurs': 1,
-        #    'maxOccurs': 1,
-        #    'metadata': None,  # TODO how to use the Metadata item?
-        #    'keywords': ['subcatchment', "stream_segment"]
-        #},
         'lon': {
             'title': 'Longitude (WGS84)',
             'description': 'Longitude....',
@@ -75,7 +66,7 @@ PROCESS_METADATA = {
             'schema': {'type': 'string'},
             'minOccurs': 1,
             'maxOccurs': 1,
-            'metadata': None,  # TODO how to use the Metadata item?
+            'metadata': None,
             'keywords': ['latitude', 'wgs84']
         },
         'comment': {
@@ -84,7 +75,7 @@ PROCESS_METADATA = {
             'schema': {'type': 'string'},
             'minOccurs': 0,
             'maxOccurs': 1,
-            'metadata': None,  # TODO how to use the Metadata item?
+            'metadata': None,
             'keywords': ['comment']
         },
         'get_type': {
@@ -253,11 +244,13 @@ class SnappedPointsGetter(BaseProcessor):
             return 'application/json', geojson_object
 
         else:
-            outputs = {
+            output = {
                 'error_message': 'getting snapped point failed.',
                 'details': error_message}
+
             if comment is not None:
-                outputs['comment'] = comment
+                output['comment'] = comment
+
             LOGGER.warning('Getting snapped points failed. Returning error message.')
-            return 'application/json', outputs
+            return 'application/json', output
 

@@ -236,16 +236,20 @@ class DijkstraShortestPathGetter(BaseProcessor):
         ################
 
         if error_message is None:
+
             if comment is not None:
                 geojson_object['comment'] = comment
+
             return 'application/json', geojson_object
 
         else:
-            outputs = {
+            output = {
                 'error_message': 'getting dijkstra stream segments failed.',
                 'details': error_message}
+
             if comment is not None:
-                outputs['comment'] = comment
+                output['comment'] = comment
+
             LOGGER.warning('Getting dijkstra stream segments failed. Returning error message.')
-            return 'application/json', outputs
+            return 'application/json', output
 

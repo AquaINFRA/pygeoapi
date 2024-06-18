@@ -74,7 +74,7 @@ PROCESS_METADATA = {
             'schema': {'type': 'string'},
             'minOccurs': 1,
             'maxOccurs': 1,
-            'metadata': None,  # TODO how to use the Metadata item?
+            'metadata': None,
             'keywords': ['latitude', 'wgs84']
         },
         'comment': {
@@ -83,18 +83,18 @@ PROCESS_METADATA = {
             'schema': {'type': 'string'},
             'minOccurs': 0,
             'maxOccurs': 1,
-            'metadata': None,  # TODO how to use the Metadata item?
+            'metadata': None,
             'keywords': ['comment']
         },
         'get_type': {
             'title': 'Get GeoJSON Feature',
-            'description': 'Can be "feature" or "polygon".',
+            'description': 'Can be "Feature" or "Polygon".',
             'schema': {'type': 'string'},
             'minOccurs': 0,
             'maxOccurs': 1,
-            'metadata': None,  # TODO how to use the Metadata item?
+            'metadata': None,
             'keywords': ['comment']
-        }
+        },
     },
     'outputs': {
         'subcatchment': {
@@ -231,11 +231,13 @@ class UpstreamBboxGetter(BaseProcessor):
             return 'application/json', geojson_object
 
         else:
-            outputs = {
+            output = {
                 'error_message': 'getting upstream bbox failed.',
                 'details': error_message}
+
             if comment is not None:
-                outputs['comment'] = comment
+                output['comment'] = comment
+
             LOGGER.warning('Getting upstream bbox failed. Returning error message.')
-            return 'application/json', outputs
+            return 'application/json', output
 

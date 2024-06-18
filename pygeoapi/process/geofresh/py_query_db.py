@@ -470,10 +470,34 @@ def get_upstream_catchment_dissolved_geometry(conn, subc_id, upstream_ids, basin
     return dissolved_geojson
 
 
+def get_upstream_catchment_linestrings_geometry_coll(conn, subc_id, upstream_ids, basin_id, reg_id):
+    name = "get_upstream_catchment_linestrings_geometry_coll"
+    LOGGER.debug('ENTERING: %s for subcid %s' % (name, subc_id))
+
+    # No upstream ids: (TODO: This should be caught earlier, probably):
+    # Feature Collections can have empty array according to GeoJSON spec::
+    # https://datatracker.ietf.org/doc/html/rfc7946#section-3.3
+    if len(upstream_ids) == 0:
+        LOGGER.warning('No upstream ids. Cannot get upstream linestrings .')
+        geometry_coll = {
+            "type": "GeometryCollection",
+            "geometries": []
+        }
+        LOGGER.debug('LEAVING: %s for subcid %s: No upstream catchment, empty GeometryCollection!' % (name, subc_id))
+        return geometry_coll
+
+    if len(upstream_ids) == 1 and subc_id == upstream_ids[0]:
+        LOGGER.debug('Upstream catchments equals subcatchment!')
+
+    geometry_coll = get_linestrings_for_subc_ids_geometry_coll(conn, upstream_ids, basin_id, reg_id)
+    LOGGER.debug('LEAVING: %s for subcid %s' % (name, subc_id))
+    return geometry_coll
+
+
 def get_upstream_catchment_linestrings_feature_coll(conn, subc_id, upstream_ids, basin_id, reg_id, **kwargs):
     name = "get_upstream_catchment_linestrings_feature_coll"
     LOGGER.debug('ENTERING: %s for subcid %s' % (name, subc_id))
-    
+
     # No upstream ids: (TODO: This should be caught earlier, probably):
     # Feature Collections can have empty array according to GeoJSON spec::
     # https://datatracker.ietf.org/doc/html/rfc7946#section-3.3
@@ -483,7 +507,7 @@ def get_upstream_catchment_linestrings_feature_coll(conn, subc_id, upstream_ids,
             "type": "FeatureCollection",
             "features": []
         }
-        LOGGER.debug('LEAVING: %s for subcid %s: No upstream catchment, empty feature collection!' % (name, subc_id))
+        LOGGER.debug('LEAVING: %s for subcid %s: No upstream catchment, empty FeatureCollection!' % (name, subc_id))
         return feature_coll
 
     if len(upstream_ids) == 1 and subc_id == upstream_ids[0]:
@@ -626,7 +650,7 @@ def get_upstream_catchment_polygons_feature_coll(conn, subc_id, upstream_ids, ba
             "type": "FeatureCollection",
             "features": []
         }
-        LOGGER.debug('LEAVING: %s for subcid %s: No upstream catchment, empty feature collection!' % (name, subc_id))
+        LOGGER.debug('LEAVING: %s for subcid %s: No upstream catchment, empty FeatureCollection!' % (name, subc_id))
         return feature_coll
 
     # Get info from database:
@@ -663,18 +687,48 @@ def get_upstream_catchment_polygons_feature_coll(conn, subc_id, upstream_ids, ba
         "features": features_geojson
     }
 
-    LOGGER.debug('LEAVING: %s: Returning a polygon feature collection...' % (name))
+    LOGGER.debug('LEAVING: %s: Returning a FeatureCollection with Polygons...' % (name))
     return feature_coll
     
-    # In case we want a GeometryCollection, which is more lightweight to return:  
-    #polygons_geojson = []
-    #for row in result_rows:
-    #    polygons_geojson.append(geomet.wkt.loads(row[1]))
-    #geometry_coll = {
-    #     "type": "GeometryCollection",
-    #     "geometries": polygons_geojson
-    #}
-    #return geometry_coll
+
+def get_upstream_catchment_polygons_geometry_coll(conn, subc_id, upstream_ids, basin_id, reg_id):
+    name = "get_upstream_catchment_polygons_geometry_coll"
+    LOGGER.info("ENTERING: %s for subc_id: %s" % (name, subc_id))
+    
+    # No upstream ids: (TODO: This should be caught earlier, probably):
+    # Geometry Collections can have empty array according to GeoJSON spec: ??? WIP TODO CHECK
+    # https://datatracker.ietf.org/doc/html/rfc7946#section-3.3
+    if len(upstream_ids) == 0:
+        LOGGER.warning('No upstream ids. Cannot get upstream catchments (individual polygons) .')
+        geometry_coll = {
+            "type": "GeometryCollection",
+            "features": []
+        }
+        LOGGER.debug('LEAVING: %s for subcid %s: No upstream catchment, empty GeometryCollection!' % (name, subc_id))
+        return geometry_coll
+
+    # Get info from database:
+    query = _get_query_upstream_polygons(upstream_ids, basin_id, reg_id)
+    num_rows = len(upstream_ids)
+    result_rows = get_rows(execute_query(conn, query), num_rows, name)
+    if result_rows is None:
+        err_msg = 'Received result_rows None! This is weird. Existing upstream ids should have geometries.'
+        LOGGER.error(err_msg)
+        raise ValueError(err_msg)
+
+    # Construct GeoJSON feature:
+    geometries_geojson = []
+    for row in result_rows:
+        geometries_geojson.append(geomet.wkt.loads(row[1]))
+
+    geometry_coll = {
+        "type": "GeometryCollection",
+        "features": geometries_geojson
+    }
+
+    LOGGER.debug('LEAVING: %s: Returning a GeometryCollection with Polygons...' % (name))
+    return feature_coll
+
 
 def get_dijkstra_ids(conn, subc_id_start, subc_id_end, reg_id, basin_id):
     '''

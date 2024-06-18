@@ -78,7 +78,16 @@ PROCESS_METADATA = {
             'maxOccurs': 1,
             'metadata': None,  # TODO how to use the Metadata item?
             'keywords': ['comment']
-        }
+        },
+        'get_type': {
+            'title': 'Get GeoJSON Feature',
+            'description': 'Can be "GeometryCollection" or "FeatureCollection".',
+            'schema': {'type': 'string'},
+            'minOccurs': 0,
+            'maxOccurs': 1,
+            'metadata': None,
+            'keywords': ['comment']
+        },
     },
     'outputs': {
         'subcatchment': {
@@ -132,6 +141,7 @@ class UpstreamStreamSegmentGetter(BaseProcessor):
         lon = float(data.get('lon'))
         lat = float(data.get('lat'))
         comment = data.get('comment') # optional
+        get_type = data.get('get_type', 'GeometryCollection')
 
         with open('config.json') as myfile:
             config = json.load(myfile)
@@ -165,10 +175,24 @@ class UpstreamStreamSegmentGetter(BaseProcessor):
 
             # Get geometry (feature coll only):
             LOGGER.debug('... Getting upstream catchment line segments for subc_id: %s' % subc_id)
-            # Note: The feature collection contains the strahler order for each feature (each stream segment)
-            feature_coll = get_upstream_catchment_linestrings_feature_coll(conn, subc_id, upstream_catchment_subcids, basin_id, reg_id)
-            LOGGER.debug('END: Received feature collection: %s' % str(feature_coll)[0:50])
 
+            if get_type.lower() == 'featurecollection':
+                # Note: The feature collection contains the strahler order for each feature (each stream segment)
+                feature_coll = get_upstream_catchment_linestrings_feature_coll(
+                    conn, subc_id, upstream_catchment_subcids, basin_id, reg_id)
+                geojson_object = feature_coll
+                LOGGER.debug('END: Received FeatureCollection: %s' % str(feature_coll)[0:50])
+
+            elif get_type.lower() == 'geometrycollection':
+                geometry_coll = get_upstream_catchment_linestrings_geometry_coll(
+                    conn, subc_id, upstream_ids, basin_id, reg_id)
+                geojson_object = geometry_coll
+                LOGGER.debug('END: Received GeometryCollection: %s' % str(geometry_coll)[0:50])
+
+            else:
+                err_msg = "Input parameter 'get_type' can only be one of GeometryCollection or FeatureCollection!"
+                LOGGER.error(err_msg)
+                raise ProcessorExecuteError(user_msg=err_msg)
 
         # TODO move this to execute! and the database stuff!
         except ValueError as e2:
@@ -194,8 +218,11 @@ class UpstreamStreamSegmentGetter(BaseProcessor):
         ################
 
         if error_message is None:
-            outputs = feature_coll
-            return 'application/json', outputs
+
+            if comment is not None:
+                geojson_object['comment'] = comment
+
+            return 'application/json', geojson_object
 
         else:
             outputs = {

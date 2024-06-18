@@ -139,106 +139,162 @@ class SubsetBboxProcessor(BaseProcessor):
 
     def execute(self, data):
 
-
         north_lat = float(data.get('north'))
         south_lat = float(data.get('south'))
         east_lon = float(data.get('east'))
         west_lon = float(data.get('west'))
-        input_filepath = '/home/.../work/sub_catchment_h18v00.cog.tiff'
-        input_filepath = '/opt/.../sub_catchment_h18v00.cog.tiff'
+
+        # Check if inside our boundaries:
+        _check_boundaries(north_lat, south_lat, east_lon, west_lon)
+
+        # TODO: Put these into config!
+        input_raster_filepath = '/home/.../sub_catchment_h18v00.cog.tiff'
+        input_raster_filepath = 'opt/.../sub_catchment_h18v00.cog.tiff'
         result_filepath_uncompressed = r'/tmp/processresult_uncompressed.tif'
-        result_filepath = r'/tmp/processresult.tif'
+        result_filepath_compressed   = r'/tmp/processresult.tif'
 
+        _subset_by_window(input_raster_filepath, result_filepath_uncompressed, north_lat, south_lat, east_lon, west_lon)
+        _compress_tiff(result_filepath_uncompressed, result_filepath_compressed)
 
-        if north_lat > 85 or south_lat > 85:
-            raise ProcessorExecuteError('Cannot process latitudes above 85 degrees north! You specified: {north}, {south}'.format(
-                north = north_lat, south = south_lat))
-        if south_lat < 65 or north_lat < 65:
-            raise ProcessorExecuteError('Cannot (currently) process latitudes under 65 degrees north! You specified: {north}, {south}'.format(
-                north = north_lat, south = south_lat))
-        if east_lon > 20 or west_lon > 20:
-            raise ProcessorExecuteError('Cannot (currently) process longitudes above 20 degrees east! You specified: {west}, {east}.'.format(
-                west = west_lon, east = east_lon))
-        if west_lon < 0 or east_lon < 0:
-            raise ProcessorExecuteError('Cannot (currently) process longitudes under 0 degrees east! You specified: {west}, {east}.'.format(
-                west = west_lon, east = east_lon))
-        if north_lat <= south_lat:
-            raise ProcessorExecuteError('North latitude must be greater than south latitude! You specified: {north}, {south}'.format(
-                north = north_lat, south = south_lat))
-        if east_lon <= west_lon:
-            raise ProcessorExecuteError('East longitude must be greater than west longitude! You specified: {west}, {east}.'.format(
-                west = west_lon, east = east_lon))
-
-
-        # Make windows in col/row/pixels instead of WGS84
-        win = self.win_rows_cols(input_filepath, west_lon, east_lon, south_lat, north_lat)
-
-        # Subset raster
-        window = rasterio.windows.Window(win["col_off"], win["row_off"], win["width"], win["height"])
-        with rasterio.open(input_filepath) as src:
-            subset = src.read(1, window=window)
-            result_metadata = src.meta.copy()
-
-        # Prepare writing raster to GeoTIFF:
-        subset_transform = rasterio.transform.from_bounds(
-            west_lon, 
-            south_lat,
-            east_lon, 
-            north_lat, 
-            width=subset.shape[0], 
-            height=subset.shape[1]
-        )
-
-        result_metadata.update({'driver':'GTiff',
-            'width':subset.shape[0],
-            'height':subset.shape[1],
-            'transform':subset_transform,
-            'nodata':0})
-
-        # Write raster to disk as GeoTIFF:
-        with rasterio.open(fp=result_filepath_uncompressed, mode='w',**result_metadata) as dst:
-            dst.write(subset, 1)
-
-        # Compress
-        # https://gis.stackexchange.com/questions/368874/read-and-then-write-rasterio-geotiff-file-without-loading-all-data-into-memory
-        # https://gis.stackexchange.com/questions/42584/how-to-call-gdal-translate-from-python-code/237411#237411
-        ds = gdal.Open(result_filepath_uncompressed)
-        gdal.Translate(result_filepath, ds, creationOptions = ['COMPRESS=LZW'])
-        try:
-            ds.Close() # Some versions do not have this, apparently.
-        except AttributeError as e:
-            # https://gis.stackexchange.com/questions/80366/why-close-a-dataset-in-gdal-python
-            LOGGER.debug('Cannot close gdal dataset: %s' % e)
-            ds = None
 
         # Read bytestream from disk and return to user as application/octet-stream:
-        with open(result_filepath, 'r+b') as myraster:
+        with open(result_filepath_compressed, 'r+b') as myraster:
             resultfile = myraster.read()
 
         mimetype = 'application/octet-stream'
         return mimetype, resultfile
 
-    # Function to return a window in rows and cols
-    def win_rows_cols(self, file_path, west_lon, east_lon, south_lat, north_lat):
-        
-        # Get crs and transform from COG file
-        with rasterio.open(file_path) as src:
-            src_crs = src.crs
-            src_transform = src.transform
-            print('CRS: "%s" -> "%s"' % (src_crs, src_transform))
-        
-        # Projected coordinates
-        X, Y = rasterio.warp.transform({'init': 'EPSG:4326'}, src_crs, [west_lon, east_lon], [south_lat, north_lat])
-        print('X "%s" Y "%s"' % (X, Y))
-        
-        # Transform in row, col
-        (rows, cols) = rasterio.transform.rowcol(src_transform, X, Y)
-        print('Rows "%s" cols "%s"' % (rows, cols))
-        ncols = cols[1]-cols[0]
-        
-        nrows = rows[0]-rows[1] # ! rows[0] > rows[1]
-        return {"col_off": cols[0], "row_off": rows[1], "width": ncols, "height": nrows}
-
     def __repr__(self):
         return f'<SubsetBboxProcessor> {self.name}'
 
+
+def _check_boundaries(north_lat, south_lat, east_lon, west_lon):
+
+    if north_lat > 85 or south_lat > 85:
+        raise ProcessorExecuteError('Cannot process latitudes above 85 degrees north! You specified: {north}, {south}'.format(
+            north = north_lat, south = south_lat))
+    if south_lat < 65 or north_lat < 65:
+        raise ProcessorExecuteError('Cannot (currently) process latitudes under 65 degrees north! You specified: {north}, {south}'.format(
+            north = north_lat, south = south_lat))
+    if east_lon > 20 or west_lon > 20:
+        raise ProcessorExecuteError('Cannot (currently) process longitudes above 20 degrees east! You specified: {west}, {east}.'.format(
+            west = west_lon, east = east_lon))
+    if west_lon < 0 or east_lon < 0:
+        raise ProcessorExecuteError('Cannot (currently) process longitudes under 0 degrees east! You specified: {west}, {east}.'.format(
+            west = west_lon, east = east_lon))
+    if north_lat <= south_lat:
+        raise ProcessorExecuteError('North latitude must be greater than south latitude! You specified: {north}, {south}'.format(
+            north = north_lat, south = south_lat))
+    if east_lon <= west_lon:
+        raise ProcessorExecuteError('East longitude must be greater than west longitude! You specified: {west}, {east}.'.format(
+            west = west_lon, east = east_lon))
+
+
+def _subset_by_window(input_raster_filepath, result_filepath_uncompressed, north_lat, south_lat, east_lon, west_lon):
+    # TODO: Probably we can use subset_by_mask here too! Try it and then make everything more simple! Just one process!
+
+    # Make windows in col/row/pixels instead of WGS84
+    win = _win_rows_cols(input_raster_filepath, west_lon, east_lon, south_lat, north_lat)
+
+    # Subset raster
+    window = rasterio.windows.Window(win["col_off"], win["row_off"], win["width"], win["height"])
+    with rasterio.open(input_raster_filepath) as src:
+        subset = src.read(1, window=window)
+        result_metadata = src.meta.copy()
+
+    # Prepare writing raster to GeoTIFF:
+    subset_transform = rasterio.transform.from_bounds(
+        west_lon,
+        south_lat,
+        east_lon,
+        north_lat,
+        width=subset.shape[0],
+        height=subset.shape[1]
+    )
+
+    result_metadata.update({'driver':'GTiff',
+        'width':subset.shape[0],
+        'height':subset.shape[1],
+        'transform':subset_transform,
+        'nodata':0})
+
+    # Write raster to disk as GeoTIFF:
+    with rasterio.open(fp=result_filepath_uncompressed, mode='w',**result_metadata) as dst:
+        dst.write(subset, 1)
+
+
+def _compress_tiff(result_filepath_uncompressed, result_filepath_compressed):
+    # TODO: Is same for all tiff handling functions - put into different module!
+
+    # Compress
+    # https://gis.stackexchange.com/questions/368874/read-and-then-write-rasterio-geotiff-file-without-loading-all-data-into-memory
+    # https://gis.stackexchange.com/questions/42584/how-to-call-gdal-translate-from-python-code/237411#237411
+    ds = gdal.Open(result_filepath_uncompressed)
+    gdal.Translate(result_filepath_compressed, ds, creationOptions = ['COMPRESS=LZW'])
+    try:
+        ds.Close() # Some versions do not have this, apparently.
+    except AttributeError as e:
+        # https://gis.stackexchange.com/questions/80366/why-close-a-dataset-in-gdal-python
+        LOGGER.debug('Cannot close gdal dataset: %s' % e)
+        ds = None
+
+    LOGGER.debug('Written to: %s' % result_filepath_compressed)
+
+
+# Function to return a window in rows and cols
+def _win_rows_cols(file_path, west_lon, east_lon, south_lat, north_lat):
+
+    # Get crs and transform from COG file
+    with rasterio.open(file_path) as src:
+        src_crs = src.crs
+        src_transform = src.transform
+        print('CRS: "%s" -> "%s"' % (src_crs, src_transform))
+
+    # Projected coordinates
+    X, Y = rasterio.warp.transform({'init': 'EPSG:4326'}, src_crs, [west_lon, east_lon], [south_lat, north_lat])
+    print('X "%s" Y "%s"' % (X, Y))
+
+    # Transform in row, col
+    (rows, cols) = rasterio.transform.rowcol(src_transform, X, Y)
+    print('Rows "%s" cols "%s"' % (rows, cols))
+    ncols = cols[1]-cols[0]
+
+    nrows = rows[0]-rows[1] # ! rows[0] > rows[1]
+    return {"col_off": cols[0], "row_off": rows[1], "width": ncols, "height": nrows}
+
+
+
+if __name__ == "__main__":
+
+    print('Testing subsetting by polygons...')
+
+    gdal.UseExceptions()
+
+    input_filepath = '/home/.../sub_catchment_h18v00.cog.tiff'
+    input_filepath = '/home/.../hydrography90m/tiles_europe/r.watershed/sub_catchment_tiles20d/sub_catchment_h18v00.cog.tiff'
+    result_filepath_uncompressed = r'/tmp/processresult_uncompressed.tif'
+    result_filepath_compressed   = r'/tmp/processresult.tif'
+
+    # Test the checks
+    north_lat = 50
+    south_lat = 95
+    west_lon = -5
+    east_lon = 99
+    try:
+        _check_boundaries(north_lat, south_lat, east_lon, west_lon)
+        print('Wait, we expected a ProcessorExecuteError')
+    except ProcessorExecuteError as e:
+        print('Expected: ProcessorExecuteError')
+
+    # Test the real thing:
+    north_lat = 72
+    south_lat = 70
+    west_lon = 3
+    east_lon = 4
+
+    print('Run the subsetting...')
+    _subset_by_window(input_raster_filepath, result_filepath_uncompressed, north_lat, south_lat, east_lon, west_lon)
+    print('Run the compression...')
+    _compress_tiff(result_filepath_uncompressed, result_filepath_compressed)
+    print('FINISHED RUNNING!')
+    print('Written to: %s' % result_filepath_compressed)

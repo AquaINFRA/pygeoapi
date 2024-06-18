@@ -188,13 +188,13 @@ class UpstreamDissolvedGetter(BaseProcessor):
             elif get_type == 'feature':
                 geojson_object = get_upstream_catchment_dissolved_feature(
                     conn, subc_id, upstream_catchment_subcids,
-                    basin_id=basin_id, reg_id=reg_id, comment=comment)
+                    basin_id, reg_id, comment=comment)
                 LOGGER.debug('END: Received feature : %s' % str(geojson_object)[0:50])
            
             elif get_type == 'feature_collection':
                 geojson_object = get_upstream_catchment_dissolved_feature_coll(
-                    conn, subc_id, upstream_catchment_subcids, lonlat=(lon, lat),
-                    basin_id=basin_id, reg_id=reg_id, comment=comment)
+                    conn, subc_id, upstream_catchment_subcids, (lon, lat),
+                    basin_id, reg_id, comment=comment)
                 LOGGER.debug('END: Received feature collection: %s' % str(geojson_object)[0:50])
 
                 

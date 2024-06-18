@@ -34,8 +34,7 @@ from osgeo import gdal
 import uuid
 import json
 import datetime
-
-
+import pygeoapi.process.raster_helpers as helpers
 from pygeoapi.process.base import BaseProcessor, ProcessorExecuteError
 
 
@@ -56,8 +55,8 @@ PROCESS_METADATA = {
     },
     'description': {
         'en': 'This process returns a raster subset from a tiff raster'
-              'image, based on a bounding box provided by the user in'
-              'WGS84 coordinates. The result is a compressed tiff file.',
+              ' image, based on a bounding box provided by the user in'
+              ' WGS84 coordinates. The result is a compressed tiff file.',
         'fr': 'Pas de description encore.',
     },
     'jobControlOptions': ['sync-execute', 'async-execute'],
@@ -153,8 +152,11 @@ class SubsetBboxProcessor(BaseProcessor):
         with open('config.json') as myfile:
             config = json.load(myfile)
 
+        # Where to find input data
         input_raster_basedir = config['base_dir_subsetting_tiffs']
         input_raster_filepath = input_raster_basedir.rstrip('/')+'/sub_catchment_h18v00.cog.tiff' # TODO this is just one small file!
+
+        # Where to store output data
         randomstring = uuid.uuid4().hex[0:8]
         now = datetime.datetime.today().strftime('%Y%m%d')
         result_filepath_uncompressed = r'/tmp/subset_%s_%s_uncompressed.tiff' % (now, randomstring)
@@ -162,8 +164,7 @@ class SubsetBboxProcessor(BaseProcessor):
         # TODO: Must delete result files!
 
         _subset_by_window(input_raster_filepath, result_filepath_uncompressed, north_lat, south_lat, east_lon, west_lon)
-        _compress_tiff(result_filepath_uncompressed, result_filepath_compressed)
-
+        helpers.compress_tiff(result_filepath_uncompressed, result_filepath_compressed, LOGGER)
 
         # Read bytestream from disk and return to user as application/octet-stream:
         with open(result_filepath_compressed, 'r+b') as myraster:
@@ -229,24 +230,6 @@ def _subset_by_window(input_raster_filepath, result_filepath_uncompressed, north
     # Write raster to disk as GeoTIFF:
     with rasterio.open(fp=result_filepath_uncompressed, mode='w',**result_metadata) as dst:
         dst.write(subset, 1)
-
-
-def _compress_tiff(result_filepath_uncompressed, result_filepath_compressed):
-    # TODO: Is same for all tiff handling functions - put into different module!
-
-    # Compress
-    # https://gis.stackexchange.com/questions/368874/read-and-then-write-rasterio-geotiff-file-without-loading-all-data-into-memory
-    # https://gis.stackexchange.com/questions/42584/how-to-call-gdal-translate-from-python-code/237411#237411
-    ds = gdal.Open(result_filepath_uncompressed)
-    gdal.Translate(result_filepath_compressed, ds, creationOptions = ['COMPRESS=LZW'])
-    try:
-        ds.Close() # Some versions do not have this, apparently.
-    except AttributeError as e:
-        # https://gis.stackexchange.com/questions/80366/why-close-a-dataset-in-gdal-python
-        LOGGER.debug('Cannot close gdal dataset: %s' % e)
-        ds = None
-
-    LOGGER.debug('Written to: %s' % result_filepath_compressed)
 
 
 # Function to return a window in rows and cols

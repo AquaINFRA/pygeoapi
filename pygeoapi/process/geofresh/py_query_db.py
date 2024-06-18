@@ -30,6 +30,7 @@ def _get_query_reg_id(lon, lat):
     query = query.replace("\n", " ")
     return query 
 
+
 def _get_query_subc_id_basin_id(lon, lat, reg_id):
     """
     Example query:
@@ -54,6 +55,7 @@ def _get_query_subc_id_basin_id(lon, lat, reg_id):
     """.format(longitude = lon, latitude = lat, reg_id = reg_id)
     query = query.replace("\n", " ")
     return query 
+
 
 def _get_query_snapped(lon, lat, subc_id, basin_id, reg_id):
     """
@@ -82,6 +84,7 @@ def _get_query_snapped(lon, lat, subc_id, basin_id, reg_id):
     query = query.replace("\n", " ")
     return query
 
+
 def _get_query_segment(subc_id, basin_id, reg_id):
     """
     Example query:
@@ -105,6 +108,7 @@ def _get_query_segment(subc_id, basin_id, reg_id):
     """.format(subc_id = subc_id, basin_id = basin_id, reg_id = reg_id)
     query = query.replace("\n", " ")
     return query
+
 
 def _get_query_upstream(subc_id, reg_id, basin_id):
     """
@@ -193,6 +197,7 @@ def _get_query_upstream_dissolved(upstream_ids, basin_id, reg_id):
     """.format(ids = ids, basin_id = basin_id, reg_id = reg_id)
     return query
 
+
 def _get_query_linestrings_for_subc_ids(subc_ids, basin_id, reg_id):
     '''
     Example query:
@@ -212,6 +217,7 @@ def _get_query_linestrings_for_subc_ids(subc_ids, basin_id, reg_id):
     '''.format(ids = ids, basin_id = basin_id, reg_id = reg_id)
     query = query.replace("\n", " ")
     return query
+
 
 def _get_query_upstream_polygons(upstream_ids, basin_id, reg_id):
     """
@@ -241,6 +247,7 @@ def _get_query_upstream_polygons(upstream_ids, basin_id, reg_id):
     '''.format(ids = ids, basin_id = basin_id, reg_id = reg_id)
     return query
 
+
 def _get_query_upstream_bbox(upstream_ids, basin_id, reg_id):
     """
     Example query:
@@ -267,6 +274,7 @@ def _get_query_upstream_bbox(upstream_ids, basin_id, reg_id):
     """.format(relevant_ids = relevant_ids, basin_id = basin_id, reg_id = reg_id)
     return query
 
+
 def _get_query_test(point_table_name):
     # Then we can use "pgr_upstreamcomponent" and run it on that table "poi"
     # Then we get a table with, for each "subc_id", all the "subc_id" of the upstream subcatchments! (All of them? Or just the next? I guess all of them?)
@@ -277,6 +285,7 @@ def _get_query_test(point_table_name):
         FROM "{point_table}" poi, hydro.pgr_upstreamcomponent(poi.subc_id, poi.reg_id, poi.basin_id) upstr
         WHERE poi.strahler_order != 1""".format(point_table = point_table_name)
     return query
+
 
 ###################################
 ### get results from SQL result ###
@@ -632,7 +641,7 @@ def get_polygon_for_subcid_feature(conn, subc_id, basin_id, reg_id, **kwargs):
     }
     if len(kwargs) > 0:
         feature_subcatchment["properties"].update(kwargs)
-    
+
     LOGGER.debug('LEAVING: %s: Returning a single polygon feature: %s' % (name, str(feature_subcatchment)[0:50]))
     return feature_subcatchment
 
@@ -694,7 +703,7 @@ def get_upstream_catchment_polygons_feature_coll(conn, subc_id, upstream_ids, ba
 def get_upstream_catchment_polygons_geometry_coll(conn, subc_id, upstream_ids, basin_id, reg_id):
     name = "get_upstream_catchment_polygons_geometry_coll"
     LOGGER.info("ENTERING: %s for subc_id: %s" % (name, subc_id))
-    
+
     # No upstream ids: (TODO: This should be caught earlier, probably):
     # Geometry Collections can have empty array according to GeoJSON spec: ??? WIP TODO CHECK
     # https://datatracker.ietf.org/doc/html/rfc7946#section-3.3
@@ -846,7 +855,6 @@ def get_upstream_catchment_ids_without_itself(conn, subc_id, basin_id, reg_id, i
     return upstream_catchment_subcids
 
 
-
 def get_snapped_point_simple(conn, lon, lat, subc_id, basin_id, reg_id):
     """
     Example result:
@@ -885,6 +893,7 @@ def get_snapped_point_simple(conn, lon, lat, subc_id, basin_id, reg_id):
         #lat_snap = snappedpoint_geojson["coordinates"][1]
         LOGGER.debug("LEAVING: %s for point: lon=%s, lat=%s (subc_id %s)" % (name, lon, lat, subc_id))
         return strahler, snappedpoint_point, streamsegment_linestring
+
 
 def get_snapped_point_feature(conn, lon, lat, subc_id, basin_id, reg_id, **kwargs):
     name = "get_snapped_point_feature"

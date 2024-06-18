@@ -63,7 +63,7 @@ PROCESS_METADATA = {
             'schema': {'type': 'string'},
             'minOccurs': 1,
             'maxOccurs': 1,
-            'metadata': None,  # TODO how to use the Metadata item?
+            'metadata': None,
             'keywords': ['latitude', 'wgs84']
         },
         'comment': {
@@ -72,7 +72,7 @@ PROCESS_METADATA = {
             'schema': {'type': 'string'},
             'minOccurs': 0,
             'maxOccurs': 1,
-            'metadata': None,  # TODO how to use the Metadata item?
+            'metadata': None,
             'keywords': ['comment']
         }
     },
@@ -216,17 +216,21 @@ class StreamSegmentGetter(BaseProcessor):
         ################
 
         if error_message is None:
+
+            # TODO API definition: Comments as part of properties (for features), and then for geometries just adding it??
             if comment is not None:
                 geojson_object['comment'] = comment
 
             return 'application/json', geojson_object
 
         else:
-            outputs = {
+            output = {
                 'error_message': 'getting stream segment failed.',
                 'details': error_message}
+
             if comment is not None:
-                outputs['comment'] = comment
+                output['comment'] = comment
+
             LOGGER.warning('Getting stream segment failed. Returning error message.')
-            return 'application/json', outputs
+            return 'application/json', output
 

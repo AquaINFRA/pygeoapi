@@ -74,43 +74,16 @@ PROCESS_METADATA = {
             'schema': {'type': 'string'},
             'minOccurs': 1,
             'maxOccurs': 1,
-            'metadata': None,  # TODO how to use the Metadata item?
+            'metadata': None,
             'keywords': ['latitude', 'wgs84']
         },
-        #'subc_id': {
-        #    'title': 'Subcatchment Id',
-        #    'description': 'Id of the subcatchment whose upstream catchment is computed. Example: 553495421.',
-        #    'schema': {'type': 'string'},
-        #    'minOccurs': 1,
-        #    'maxOccurs': 1,
-        #    'metadata': None,  # TODO how to use the Metadata item?
-        #    'keywords': ['subcatchment', "stream_segment"]
-        #},
-        #'basin_id': {
-        #    'title': 'Basin Id',
-        #    'description': 'Id of the drainage basin in which the subcatchment is located. Example: 1274183 (for Vantaanjoki, Finland).',
-        #    'schema': {'type': 'string'},
-        #    'minOccurs': 1,
-        #    'maxOccurs': 1,
-        #    'metadata': None,  # TODO how to use the Metadata item?
-        #    'keywords': ['drainage_basin']
-        #},
-        #'reg_id': {
-        #    'title': 'Region Id',
-        #    'description': 'Id of the region in which the subcatchment is located. Example: 65 (for most of Finland).',
-        #    'schema': {'type': 'string'},
-        #    'minOccurs': 1,
-        #    'maxOccurs': 1,
-        #    'metadata': None,  # TODO how to use the Metadata item?
-        #    'keywords': ['region']
-        #},
         'comment': {
             'title': 'Comment',
             'description': 'Arbitrary string that will not be processed but returned, for user\'s convenience.',
             'schema': {'type': 'string'},
             'minOccurs': 0,
             'maxOccurs': 1,
-            'metadata': None,  # TODO how to use the Metadata item?
+            'metadata': None,
             'keywords': ['comment']
         }
     },
@@ -222,22 +195,28 @@ class UpstreamCatchmentIdGetter(BaseProcessor):
         ################
 
         if error_message is None:
-            outputs = {
+
+            # Note: This is not GeoJSON (on purpose), as we did not look for geometry yet.
+            output = {
                 'subcatchment': subc_id,
                 'upstream_catchment_ids': upstream_catchment_subcids,
                 'region_id': reg_id,
                 'basin_id': basin_id
             }
+
             if comment is not None:
-                outputs['comment'] = comment
-            return 'application/json', outputs
+                output['comment'] = comment
+
+            return 'application/json', output
 
         else:
-            outputs = {
+            output = {
                 'error_message': 'getting upstream catchment ids failed.',
                 'details': error_message}
+
             if comment is not None:
-                outputs['comment'] = comment
+                output['comment'] = comment
+
             LOGGER.warning('Getting upstream catchment ids failed. Returning error message.')
-            return 'application/json', outputs
+            return 'application/json', output
 

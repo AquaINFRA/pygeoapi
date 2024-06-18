@@ -31,6 +31,9 @@ import logging
 import rasterio
 from rasterio import warp
 from osgeo import gdal
+import uuid
+import json
+import datetime
 
 
 from pygeoapi.process.base import BaseProcessor, ProcessorExecuteError
@@ -147,11 +150,16 @@ class SubsetBboxProcessor(BaseProcessor):
         # Check if inside our boundaries:
         _check_boundaries(north_lat, south_lat, east_lon, west_lon)
 
-        # TODO: Put these into config!
-        input_raster_filepath = '/home/.../sub_catchment_h18v00.cog.tiff'
-        input_raster_filepath = 'opt/.../sub_catchment_h18v00.cog.tiff'
-        result_filepath_uncompressed = r'/tmp/processresult_uncompressed.tif'
-        result_filepath_compressed   = r'/tmp/processresult.tif'
+        with open('config.json') as myfile:
+            config = json.load(myfile)
+
+        input_raster_basedir = config['base_dir_subsetting_tiffs']
+        input_raster_filepath = input_raster_basedir.rstrip('/')+'/sub_catchment_h18v00.cog.tiff' # TODO this is just one small file!
+        randomstring = uuid.uuid4().hex[0:8]
+        now = datetime.datetime.today().strftime('%Y%m%d')
+        result_filepath_uncompressed = r'/tmp/subset_%s_%s_uncompressed.tiff' % (now, randomstring)
+        result_filepath_compressed = r'/tmp/subset_%s_%s_compressed.tiff' % (now, randomstring)
+        # TODO: Must delete result files!
 
         _subset_by_window(input_raster_filepath, result_filepath_uncompressed, north_lat, south_lat, east_lon, west_lon)
         _compress_tiff(result_filepath_uncompressed, result_filepath_compressed)
@@ -266,12 +274,15 @@ def _win_rows_cols(file_path, west_lon, east_lon, south_lat, north_lat):
 
 if __name__ == "__main__":
 
-    print('Testing subsetting by polygons...')
+    print('Testing subsetting by bbox...')
 
     gdal.UseExceptions()
 
-    input_filepath = '/home/.../sub_catchment_h18v00.cog.tiff'
-    input_filepath = '/home/.../hydrography90m/tiles_europe/r.watershed/sub_catchment_tiles20d/sub_catchment_h18v00.cog.tiff'
+    with open('config.json') as myfile:
+        config = json.load(myfile)
+
+    input_raster_basedir = config['base_dir_subsetting_tiffs']
+    input_raster_filepath = input_raster_basedir.rstrip('/')+'/sub_catchment_h18v00.cog.tiff'
     result_filepath_uncompressed = r'/tmp/processresult_uncompressed.tif'
     result_filepath_compressed   = r'/tmp/processresult.tif'
 

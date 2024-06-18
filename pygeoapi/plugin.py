@@ -83,6 +83,8 @@ PLUGINS = {
         'UpstreamBboxGetter': 'pygeoapi.process.get_upstream_bbox.UpstreamBboxGetter',
         'UpstreamPolygonGetter': 'pygeoapi.process.get_upstream_polygons.UpstreamPolygonGetter',
         'UpstreamDissolvedGetter': 'pygeoapi.process.get_upstream_dissolved.UpstreamDissolvedGetter',
+        'SubsetterBbox': 'pygeoapi.process.subset_by_bbox.SubsetBboxProcessor',
+
     },
     'process_manager': {
         'Dummy': 'pygeoapi.process.manager.dummy.DummyManager',

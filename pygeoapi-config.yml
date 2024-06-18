@@ -342,3 +342,9 @@ resources:
         type: process
         processor:
             name: UpstreamDissolvedGetter
+
+    get-subset-by-bbox:
+        type: process
+        processor:
+            name: SubsetterBbox
+

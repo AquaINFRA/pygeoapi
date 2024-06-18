@@ -34,6 +34,7 @@ from osgeo import gdal
 import uuid
 import json
 import datetime
+import pygeoapi.process.raster_helpers as helpers
 from pygeoapi.process.base import BaseProcessor, ProcessorExecuteError
 
 
@@ -129,7 +130,7 @@ class SubsetPolygonProcessor(BaseProcessor):
 
         # Run it:
         _subset_by_polygon(polygon, input_raster_filepath, result_filepath_uncompressed)
-        _compress_tiff(result_filepath_uncompressed, result_filepath_compressed)
+        helpers.compress_tiff(result_filepath_uncompressed, result_filepath_compressed, LOGGER)
 
         # Read bytestream from disk and return to user as application/octet-stream:
         with open(result_filepath_compressed, 'r+b') as myraster:
@@ -164,22 +165,7 @@ def _subset_by_polygon(shape, input_raster_filepath, result_filepath_uncompresse
         dst.write(subset)
 
 
-def _compress_tiff(result_filepath_uncompressed, result_filepath_compressed):
-    # TODO: Is same for all tiff handling functions - put into different module!
 
-    # Compress
-    # https://gis.stackexchange.com/questions/368874/read-and-then-write-rasterio-geotiff-file-without-loading-all-data-into-memory
-    # https://gis.stackexchange.com/questions/42584/how-to-call-gdal-translate-from-python-code/237411#237411
-    ds = gdal.Open(result_filepath_uncompressed)
-    gdal.Translate(result_filepath_compressed, ds, creationOptions = ['COMPRESS=LZW'])
-    try:
-        ds.Close() # Some versions do not have this, apparently.
-    except AttributeError as e:
-        # https://gis.stackexchange.com/questions/80366/why-close-a-dataset-in-gdal-python
-        LOGGER.debug('Cannot close gdal dataset: %s' % e)
-        ds = None
-
-    LOGGER.debug('Written to: %s' % result_filepath_compressed)
 
 
 if __name__ == "__main__":

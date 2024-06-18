@@ -27,6 +27,7 @@ integrity=
 	  <option value="get-snapped-point">Snapped point and local stream segment</option>
     <option value="get-snapped-point-plus">Snapped point, local stream segment and local subcatchment</option>
     <option value="get-shortest-path-to-sea">Shortest path from point to sea</option>
+    <option value="get-shortest-path">Shortest path from point to point (NOT YET)</option>
   </select>
   <span>(please choose!)...</span>
   </p>
@@ -172,6 +173,7 @@ var myFunction = function(clicklonn, clicklatt){
 
 
 // GET COORDINATES FROM MAP:
+// TODO: Need two clicks for routing!
 console.log('WAIT FOR COORINDATE CLICK');
 map.on('click', function (e) {
   //coords= e.latlng.lat + ", " + e.latlng.lng;

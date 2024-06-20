@@ -136,7 +136,7 @@ PROCESS_METADATA = {
 }
 
 
-class SubsetBboxProcessor(BaseProcessor):
+class SubsetterBbox(BaseProcessor):
 
     def __init__(self, processor_def):
         super().__init__(processor_def, PROCESS_METADATA)

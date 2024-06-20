@@ -306,7 +306,7 @@ resources:
     get-upstream-catchment-ids:
         type: process
         processor:
-            name: GetUpstreamCatchmentIds
+            name: UpstreamCatchmentIdGetter
 
     get-snapped-point:
         type: process

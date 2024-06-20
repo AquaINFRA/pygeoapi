@@ -61,9 +61,9 @@ from pygeoapi.openapi import load_openapi_document
 from pygeoapi.config import get_config
 from pygeoapi.util import get_api_rules
 
-# Added by Merret 2024-06-03
-os.environ['PYGEOAPI_CONFIG'] = '/opt/.../pygeoapi-config.yml'
-os.environ['PYGEOAPI_OPENAPI'] = '/opt/.../pygeoapi-openapi.yml'
+## Added by Merret:
+os.environ['PYGEOAPI_CONFIG'] = '/opt/.../pygeoapi/pygeoapi-config.yml'
+os.environ['PYGEOAPI_OPENAPI'] = '/opt/.../pygeoapi/pygeoapi-openapi.yml'
 
 
 CONFIG = get_config()

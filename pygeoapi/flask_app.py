@@ -50,6 +50,11 @@ from pygeoapi.config import get_config
 from pygeoapi.util import get_mimetype, get_api_rules
 
 ## Added by Merret:
+os.environ['PYGEOAPI_CONFIG'] = '/opt/.../pygeoapi/pygeoapi-config.yml'
+os.environ['PYGEOAPI_OPENAPI'] = '/opt/.../pygeoapi/pygeoapi-openapi.yml'
+
+
+## Added by Merret:
 from logging.config import dictConfig
 dictConfig(
     {

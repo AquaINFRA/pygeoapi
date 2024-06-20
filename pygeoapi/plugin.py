@@ -72,7 +72,7 @@ PLUGINS = {
     'process': {
         'HelloWorld': 'pygeoapi.process.hello_world.HelloWorldProcessor',
         'ShapelyFunctions': 'pygeoapi.process.shapely_functions.ShapelyFunctionsProcessor',  # noqa: E501
-        'Echo': 'pygeoapi.process.echo.EchoProcessor'
+        'Echo': 'pygeoapi.process.echo.EchoProcessor',
         'GetUpstreamCatchmentIds': 'pygeoapi.process.get_upstream_subcids.UpstreamCatchmentIdGetter',
         'SnappedPointsGetter': 'pygeoapi.process.get_snapped_points.SnappedPointsGetter',
         'SubcatchmentGetter': 'pygeoapi.process.get_subc_from_coords.SubcatchmentGetter',

@@ -19,6 +19,9 @@ tinydb
 unicodecsv
 
 # Needed for the GeoFRESH case:
-psycopg2
+#psycopg2
+psycopg2-binary # instead of psycopg2
 sshtunnel
 geomet
+# for subsetting
+gdal==3.4.1 # instead of osgeo

@@ -16,6 +16,12 @@ from pygeoapi.process.geofresh.py_query_db import get_polygon_for_subcid_feature
 import psycopg2
 
 '''
+Note:
+TODO FIXME:
+This should be replaced by using the normal get_snapped_point.py with parameter add_subcatchment,
+but then I need to change my test HTML client, which currently only can make different process calls
+by using different process id, and not by adding parameters.
+
 curl -X POST "http://localhost:5000/processes/get-snapped-point/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Nordoestliche Schlei, bei Rabenholz\"}}"
 
 

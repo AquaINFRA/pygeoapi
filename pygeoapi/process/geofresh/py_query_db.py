@@ -611,8 +611,8 @@ def get_linestrings_for_subc_ids_feature_coll(conn, subc_ids, basin_id, reg_id, 
     return feature_coll
 
 
-def get_polygon_for_subcid_feature(conn, subc_id, basin_id, reg_id, **kwargs):
-    name = "get_polygon_for_subcid_feature"
+def get_polygon_for_subcid_simple(conn, subc_id, basin_id, reg_id):
+    name = "get_polygon_for_subcid_simple"
     LOGGER.debug('ENTERING: %s for subc_id %s' % (name, subc_id))
     
     # Get info from database:
@@ -630,6 +630,17 @@ def get_polygon_for_subcid_feature(conn, subc_id, basin_id, reg_id, **kwargs):
         # https://datatracker.ietf.org/doc/html/rfc7946#section-3.2
     else:
         polygon_subcatchment = geomet.wkt.loads(result_row[1])
+
+    LOGGER.debug('LEAVING: %s: Returning a single polygon: %s' % (name, str(polygon_subcatchment)[0:50]))
+    return polygon_subcatchment
+
+
+def get_polygon_for_subcid_feature(conn, subc_id, basin_id, reg_id, **kwargs):
+    name = "get_polygon_for_subcid_feature"
+    LOGGER.debug('ENTERING: %s for subc_id %s' % (name, subc_id))
+
+    # Get info from database:
+    polygon_subcatchment = get_polygon_for_subcid_simple(conn, subc_id, basin_id, reg_id)
 
     # Construct GeoJSON feature:
     feature_subcatchment = {
@@ -1274,6 +1285,8 @@ if __name__ == "__main__":
     print('\nRESULT DIJKSTRA PATH TO SEA (GeometryCollection/LineStrings):\n%s' % coll)
 
     print("\n(10) Catchment polygon: ")
+    polygon = get_polygon_for_subcid_simple(conn, subc_id, basin_id, reg_id)
+    print("\nRESULT CATCHMENT (Geometry/Polygon)\n%s\n" % polygon)
     feature = get_polygon_for_subcid_feature(conn, subc_id, basin_id, reg_id, bla='test')
     print("\nRESULT CATCHMENT (Feature/Polygon)\n%s\n" % feature)
 

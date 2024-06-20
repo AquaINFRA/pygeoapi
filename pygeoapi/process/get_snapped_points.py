@@ -13,14 +13,14 @@ from pygeoapi.process.geofresh.py_query_db import get_reg_id
 from pygeoapi.process.geofresh.py_query_db import get_subc_id_basin_id
 from pygeoapi.process.geofresh.py_query_db import get_snapped_point_feature
 from pygeoapi.process.geofresh.py_query_db import get_snapped_point_simple
+from pygeoapi.process.geofresh.py_query_db import get_polygon_for_subcid_feature
+from pygeoapi.process.geofresh.py_query_db import get_polygon_for_subcid_simple
 import psycopg2
 
 '''
-curl -X POST "http://localhost:5000/processes/get-snapped-point/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Nordoestliche Schlei, bei Rabenholz\"}}"
-
-
-OLD:
-curl -X POST "http://localhost:5000/processes/get-snapped-point/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"subc_id\": 506251252, \"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Nordoestliche Schlei, bei Rabenholz\"}}"
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-snapped-point/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Schlei\"}}"
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-snapped-point/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Schlei\", \"add_subcatchment\": true, \"get_type\": \"FeatureCollection\"}}"
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-snapped-point/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Schlei\", \"add_subcatchment\": true}}"
 
 '''
 
@@ -87,6 +87,15 @@ PROCESS_METADATA = {
             'metadata': None,
             'keywords': ['comment']
         },
+        'add_subcatchment': {
+            'title': 'Add subcatchment polygon',
+            'description': 'Additionally request the subcatchment polygon (only for FeatureCollection or GeometryCollection, will be ignored for Point)',
+            'schema': {'type': 'boolean'},
+            'minOccurs': 0,
+            'maxOccurs': 1,
+            'metadata': None,
+            'keywords': ['comment']
+        },
     },
     'outputs': {
         'snapped_point': {
@@ -137,11 +146,14 @@ class SnappedPointsGetter(BaseProcessor):
 
     def _execute(self, data):
 
-        ### USER INPUTS
+        ## User inputs
         lon = float(data.get('lon'))
         lat = float(data.get('lat'))
         get_type = data.get('get_type', 'Point')
         comment = data.get('comment') # optional
+        add_subcatchment = data.get('add_subcatchment')
+        if not isinstance(add_subcatchment, bool):
+            LOGGER.error('Expected a boolean for "add_subcatchment"!')
 
         with open('config.json') as myfile:
             config = json.load(myfile)
@@ -193,6 +205,12 @@ class SnappedPointsGetter(BaseProcessor):
                     "features": [feature_snappedpoint, feature_streamsegment, feature_connecting_line]
                 }
 
+                # In some cases, we also want to add the subcatchment polygon!
+                # (This is faster than querying the service twice).
+                if add_subcatchment:
+                    feature_subcatchment = get_polygon_for_subcid_feature(conn, subc_id, basin_id, reg_id)
+                    geojson_object["features"].append(feature_subcatchment)
+
             
             # Returned as simple GeoJSON geometry "Point"
             elif get_type.lower() == 'point':
@@ -200,6 +218,10 @@ class SnappedPointsGetter(BaseProcessor):
                 strahler, point_snappedpoint, linestring_streamsegment = get_snapped_point_simple(
                     conn, lon, lat, subc_id, basin_id, reg_id)
                 geojson_object = point_snappedpoint
+                if add_subcatchment:
+                    LOGGER.info('User also requested subcatchment, but that is not compatible with returning a simple point.')
+                    geojson_object['note'] = 'Cannot add subcatchment polygon to GeoJSON point.'
+
             
             # Returned as collection of simple GeoJSON geometries "Point" and LineString:
             elif get_type.lower() == 'geometrycollection':
@@ -207,6 +229,13 @@ class SnappedPointsGetter(BaseProcessor):
                      "type": "GeometryCollection",
                      "geometries": [point_snappedpoint, linestring_streamsegment]
                 }
+
+                # In some cases, we also want to add the subcatchment polygon!
+                # (This is faster than querying the service twice).
+                if add_subcatchment:
+                    polygon_subcatchment = get_polygon_for_subcid_simple(conn, subc_id, basin_id, reg_id)
+                    geojson_object["geometries"].append(polygon_subcatchment)
+
 
             else:
                 err_msg = "Input parameter 'get_type' can only be one of Point, GeometryCollection and FeatureCollection!"

@@ -109,11 +109,6 @@ STATIC_FOLDER = 'static'
 if 'templates' in CONFIG['server']:
     STATIC_FOLDER = CONFIG['server']['templates'].get('static', 'static')
 
-## Added by Merret:
-import os
-os.environ['PYGEOAPI_CONFIG'] = '/opt/.../pygeoapi-config.yml'
-os.environ['PYGEOAPI_OPENAPI'] = '/opt/.../pygeoapi-openapi.yml'
-
 APP = Flask(__name__, static_folder=STATIC_FOLDER, static_url_path='/static')
 APP.url_map.strict_slashes = API_RULES.strict_slashes
 

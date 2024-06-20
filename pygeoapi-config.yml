@@ -313,6 +313,11 @@ resources:
         processor:
             name: SnappedPointsGetter
 
+    get-snapped-point-plus:
+        type: process
+        processor:
+            name: SnappedPointsGetterPlus
+
     get-subcatchment-id:
         type: process
         processor:
@@ -322,6 +327,11 @@ resources:
         type: process
         processor:
             name: StreamSegmentGetter
+
+    get-stream-segment-plus:
+        type: process
+        processor:
+            name: StreamSegmentGetterPlus
 
     get-upstream-stream-segments:
         type: process

@@ -17,6 +17,12 @@ from pygeoapi.process.geofresh.py_query_db import get_strahler_and_stream_segmen
 
 
 '''
+Note:
+TODO FIXME:
+This should be replaced by using the normal get_stream_segment.py with parameter add_subcatchment,
+but then I need to change my test HTML client, which currently only can make different process calls
+by using different process id, and not by adding parameters.
+
 curl -X POST "http://localhost:5000/processes/get-stream-segment/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Nordoestliche Schlei, bei Rabenholz\"}}"
 
 '''

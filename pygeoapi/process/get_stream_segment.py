@@ -13,11 +13,21 @@ from pygeoapi.process.geofresh.py_query_db import get_connection_object
 from pygeoapi.process.geofresh.py_query_db import get_reg_id
 from pygeoapi.process.geofresh.py_query_db import get_subc_id_basin_id
 from pygeoapi.process.geofresh.py_query_db import get_strahler_and_stream_segment_feature
+from pygeoapi.process.geofresh.py_query_db import get_strahler_and_stream_segment_linestring
+from pygeoapi.process.geofresh.py_query_db import get_polygon_for_subcid_feature
+from pygeoapi.process.geofresh.py_query_db import get_polygon_for_subcid_simple
 
 
 '''
-curl -X POST "http://localhost:5000/processes/get-stream-segment/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Nordoestliche Schlei, bei Rabenholz\"}}"
 
+# Normal request, returning a simple geometry (linestring):
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-stream-segment/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Schlei\"}}"
+
+# Request returning a FeatureCollection and additionally the subcatchment polygon:
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-stream-segment/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"add_subcatchment\": true, \"get_type\": \"FeatureCollection\"}}"
+
+# Asking for a subcatchment polygon, but it cannot be fulfilled due to geometry compatibility:
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-stream-segment/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"add_subcatchment\": true}}"
 '''
 
 #: Process metadata and description
@@ -74,7 +84,25 @@ PROCESS_METADATA = {
             'maxOccurs': 1,
             'metadata': None,
             'keywords': ['comment']
-        }
+        },
+        'get_type': {
+            'title': 'Get GeoJSON Feature',
+            'description': 'Can be "LineString", "Feature", "FeatureCollection" or "GeometryCollection".',
+            'schema': {'type': 'string'},
+            'minOccurs': 0,
+            'maxOccurs': 1,
+            'metadata': None,
+            'keywords': ['comment']
+        },
+        'add_subcatchment': {
+            'title': 'Add subcatchment polygon',
+            'description': 'Additionally request the subcatchment polygon (only for FeatureCollection or GeometryCollection, will be ignored for Point)',
+            'schema': {'type': 'boolean'},
+            'minOccurs': 0,
+            'maxOccurs': 1,
+            'metadata': None,
+            'keywords': ['comment']
+        },
     },
     'outputs': {
         'stream_segment': {
@@ -100,15 +128,6 @@ PROCESS_METADATA = {
                 'type': 'object',
                 'contentMediaType': 'application/json'
             }
-        },
-        'get_type': {
-            'title': 'Get GeoJSON Feature',
-            'description': 'Can be "LineString" or "Feature".',
-            'schema': {'type': 'string'},
-            'minOccurs': 0,
-            'maxOccurs': 1,
-            'metadata': None,
-            'keywords': ['comment']
         },
     },
     'example': {
@@ -146,6 +165,9 @@ class StreamSegmentGetter(BaseProcessor):
         lat = float(data.get('lat'))
         comment = data.get('comment') # optional
         get_type = data.get('get_type', 'LineString')
+        add_subcatchment = data.get('add_subcatchment', False)
+        if not isinstance(add_subcatchment, bool):
+            LOGGER.error('Expected a boolean for "add_subcatchment"!')
 
         with open('config.json') as myfile:
             config = json.load(myfile)
@@ -176,18 +198,60 @@ class StreamSegmentGetter(BaseProcessor):
             subc_id, basin_id = get_subc_id_basin_id(conn, lon, lat, reg_id)
             LOGGER.debug('Now, getting stream segment (incl. strahler order) for subc_id: %s' % subc_id)
 
+
             if get_type.lower() == 'feature':
-                streamsegment_feature = get_strahler_and_stream_segment_feature(
+                feature_streamsegment = get_strahler_and_stream_segment_feature(
                     conn, subc_id, basin_id, reg_id)
-                geojson_object = streamsegment_feature
+                geojson_object = feature_streamsegment
+
+                if add_subcatchment:
+                    LOGGER.info('User also requested subcatchment, but that is not compatible with returning a single feature.')
+                    geojson_object['note']: 'Cannot add subcatchment polygon to GeoJSON Feature.'
+
 
             elif get_type.lower() == 'linestring':
-                streamsegment_simple_geometry = get_strahler_and_stream_segment_linestring(
+                strahler, streamsegment_simple_geometry = get_strahler_and_stream_segment_linestring(
                     conn, subc_id, basin_id, reg_id)
                 geojson_object = streamsegment_simple_geometry
 
+                if add_subcatchment:
+                    LOGGER.info('User also requested subcatchment, but that is not compatible with returning a simple linestring.')
+                    geojson_object['note'] = 'Cannot add subcatchment polygon to GeoJSON linestring.'
+
+
+            elif get_type.lower() == 'featurecollection':
+                feature_streamsegment = get_strahler_and_stream_segment_feature(
+                    conn, subc_id, basin_id, reg_id)
+
+                geojson_object = {
+                    "type": "FeatureCollection",
+                    "features": [feature_streamsegment]
+                }
+
+                # In some cases, we also want to add the subcatchment polygon!
+                # (This is faster than querying the service twice).
+                if add_subcatchment:
+                    feature_subcatchment = get_polygon_for_subcid_feature(conn, subc_id, basin_id, reg_id)
+                    geojson_object["features"].append(feature_subcatchment)
+
+
+            elif get_type.lower() == 'geometrycollection':
+                strahler, streamsegment_simple_geometry = get_strahler_and_stream_segment_linestring(
+                    conn, subc_id, basin_id, reg_id)
+
+                geojson_object = {
+                     "type": "GeometryCollection",
+                     "geometries": [streamsegment_simple_geometry]
+                }
+
+                # In some cases, we also want to add the subcatchment polygon!
+                # (This is faster than querying the service twice).
+                if add_subcatchment:
+                    polygon_subcatchment = get_polygon_for_subcid_simple(conn, subc_id, basin_id, reg_id)
+                    geojson_object["geometries"].append(polygon_subcatchment)
+
             else:
-                err_msg = "Input parameter 'get_type' can only be one of LineString or Feature!"
+                err_msg = "Input parameter 'get_type' can only be one of LineString, Feature, FeatureCollection and GeometryCollection!"
                 # TODO: API definition: What is better: Feature vs SimpleGeometry, or Feature vs LineString / Point / Polygon / ... ?
                 LOGGER.error(err_msg)
                 raise ProcessorExecuteError(user_msg=err_msg)

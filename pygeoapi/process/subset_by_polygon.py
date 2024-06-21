@@ -34,6 +34,7 @@ from osgeo import gdal
 import uuid
 import json
 import datetime
+import requests
 import pygeoapi.process.raster_helpers as helpers
 from pygeoapi.process.base import BaseProcessor, ProcessorExecuteError
 
@@ -44,6 +45,9 @@ curl -X POST "https://aqua.igb-berlin.de/pygeoapi-dev/processes/get-subset-by-po
 
 # Curl without polygon (fill in):
 curl -X POST "https://aqua.igb-berlin.de/pygeoapi-dev/processes/get-subset-by-polygon/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"polygon\": FILL_IN}}" -o /tmp/rasteroutput.tiff
+
+# Curl with input reference url:
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi-dev/processes/get-subset-by-polygon/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"href\": \"https://aqua.igb-berlin.de/download/example_input_polygon_for_subset_by_polygon.json\"}}" -o /tmp/rasteroutput.tiff
 
 # Example polygon:
 {\"type\": \"Polygon\", \"coordinates\": [ [ [ 15.081460166988848, 66.296144397828058 ], [ 13.809362140071178, 66.465757468083737 ], [ 13.809362140071178, 66.465757468083737 ], [ 13.809362140071178, 66.465757468083737 ], [ 14.948192754645092, 67.683337008133506 ], [ 15.711451570795695, 66.859502095463029 ], [ 14.493872030745925, 66.84738687615905 ], [ 15.081460166988848, 66.296144397828058 ] ] ] }
@@ -82,10 +86,40 @@ PROCESS_METADATA = {
             'schema': {
                 'type': 'json'
             },
-            'minOccurs': 1,
+            'minOccurs': 0,
             'maxOccurs': 1,
             'metadata': None,  # TODO how to use the Metadata item?
-            'keywords': ['north', 'coordinate', 'wgs84']
+            'keywords': ['polygon', 'geojson', 'wgs84']
+        },
+        'href': {
+            'title': 'Link to input file',
+            'description': 'Link to GeoJSON polygon in file (url).',
+            'schema': {
+                'type': 'object'
+            },
+            'extended-schema': {
+                'oneOf':
+                [{
+                    'allOf':
+                    [
+                        {
+                            "$ref": "TODO: was muss hier rein?"
+                        },
+                        {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                     "enum": ["application/json"]
+                                }
+                            }
+                        }
+                    ]
+                }]
+            },
+            'minOccurs': 0,
+            'maxOccurs': 1,
+            'metadata': None,
+            'keywords': ['polygon', 'geojson', 'wgs84', 'file']
         }
     },
     'outputs': {
@@ -112,7 +146,26 @@ class SubsetterPolygon(BaseProcessor):
 
     def execute(self, data):
 
-        polygon = data.get('polygon')
+        ## User inputs: Either "polygon" (GeoJSON), or "href" (link to a GeoJSON file)
+        polygon = data.get('polygon', None)
+        href = data.get('href', None)
+
+        if polygon is None and href is None:
+            err_msg = 'Please pass at least one of "polygon" or "href"!'
+            LOGGER.error(err_msg)
+            raise ValueError(err_msg)
+
+        elif polygon is not None and href is not None:
+            err_msg = 'Please pass only one of "polygon" or "href"!'
+            LOGGER.error(err_msg)
+            raise ValueError(err_msg)
+
+        elif href is not None:
+            # Read geojson from URL!
+            LOGGER.debug('Reading GeoJSON from URL: %s' % href)
+            resp = requests.get(href)
+            polygon = resp.json()
+            LOGGER.debug('We got this content (http %s): %s' % (resp, polygon))
 
         with open('config.json') as myfile:
             config = json.load(myfile)

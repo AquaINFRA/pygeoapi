@@ -7,7 +7,7 @@
     },
     "description": {
         "en": "This process returns a raster subset from a tiff raster image, based on a polygon provided by the user in WGS84 coordinates. The result is a compressed tiff file.",
-        "fr": "Pas de description encore.",
+        "fr": "Pas de description encore."
     },
     "jobControlOptions": ["sync-execute", "async-execute"],
     "keywords": ["subset", "raster", "polygon"],

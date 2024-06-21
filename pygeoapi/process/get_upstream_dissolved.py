@@ -161,7 +161,42 @@ class UpstreamDissolvedGetter(BaseProcessor):
             if comment is not None:
                 geojson_object['comment'] = comment
 
-            return 'application/json', geojson_object
+            # If the client requests raw response, we store it to file and pass the href:
+            if requested_outputs['response'].lower() == 'raw':
+                LOGGER.debug('Client requested raw response.')
+
+                # Store file
+                downloadfilename = 'polygon-%s.json' % self.my_job_id
+                downloadfilepath = '/var/www/nginx/download'+os.sep+downloadfilename
+                # TODO: Not hardcode that directory!
+                # TODO: Carefully consider permissions of that directory!
+                LOGGER.debug('Writing process result to file: %s' % downloadfilepath)
+                with open(downloadfilepath, 'w', encoding='utf-8') as downloadfile:
+                    json.dump(geojson_object, downloadfile, ensure_ascii=False, indent=4)
+
+                # Create download link:
+                downloadlink = 'https://aqua.igb-berlin.de/download/'+downloadfilename
+                # TODO: Not hardcode that URL! Get from my config file, or can I even get it from pygeoapi config?
+                # TODO: Again, carefully consider permissions of that directory!
+
+                # Build response containing the link
+                response_object = {
+                    "outputs": {
+                        "polygon": {
+                            "title": "this is what you asked for... dissolved polygon",
+                            "description": "i am too lazy to type one...",
+                            "href": downloadlink
+                        }
+                    }
+                }
+                LOGGER.debug('Built response including link: %s' % response_object)
+                return 'application/json', response_object
+
+
+            # TODO: Is this the correct behaviour?
+            elif requested_outputs['response'].lower() == 'document':
+                LOGGER.debug('Client requested document response. Returning GeoJSON directly.')
+                return 'application/json', geojson_object
 
         else:
             output = {

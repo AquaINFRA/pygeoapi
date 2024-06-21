@@ -39,23 +39,35 @@ class UpstreamDissolvedGetter(BaseProcessor):
 
     def __init__(self, processor_def):
         super().__init__(processor_def, PROCESS_METADATA)
+        self.supports_outputs = True
+        self.my_job_id = 'nnothing-yet'
+        # To support requested outputs, such as transmissionMode
+        # https://github.com/geopython/pygeoapi/blob/fef8df120ec52121236be0c07022490803a47b92/pygeoapi/process/manager/base.py#L253
 
 
     def __repr__(self):
         return f'<UpstreamDissolvedGetter> {self.name}'
 
 
-    def execute(self, data):
+    def set_job_id(self, job_id: str):
+        self.my_job_id = job_id
+
+
+
+    def execute(self, data, outputs=None):
         LOGGER.info('Starting to get the upstream bounding box..."')
         LOGGER.info('Inputs: %s' % data)
         try:
-            return self._execute(data)
+            return self._execute(data, outputs)
         except Exception as e:
             LOGGER.error(e)
             print(traceback.format_exc())
             raise ProcessorExecuteError(e)
 
-    def _execute(self, data):
+    def _execute(self, data, requested_outputs):
+
+        # TODO: Must change behaviour based on content of requested_outputs
+        LOGGER.debug('Content of requested_outputs: %s' % requested_outputs) # TODO is empty now, why?
 
         ## User inputs
         lon = float(data.get('lon'))

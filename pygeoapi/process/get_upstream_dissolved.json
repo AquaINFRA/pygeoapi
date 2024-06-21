@@ -63,6 +63,7 @@
         "polygon": {
             "title": "this is what you asked for... dissolved polygon",
             "description": "i am too lazy to type one...",
+            "href": "was muss hier hin?",
             "schema": {
                 "type": "object",
                 "contentMediaType": "application/json"

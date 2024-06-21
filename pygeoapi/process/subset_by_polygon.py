@@ -81,17 +81,6 @@ PROCESS_METADATA = {
     }],
     'inputs': {
         'polygon': {
-            'title': 'Polygon',
-            'description': 'Polygon GeoJSON (in WGS84 decimal degrees, max 85)',
-            'schema': {
-                'type': 'json'
-            },
-            'minOccurs': 0,
-            'maxOccurs': 1,
-            'metadata': None,  # TODO how to use the Metadata item?
-            'keywords': ['polygon', 'geojson', 'wgs84']
-        },
-        'href': {
             'title': 'Link to input file',
             'description': 'Link to GeoJSON polygon in file (url).',
             'schema': {
@@ -114,6 +103,20 @@ PROCESS_METADATA = {
                             }
                         }
                     ]
+                },
+                {
+                    'type': 'object',
+                    'required': ['value'],
+                    'properties': {
+                        'value': {
+                            'allOf':
+                                [{
+                                    'type': 'string',
+                                    'contentEncoding': 'utf-8',
+                                    'contentMediaType': 'application/json'
+                                }]
+                        }
+                    }
                 }]
             },
             'minOccurs': 0,

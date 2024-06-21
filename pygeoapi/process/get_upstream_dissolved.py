@@ -39,7 +39,7 @@ class UpstreamDissolvedGetter(BaseProcessor):
 
     def __init__(self, processor_def):
         super().__init__(processor_def, PROCESS_METADATA)
-        self.supports_outputs = True
+        self.supports_outputs = True # Maybe before super() ?
         self.my_job_id = 'nnothing-yet'
         # To support requested outputs, such as transmissionMode
         # https://github.com/geopython/pygeoapi/blob/fef8df120ec52121236be0c07022490803a47b92/pygeoapi/process/manager/base.py#L253
@@ -68,6 +68,14 @@ class UpstreamDissolvedGetter(BaseProcessor):
 
         # TODO: Must change behaviour based on content of requested_outputs
         LOGGER.debug('Content of requested_outputs: %s' % requested_outputs) # TODO is empty now, why?
+
+        # Fake contents! Until I found out why it is not passed!
+        requested_outputs = {
+            'transmissionMode': 'reference',
+            'response': 'raw' # or 'document'
+        }
+        LOGGER.error('DANGER! FAKED REQUESTED OUTPUTS: %s:' % requested_outputs) # TODO!! REMOVE THIS, and get the real passed headers!
+
 
         ## User inputs
         lon = float(data.get('lon'))

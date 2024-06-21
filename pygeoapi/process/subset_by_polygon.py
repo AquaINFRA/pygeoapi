@@ -57,89 +57,10 @@ curl -X POST "https://aqua.igb-berlin.de/pygeoapi-dev/processes/get-subset-by-po
 LOGGER = logging.getLogger(__name__)
 
 #: Process metadata and description
-PROCESS_METADATA = {
-    'version': '0.2.0',
-    'id': 'get-subset-by-polygon',
-    'title': {
-        'en': 'Subset by Polygon',
-        'fr': 'Subset by Polygon'
-    },
-    'description': {
-        'en': 'This process returns a raster subset from a tiff raster'
-              ' image, based on a polygon provided by the user in'
-              ' WGS84 coordinates. The result is a compressed tiff file.',
-        'fr': 'Pas de description encore.',
-    },
-    'jobControlOptions': ['sync-execute', 'async-execute'],
-    'keywords': ['subset', 'raster', 'polygon'],
-    'links': [{
-        'type': 'text/html',
-        'rel': 'about',
-        'title': 'information',
-        'href': 'https://example.org/process',
-        'hreflang': 'en-US'
-    }],
-    'inputs': {
-        'polygon': {
-            'title': 'Link to input file',
-            'description': 'Link to GeoJSON polygon in file (url).',
-            'schema': {
-                'type': 'object'
-            },
-            'extended-schema': {
-                'oneOf':
-                [{
-                    'allOf':
-                    [
-                        {
-                            "$ref": "TODO: was muss hier rein?"
-                        },
-                        {
-                            "type": "object",
-                            "properties": {
-                                "type": {
-                                     "enum": ["application/json"]
-                                }
-                            }
-                        }
-                    ]
-                },
-                {
-                    'type': 'object',
-                    'required': ['value'],
-                    'properties': {
-                        'value': {
-                            'allOf':
-                                [{
-                                    'type': 'string',
-                                    'contentEncoding': 'utf-8',
-                                    'contentMediaType': 'application/json'
-                                }]
-                        }
-                    }
-                }]
-            },
-            'minOccurs': 0,
-            'maxOccurs': 1,
-            'metadata': None,
-            'keywords': ['polygon', 'geojson', 'wgs84', 'file']
-        }
-    },
-    'outputs': {
-        'file': {
-            'title': 'Raster subset',
-            'schema': {
-                'type': 'object',
-                'contentMediaType': 'application/octet-stream'
-            }
-        }
-    },
-    'example': {
-        'inputs': {
-            'polygon': {'type': 'Polygon', 'coordinates': [ [ [ 15.081460166988848, 66.296144397828058 ], [ 13.809362140071178, 66.465757468083737 ], [ 13.809362140071178, 66.465757468083737 ], [ 13.809362140071178, 66.465757468083737 ], [ 14.948192754645092, 67.683337008133506 ], [ 15.711451570795695, 66.859502095463029 ], [ 14.493872030745925, 66.84738687615905 ], [ 15.081460166988848, 66.296144397828058 ] ] ] }
-        }
-    }
-}
+# Has to be in a JSON file of the same name, in the same dir!
+script_title_and_path = __file__
+metadata_title_and_path = script_title_and_path.replace('.py', '.json')
+PROCESS_METADATA = json.load(open(metadata_title_and_path))
 
 
 class SubsetterPolygon(BaseProcessor):

@@ -133,5 +133,6 @@ pygeoapi/db.sqlite3
 .pygeoapi/docker/examples/mvt-tippecanoe/ES/data
 
 # Custom:
-config.json.NOTCOMMIT
+./config.json
+./config.json.NOTCOMMIT
 pygeoapi/process/geofresh/results

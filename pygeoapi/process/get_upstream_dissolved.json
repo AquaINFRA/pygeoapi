@@ -20,7 +20,32 @@
         "title": "On subcatchments (Hydrography90m)",
         "href": "https://hydrography.org/hydrography90m/hydrography90m_layers",
         "hreflang": "en-US"
-    }],
+    },
+    {
+        "type": "text/html",
+        "rel": "about",
+        "title": "Zenodo repository",
+        "description": "Zenodo repository for the underlying software, always pointing to the newest release.",
+        "href": "https://doi.org/10.5072/zenodo.73308",
+        "hreflang": "en-US"
+    },
+    {
+        "type": "text/html",
+        "rel": "about",
+        "title": "GitHub repository",
+        "description": "GitHub repository containing the latest versions of the underlying software.",
+        "href": "https://github.com/AquaINFRA/pygeoapi",
+        "hreflang": "en-US"
+    },
+    {
+        "type": "text/html",
+        "rel": "about",
+        "title": "Galaxy tool get_upstream_dissolved",
+        "description": "Galaxy tool that runs this process.",
+        "href": "https://aqua.use-galaxy.eu/SOMETHING/",
+        "hreflang": "en-US"
+    }
+    ],
     "inputs": {
         "lon": {
             "title": "Longitude (WGS84)",

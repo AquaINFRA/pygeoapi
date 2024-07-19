@@ -86,6 +86,10 @@ ENV TZ=${TZ} \
     LANG=${LANG} \
     DEBIAN_FRONTEND="noninteractive" \
     DEB_BUILD_DEPS="\
+    libgdal-dev \
+    gdal-bin \
+    proj-bin \
+    libproj-dev \
     software-properties-common \
     curl \
     unzip" \

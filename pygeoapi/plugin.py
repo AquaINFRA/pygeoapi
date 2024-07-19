@@ -72,21 +72,7 @@ PLUGINS = {
     'process': {
         'HelloWorld': 'pygeoapi.process.hello_world.HelloWorldProcessor',
         'ShapelyFunctions': 'pygeoapi.process.shapely_functions.ShapelyFunctionsProcessor',  # noqa: E501
-        'Echo': 'pygeoapi.process.echo.EchoProcessor',
-        'UpstreamCatchmentIdGetter': 'pygeoapi.process.get_upstream_subcids.UpstreamCatchmentIdGetter',
-        'SnappedPointsGetter': 'pygeoapi.process.get_snapped_points.SnappedPointsGetter',
-        'SnappedPointsGetterPlus': 'pygeoapi.process.get_snapped_points_plus.SnappedPointsGetterPlus',
-        'SubcatchmentGetter': 'pygeoapi.process.get_subc_from_coords.SubcatchmentGetter',
-        'StreamSegmentGetter': 'pygeoapi.process.get_stream_segment.StreamSegmentGetter',
-        'StreamSegmentGetterPlus': 'pygeoapi.process.get_stream_segment_plus.StreamSegmentGetterPlus',
-        'UpstreamStreamSegmentGetter': 'pygeoapi.process.get_upstream_stream_segments.UpstreamStreamSegmentGetter',
-        'UpstreamBboxGetter': 'pygeoapi.process.get_upstream_bbox.UpstreamBboxGetter',
-        'UpstreamPolygonGetter': 'pygeoapi.process.get_upstream_polygons.UpstreamPolygonGetter',
-        'UpstreamDissolvedGetter': 'pygeoapi.process.get_upstream_dissolved.UpstreamDissolvedGetter',
-        'DijkstraShortestPathGetter': 'pygeoapi.process.get_dijkstra_stream_segments.DijkstraShortestPathGetter',
-        'DijkstraShortestPathSeaGetter': 'pygeoapi.process.get_downstream_stream_segments.DijkstraShortestPathSeaGetter',
-        'SubsetterBbox': 'pygeoapi.process.subset_by_bbox.SubsetterBbox',
-        'SubsetterPolygon': 'pygeoapi.process.subset_by_polygon.SubsetterPolygon',
+        'Echo': 'pygeoapi.process.echo.EchoProcessor'
     },
     'process_manager': {
         'Dummy': 'pygeoapi.process.manager.dummy.DummyManager',

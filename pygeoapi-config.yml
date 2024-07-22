@@ -303,73 +303,8 @@ resources:
         processor:
             name: HelloWorld
 
-    get-upstream-catchment-ids:
+    test-process-r:
         type: process
         processor:
-            name: UpstreamCatchmentIdGetter
-
-    get-snapped-point:
-        type: process
-        processor:
-            name: SnappedPointsGetter
-
-    get-snapped-point-plus:
-        type: process
-        processor:
-            name: SnappedPointsGetterPlus
-
-    get-subcatchment-id:
-        type: process
-        processor:
-            name: SubcatchmentGetter
-
-    get-stream-segment:
-        type: process
-        processor:
-            name: StreamSegmentGetter
-
-    get-stream-segment-plus:
-        type: process
-        processor:
-            name: StreamSegmentGetterPlus
-
-    get-upstream-stream-segments:
-        type: process
-        processor:
-            name: UpstreamStreamSegmentGetter
-
-    get-upstream-bbox:
-        type: process
-        processor:
-            name: UpstreamBboxGetter
-
-    get-upstream-polygons:
-        type: process
-        processor:
-            name: UpstreamPolygonGetter
-
-    get-upstream-dissolved:
-        type: process
-        processor:
-            name: UpstreamDissolvedGetter
-
-    get-subset-by-bbox:
-        type: process
-        processor:
-            name: SubsetterBbox
-
-    get-subset-by-polygon:
-        type: process
-        processor:
-            name: SubsetterPolygon
-
-    get-shortest-path:
-        type: process
-        processor:
-            name: DijkstraShortestPathGetter
-
-    get-shortest-path-to-sea:
-        type: process
-        processor:
-            name: DijkstraShortestPathSeaGetter
+            name: TestProcessR
 

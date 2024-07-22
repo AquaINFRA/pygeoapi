@@ -50,8 +50,8 @@ from pygeoapi.config import get_config
 from pygeoapi.util import get_mimetype, get_api_rules
 
 ## Added by Merret:
-os.environ['PYGEOAPI_CONFIG'] = '/opt/.../pygeoapi/pygeoapi-config.yml'
-os.environ['PYGEOAPI_OPENAPI'] = '/opt/.../pygeoapi/pygeoapi-openapi.yml'
+os.environ['PYGEOAPI_CONFIG'] = './example-config.yml'
+os.environ['PYGEOAPI_OPENAPI'] = './example-openapi.yml'
 
 
 ## Added by Merret:
@@ -78,7 +78,7 @@ dictConfig(
                'formatter': 'default',
                #'class': 'logging.handlers.RotatingFileHandler',
                'class': 'logging.FileHandler',
-               'filename': '/opt/.../debug-pygeoapi.log',
+               'filename': '../debug-pygeoapi.log',
                'mode': 'a',
                #'maxBytes': 1048576,
                #'backupCount': 10
@@ -87,7 +87,7 @@ dictConfig(
               'level': 'WARNING',
               'formatter': 'default',
               'class': 'logging.FileHandler',
-              'filename': '/opt/.../error-pygeoapi.log',
+              'filename': '../error-pygeoapi.log',
               'mode': 'a',
             }
         },

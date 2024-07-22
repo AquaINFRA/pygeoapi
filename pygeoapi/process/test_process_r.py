@@ -3,6 +3,7 @@ import subprocess
 import json
 import os
 import sys
+import argparse
 
 from pygeoapi.process.base import BaseProcessor, ProcessorExecuteError
 
@@ -27,10 +28,24 @@ class TestProcessR(BaseProcessor):
     def execute(self, data, outputs=None):
 
         R_SCRIPT_DIR = './'
+        DOWNLOAD_DIR = './'
+        OWN_URL = "./"
 
+        text1 = data.get('text1', '')
+        text2 = data.get('text2', '')
+        text3 = data.get('text3', '')
+
+        downloadfilename = 'astra-%s.csv' % self.my_job_id
+        downloadfilepath = DOWNLOAD_DIR.rstrip('/')+os.sep+downloadfilename
+        # TODO: Carefully consider permissions of that directory!
+
+        # Call R script, result gets stored to downloadfilepath
         R_SCRIPT_NAME = 'test_process_r.R'
+        r_args = [text1, text2, text3]
 
-        exit_code, err_msg = call_r_script('1', LOGGER, R_SCRIPT_NAME, R_SCRIPT_DIR)
+        LOGGER.error('RUN R SCRIPT AND STORE TO %s!!!' % downloadfilepath)
+        LOGGER.error('R ARGS %s' % r_args)
+        exit_code, err_msg = call_r_script('1', LOGGER, R_SCRIPT_NAME, R_SCRIPT_DIR, r_args)
         LOGGER.error('RUN R SCRIPT DONE: CODE %s, MSG %s' % (exit_code, err_msg))
 
         if not exit_code == 0:
@@ -40,7 +55,7 @@ class TestProcessR(BaseProcessor):
             LOGGER.error('CODE 0 SUCCESS!')
 
             # Create download link:
-            downloadlink = "./"
+            downloadlink = OWN_URL.rstrip('/')+os.sep+downloadfilename
             # TODO: Again, carefully consider permissions of that directory!
 
             # Return link to file:
@@ -60,11 +75,11 @@ class TestProcessR(BaseProcessor):
         return f'<TestProcessR> {self.name}'
 
 
-def call_r_script(num, LOGGER, r_file_name, path_rscripts):
+def call_r_script(num, LOGGER, r_file_name, path_rscripts, r_args):
 
     LOGGER.debug('Now calling bash which calls R: %s' % r_file_name)
     r_file = path_rscripts.rstrip('/')+os.sep+r_file_name
-    cmd = ["/usr/bin/Rscript", "--vanilla", r_file]
+    cmd = ["/usr/bin/Rscript", "--vanilla", r_file] + r_args
     LOGGER.info(cmd)
     LOGGER.debug('Running command... (Output will be shown once finished)')
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -84,36 +99,44 @@ def call_r_script(num, LOGGER, r_file_name, path_rscripts):
         LOGGER.info(err_and_out)
     return p.returncode, err_and_out
 
-# if __name__ == '__main__':
-#     # Configure logging
-#     logging.basicConfig(level=logging.DEBUG)
+
+""" if __name__ == '__main__':
+    # Configure logging
+    logging.basicConfig(level=logging.DEBUG)
     
-#     # Define a processor definition with the necessary keys
-#     processor_def = {
-#         'name': 'TestProcessR',
-#         'title': 'Test Process R',
-#         'description': 'A test process that calls an R script',
-#         'type': 'process'
-#     }
+    # Define a processor definition with the necessary keys
+    processor_def = {
+        'name': 'TestProcessR',
+        'title': 'Test Process R',
+        'description': 'A test process that calls an R script',
+        'type': 'process'
+    }
 
-#     # Create an instance of your processor
-#     processor = TestProcessR(processor_def)
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='Run TestProcessR with specified text inputs.')
+    parser.add_argument('--text1', type=str, required=True, help='First text input')
+    parser.add_argument('--text2', type=str, required=True, help='Second text input')
+    parser.add_argument('--text3', type=str, required=True, help='Third text input')
+    args = parser.parse_args()
+
+    # Create an instance of your processor
+    processor = TestProcessR(processor_def)
     
-#     # Set a job id
-#     processor.set_job_id('example-job-id')
+    # Set a job id
+    processor.set_job_id('example-job-id')
 
-#     # Define some sample data
-#     sample_data = {
-#         'text1': 'Hello',
-#         'text2': 'World',
-#         'text3': 'Test'
-#     }
+    # Define the data from command line arguments
+    sample_data = {
+        'text1': args.text1,
+        'text2': args.text2,
+        'text3': args.text3
+    }
 
-#     # Execute the process
-#     try:
-#         content_type, response = processor.execute(sample_data)
-#         # Print the result
-#         print(f'Content Type: {content_type}')
-#         print(f'Response: {json.dumps(response, indent=2)}')
-#     except ProcessorExecuteError as e:
-#         print(f'Error: {e}')
+    # Execute the process
+    try:
+        content_type, response = processor.execute(sample_data)
+        # Print the result
+        print(f'Content Type: {content_type}')
+        print(f'Response: {json.dumps(response, indent=2)}')
+    except ProcessorExecuteError as e:
+        print(f'Error: {e}') """

@@ -11,7 +11,7 @@ if [[ $PYTHON_VERSION != "Python 3.10"* ]]; then
 fi
 
 # Install the required packages
-pip3 install -r requirements.txt
+# pip3 install -r requirements.txt
 
 # Install pygeoapi
 python3 setup.py install

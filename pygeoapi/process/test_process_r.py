@@ -27,13 +27,13 @@ class TestProcessR(BaseProcessor):
 
     def execute(self, data, outputs=None):
 
-        R_SCRIPT_DIR = './'
         DOWNLOAD_DIR = './'
-        OWN_URL = "./"
+        OWN_URL = 'https://aqua.igb-berlin.de/download/'
+        R_SCRIPT_DIR = './pygeoapi/process'
 
-        text1 = data.get('text1', '')
-        text2 = data.get('text2', '')
-        text3 = data.get('text3', '')
+        text1 = data.get('text1')
+        text2 = data.get('text2')
+        text3 = data.get('text3')
 
         downloadfilename = 'astra-%s.csv' % self.my_job_id
         downloadfilepath = DOWNLOAD_DIR.rstrip('/')+os.sep+downloadfilename
@@ -41,7 +41,10 @@ class TestProcessR(BaseProcessor):
 
         # Call R script, result gets stored to downloadfilepath
         R_SCRIPT_NAME = 'test_process_r.R'
-        r_args = [text1, text2, text3]
+        r_args = [text1, text2, text3, downloadfilepath]
+
+        # Scripts are loaded via relative Path from os.getcwd()
+        print(f"Loading R_SCRIPT from: {os.getcwd()}{R_SCRIPT_DIR[1:]}{os.sep}{R_SCRIPT_NAME}" )
 
         LOGGER.error('RUN R SCRIPT AND STORE TO %s!!!' % downloadfilepath)
         LOGGER.error('R ARGS %s' % r_args)
@@ -50,7 +53,8 @@ class TestProcessR(BaseProcessor):
 
         if not exit_code == 0:
             LOGGER.error(err_msg)
-            raise ProcessorExecuteError(user_msg="R script failed with exit code %s" % exit_code)
+            raise ProcessorExecuteError(user_msg=f"R script failed with exit code {exit_code}. Error Message:"
+                                                 f" {err_msg}")
         else:
             LOGGER.error('CODE 0 SUCCESS!')
 
@@ -80,6 +84,7 @@ def call_r_script(num, LOGGER, r_file_name, path_rscripts, r_args):
     LOGGER.debug('Now calling bash which calls R: %s' % r_file_name)
     r_file = path_rscripts.rstrip('/')+os.sep+r_file_name
     cmd = ["/usr/bin/Rscript", "--vanilla", r_file] + r_args
+    LOGGER.info(r_args)
     LOGGER.info(cmd)
     LOGGER.debug('Running command... (Output will be shown once finished)')
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -137,6 +142,7 @@ def call_r_script(num, LOGGER, r_file_name, path_rscripts, r_args):
         content_type, response = processor.execute(sample_data)
         # Print the result
         print(f'Content Type: {content_type}')
+        print(f'Smple: {sample_data}')
         print(f'Response: {json.dumps(response, indent=2)}')
     except ProcessorExecuteError as e:
         print(f'Error: {e}') """

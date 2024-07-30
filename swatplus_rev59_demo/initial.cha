@@ -1,0 +1,4 @@
+initial.cha: written by SWAT+ editor v1.0.0 on 2018-11-29 16:24
+       name		 org-min    pesticides    pathogens    heavy_metals    salts
+   initcha1	    low_init          null         null		       null     null
+   initcha2	   high_init          null         null		       null     null

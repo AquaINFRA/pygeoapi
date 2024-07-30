@@ -1,0 +1,5 @@
+channel.con: written by SWAT+ editor v1.0.0 on 2018-11-29 16:24
+      id  name                gis_id          area           lat           lon          elev       cha               wst       cst      ovfl      rule   out_tot       obj_typ    obj_id       hyd_typ          frac  
+       1  cha1                     1    2191.95000      31.70246     -83.72500             0         1             sta03         0         0         0         0          null         0          null       0.00000
+       2  cha2                     2     878.22000      31.73283     -83.75018             0         2             sta01         0         0         0         1           cha         1           tot       1.00000  
+       3  cha3                     3     534.06000      31.71419     -83.75547             0         3             sta02         0         0         0         1           cha         1           tot       1.00000  

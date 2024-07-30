@@ -1,0 +1,5 @@
+rout_unit.rtu: written by SWAT+ editor v1.0.0 on 2018-11-29 16:24
+      id              name            define               dlr              topo             field  
+       1             rtu10             rtu10              null         toportu10             fld10  
+       2             rtu20             rtu20              null         toportu20             fld20  
+       3             rtu30             rtu30              null         toportu30             fld30  

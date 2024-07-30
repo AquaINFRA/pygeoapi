@@ -1,0 +1,5 @@
+channel.cha: written by SWAT+ editor v1.0.0 on 2018-11-29 16:24
+      id  name                       cha_ini           cha_hyd           cha_sed           cha_nut           cha_pst        cha_ls_lnk       cha_aqu_lnk  
+       1  cha1                      initcha1           hydcha1           sedcha1           nutcha1          pestcha1                 0                 0  
+       2  cha2                      initcha1           hydcha2           sedcha1           nutcha1          pestcha1                 0                 0  
+       3  cha3                      initcha1           hydcha3           sedcha1           nutcha1          pestcha1                 0                 0  

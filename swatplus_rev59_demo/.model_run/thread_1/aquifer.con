@@ -1,0 +1,5 @@
+aquifer.con: written by SWAT+ editor v1.0.0 on 2018-11-29 16:24
+      id  name                gis_id          area           lat           lon          elev       aqu               wst       cst      ovfl      rule   out_tot       obj_typ    obj_id       hyd_typ          frac  
+       1  aqu1                     1     783.99000      31.70246     -83.72500     106.27238         1             sta03         0         0         0         1           cha         1           tot       1.00000  
+       2  aqu2                     2     878.22000      31.73283     -83.75018     113.94181         2             sta01         0         0         0         1           cha         2           tot       1.00000  
+       3  aqu3                     3     534.06000      31.71419     -83.75547     113.94181         3             sta02         0         0         0         1           cha         3           tot       1.00000  

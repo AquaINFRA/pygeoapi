@@ -313,3 +313,8 @@ resources:
         processor:
             name: PointsAttPolygonProcessor
 
+    peri-conv:
+        type: process
+        processor:
+            name: PeriConvProcessor
+

@@ -2,10 +2,23 @@ import logging
 import subprocess
 import json
 import os
-import sys
-import argparse
+from urllib.parse import urlparse
+import requests
 
 from pygeoapi.process.base import BaseProcessor, ProcessorExecuteError
+
+'''
+curl --location 'http://localhost:5000/processes/points-att-polygon/execution' \
+--header 'Content-Type: application/json' \
+--data '{ 
+    "inputs": {
+        "regions": "https://maps.helcom.fi/arcgis/rest/directories/arcgisoutput/MADS/tools_GPServer/_ags_HELCOM_subbasin_with_coastal_WFD_waterbodies_or_wa.zip",
+        "long_col_name": "longitude",
+        "lat_col_name": "latitude",
+        "points": "https://aqua.igb-berlin.de/download/testinputs/in_situ_example.xlsx"
+    } 
+}'
+'''
 
 LOGGER = logging.getLogger(__name__)
 
@@ -13,38 +26,43 @@ script_title_and_path = __file__
 metadata_title_and_path = script_title_and_path.replace('.py', '.json')
 PROCESS_METADATA = json.load(open(metadata_title_and_path))
 
+def is_url(string):
+    try:
+        result = urlparse(string)
+        return all([result.scheme, result.netloc])
+    except ValueError:
+        return False
 
-class TestProcessR(BaseProcessor):
+class PointsAttPolygonProcessor(BaseProcessor):
 
     def __init__(self, processor_def):
 
         super().__init__(processor_def, PROCESS_METADATA)
         self.supports_outputs = True
-        self.my_job_id = 'nothing-yet'
+        self.my_job_id = 'nnothing-yet'
 
     def set_job_id(self, job_id: str):
         self.my_job_id = job_id
 
     def execute(self, data, outputs=None):
+        with open("./pygeoapi/process/config.json") as configFile:
+            configJSON = json.load(configFile)
 
-        DOWNLOAD_DIR = './'
-        OWN_URL = 'https://aqua.igb-berlin.de/download/'
-        R_SCRIPT_DIR = './pygeoapi/process'
+        DOWNLOAD_DIR = configJSON["DOWNLOAD_DIR"]
+        OWN_URL = configJSON["OWN_URL"]
+        R_SCRIPT_DIR = configJSON["R_SCRIPT_DIR"]
 
-        text1 = data.get('text1')
-        text2 = data.get('text2')
-        text3 = data.get('text3')
+        in_long_col_name = data.get('long_col_name', 'longitude')
+        in_lat_col_name = data.get('lat_col_name', 'latitude')
+        in_regions = data.get('regions', DOWNLOAD_DIR+'testinputs/HELCOM_subbasin_with_coastal_WFD_waterbodies_or_watertypes_2022.shp')
+        in_dpoints = data.get('points', DOWNLOAD_DIR+'testinputs/in_situ_example.xlsx')
 
+        # Where to store output data
         downloadfilename = 'astra-%s.csv' % self.my_job_id
         downloadfilepath = DOWNLOAD_DIR.rstrip('/')+os.sep+downloadfilename
-        # TODO: Carefully consider permissions of that directory!
 
-        # Call R script, result gets stored to downloadfilepath
-        R_SCRIPT_NAME = 'test_process_r.R'
-        r_args = [text1, text2, text3, downloadfilepath]
-
-        # Scripts are loaded via relative Path from os.getcwd()
-        print(f"Loading R_SCRIPT from: {os.getcwd()}{R_SCRIPT_DIR[1:]}{os.sep}{R_SCRIPT_NAME}" )
+        R_SCRIPT_NAME = configJSON["R_SCRIPT_NAME"]
+        r_args = [in_regions, in_dpoints, in_long_col_name, in_lat_col_name, downloadfilepath]
 
         LOGGER.error('RUN R SCRIPT AND STORE TO %s!!!' % downloadfilepath)
         LOGGER.error('R ARGS %s' % r_args)
@@ -53,8 +71,8 @@ class TestProcessR(BaseProcessor):
 
         if not exit_code == 0:
             LOGGER.error(err_msg)
-            raise ProcessorExecuteError(user_msg=f"R script failed with exit code {exit_code}. Error Message:"
-                                                 f" {err_msg}")
+            raise ProcessorExecuteError(user_msg="R script failed with exit code %s" % exit_code)
+
         else:
             LOGGER.error('CODE 0 SUCCESS!')
 
@@ -76,7 +94,7 @@ class TestProcessR(BaseProcessor):
             return 'application/json', response_object
 
     def __repr__(self):
-        return f'<TestProcessR> {self.name}'
+        return f'<PointsAttPolygonProcessor> {self.name}'
 
 
 def call_r_script(num, LOGGER, r_file_name, path_rscripts, r_args):
@@ -84,7 +102,6 @@ def call_r_script(num, LOGGER, r_file_name, path_rscripts, r_args):
     LOGGER.debug('Now calling bash which calls R: %s' % r_file_name)
     r_file = path_rscripts.rstrip('/')+os.sep+r_file_name
     cmd = ["/usr/bin/Rscript", "--vanilla", r_file] + r_args
-    LOGGER.info(r_args)
     LOGGER.info(cmd)
     LOGGER.debug('Running command... (Output will be shown once finished)')
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -103,46 +120,3 @@ def call_r_script(num, LOGGER, r_file_name, path_rscripts, r_args):
             stdout = stdouttext, n = num)
         LOGGER.info(err_and_out)
     return p.returncode, err_and_out
-
-
-""" if __name__ == '__main__':
-    # Configure logging
-    logging.basicConfig(level=logging.DEBUG)
-    
-    # Define a processor definition with the necessary keys
-    processor_def = {
-        'name': 'TestProcessR',
-        'title': 'Test Process R',
-        'description': 'A test process that calls an R script',
-        'type': 'process'
-    }
-
-    # Parse command line arguments
-    parser = argparse.ArgumentParser(description='Run TestProcessR with specified text inputs.')
-    parser.add_argument('--text1', type=str, required=True, help='First text input')
-    parser.add_argument('--text2', type=str, required=True, help='Second text input')
-    parser.add_argument('--text3', type=str, required=True, help='Third text input')
-    args = parser.parse_args()
-
-    # Create an instance of your processor
-    processor = TestProcessR(processor_def)
-    
-    # Set a job id
-    processor.set_job_id('example-job-id')
-
-    # Define the data from command line arguments
-    sample_data = {
-        'text1': args.text1,
-        'text2': args.text2,
-        'text3': args.text3
-    }
-
-    # Execute the process
-    try:
-        content_type, response = processor.execute(sample_data)
-        # Print the result
-        print(f'Content Type: {content_type}')
-        print(f'Smple: {sample_data}')
-        print(f'Response: {json.dumps(response, indent=2)}')
-    except ProcessorExecuteError as e:
-        print(f'Error: {e}') """

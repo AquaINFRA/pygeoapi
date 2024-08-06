@@ -308,3 +308,8 @@ resources:
         processor:
             name: TestProcessR
 
+    points-att-polygon:
+        type: process
+        processor:
+            name: PointsAttPolygonProcessor
+

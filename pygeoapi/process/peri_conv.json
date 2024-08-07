@@ -61,7 +61,7 @@
             "title": "Column name for latiitude",
             "description": "TODO",
             "schema": {
-                "type": "string"
+                "type": "boolean"
             },
             "minOccurs": 0,
             "maxOccurs": 1,

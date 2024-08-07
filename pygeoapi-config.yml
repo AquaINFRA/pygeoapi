@@ -318,3 +318,8 @@ resources:
         processor:
             name: PeriConvProcessor
 
+    mean-by-group:
+        type: process
+        processor:
+            name: MeanByGroupProcessor
+

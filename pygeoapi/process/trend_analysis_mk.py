@@ -7,16 +7,14 @@ from urllib.parse import urlparse
 from pygeoapi.process.base import BaseProcessor, ProcessorExecuteError
 
 '''
-curl --location 'http://localhost:5000/processes/ts-selection-interpolation/execution' \
+curl --location 'http://localhost:5000/processes/trend-analysis-mk/execution' \
 --header 'Content-Type: application/json' \
 --data '{ 
     "inputs": {
-        "in_data_path": "data_out_seasonal_means.csv",
-        "in_rel_cols": "group_labels,HELCOM_ID",
-        "in_missing_threshold_percentage": "40",
-        "in_year_colname": "Year_adj_generated",
-        "in_value_colname": "Secchi_m_mean_annual",
-        "in_min_data_point": "10"
+        "in_data_path": "data_out_selected_interpolated.csv",
+        "in_rel_cols": "season,polygon_id",
+        "in_time_colname": "Year_adj_generated",
+        "in_value_colname": "Secchi_m_mean_annual"
     } 
 }'
 '''

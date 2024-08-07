@@ -7,14 +7,16 @@ from urllib.parse import urlparse
 from pygeoapi.process.base import BaseProcessor, ProcessorExecuteError
 
 '''
-curl --location 'http://localhost:5000/processes/trend-analysis-mk/execution' \
+curl --location 'http://localhost:5000/processes/ts-selection-interpolation/execution' \
 --header 'Content-Type: application/json' \
 --data '{ 
     "inputs": {
-        "in_data_path": "data_out_selected_interpolated.csv",
-        "in_rel_cols": "season,polygon_id",
-        "in_time_colname": "Year_adj_generated",
-        "in_value_colname": "Secchi_m_mean_annual"
+        "in_data_path": "data_out_seasonal_means.csv",
+        "in_rel_cols": "group_labels,HELCOM_ID",
+        "in_missing_threshold_percentage": "40",
+        "in_year_colname": "Year_adj_generated",
+        "in_value_colname": "Secchi_m_mean_annual",
+        "in_min_data_point": "10"
     } 
 }'
 '''
@@ -25,7 +27,7 @@ script_title_and_path = __file__
 metadata_title_and_path = script_title_and_path.replace('.py', '.json')
 PROCESS_METADATA = json.load(open(metadata_title_and_path))
 
-class TsSelectionInterpolationProcessor(BaseProcessor):
+class TrendAnalysisMkProcessor(BaseProcessor):
 
     def __init__(self, processor_def):
         super().__init__(processor_def, PROCESS_METADATA)
@@ -45,17 +47,15 @@ class TsSelectionInterpolationProcessor(BaseProcessor):
 
         in_data_path = data.get('in_data_path', '')
         in_rel_cols = data.get('in_rel_cols', '')
-        in_missing_threshold_percentage = data.get('in_missing_threshold_percentage', '')
-        in_year_colname = data.get('in_year_colname', '')
+        in_time_colname = data.get('in_time_colname', '')
         in_value_colname = data.get('in_value_colname', '')
-        in_min_data_point = data.get('in_min_data_point', '')
 
         # Where to store output data
         downloadfilename = 'ts_selection_interpolation-%s.csv' % self.my_job_id
         downloadfilepath = DOWNLOAD_DIR.rstrip('/')+os.sep+downloadfilename
 
-        R_SCRIPT_NAME = configJSON["step_4"]
-        r_args = [DOWNLOAD_DIR.rstrip('/')+os.sep+in_data_path, in_rel_cols, in_missing_threshold_percentage, in_year_colname, in_value_colname, in_min_data_point, downloadfilepath]
+        R_SCRIPT_NAME = configJSON["step_5"]
+        r_args = [DOWNLOAD_DIR.rstrip('/')+os.sep+in_data_path, in_rel_cols, in_time_colname, in_value_colname, downloadfilepath]
 
         LOGGER.error('RUN R SCRIPT AND STORE TO %s!!!' % downloadfilepath)
         LOGGER.error('R ARGS %s' % r_args)
@@ -87,7 +87,7 @@ class TsSelectionInterpolationProcessor(BaseProcessor):
             return 'application/json', response_object
 
     def __repr__(self):
-        return f'<TsSelectionInterpolationProcessor> {self.name}'
+        return f'<TrendAnalysisMkProcessor> {self.name}'
 
 
 def call_r_script(num, LOGGER, r_file_name, path_rscripts, r_args):

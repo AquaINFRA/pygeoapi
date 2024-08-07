@@ -76,6 +76,7 @@ PLUGINS = {
         'PeriConvProcessor': 'pygeoapi.process.peri_conv.PeriConvProcessor',
         'MeanByGroupProcessor': 'pygeoapi.process.mean_by_group.MeanByGroupProcessor',
         'TsSelectionInterpolationProcessor': 'pygeoapi.process.ts_selection_interpolation.TsSelectionInterpolationProcessor',
+        'TrendAnalysisMkProcessor': 'pygeoapi.process.trend_analysis_mk.TrendAnalysisMkProcessor',
         'ShapelyFunctions': 'pygeoapi.process.shapely_functions.ShapelyFunctionsProcessor',  # noqa: E501
         'Echo': 'pygeoapi.process.echo.EchoProcessor',
         'UpstreamCatchmentIdGetter': 'pygeoapi.process.get_upstream_subcids.UpstreamCatchmentIdGetter',

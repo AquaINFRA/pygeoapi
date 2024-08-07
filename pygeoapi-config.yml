@@ -328,3 +328,8 @@ resources:
         processor:
             name: TsSelectionInterpolationProcessor
 
+    trend-analysis-mk:
+        type: process
+        processor:
+            name: TrendAnalysisMkProcessor
+

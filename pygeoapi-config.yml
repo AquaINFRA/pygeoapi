@@ -323,3 +323,8 @@ resources:
         processor:
             name: MeanByGroupProcessor
 
+    ts-selection-interpolation:
+        type: process
+        processor:
+            name: TsSelectionInterpolationProcessor
+

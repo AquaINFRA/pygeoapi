@@ -7,14 +7,16 @@ from urllib.parse import urlparse
 from pygeoapi.process.base import BaseProcessor, ProcessorExecuteError
 
 '''
-curl --location 'http://localhost:5000/processes/points-att-polygon/execution' \
+curl --location 'http://localhost:5000/processes/ts-selection-interpolation/execution' \
 --header 'Content-Type: application/json' \
 --data '{ 
     "inputs": {
-        "regions": "https://maps.helcom.fi/arcgis/rest/directories/arcgisoutput/MADS/tools_GPServer/_ags_HELCOM_subbasin_with_coastal_WFD_waterbodies_or_wa.zip",
-        "long_col_name": "longitude",
-        "lat_col_name": "latitude",
-        "points": "https://aqua.igb-berlin.de/download/testinputs/in_situ_example.xlsx"
+        "in_data_path": "data_out_seasonal_means.csv",
+        "in_rel_cols": "group_labels,HELCOM_ID",
+        "in_missing_threshold_percentage": "40",
+        "in_year_colname": "Year_adj_generated",
+        "in_value_colname": "Secchi_m_mean_annual",
+        "in_min_data_point": "10"
     } 
 }'
 '''
@@ -25,7 +27,7 @@ script_title_and_path = __file__
 metadata_title_and_path = script_title_and_path.replace('.py', '.json')
 PROCESS_METADATA = json.load(open(metadata_title_and_path))
 
-class PointsAttPolygonProcessor(BaseProcessor):
+class TsSelectionInterpolationProcessor(BaseProcessor):
 
     def __init__(self, processor_def):
         super().__init__(processor_def, PROCESS_METADATA)
@@ -43,17 +45,19 @@ class PointsAttPolygonProcessor(BaseProcessor):
         OWN_URL = configJSON["OWN_URL"]
         R_SCRIPT_DIR = configJSON["R_SCRIPT_DIR"]
 
-        in_long_col_name = data.get('long_col_name', 'longitude')
-        in_lat_col_name = data.get('lat_col_name', 'latitude')
-        in_regions = data.get('regions', DOWNLOAD_DIR+'testinputs/HELCOM_subbasin_with_coastal_WFD_waterbodies_or_watertypes_2022.shp')
-        in_dpoints = data.get('points', DOWNLOAD_DIR+'testinputs/in_situ_example.xlsx')
+        in_data_path = data.get('in_data_path', '')
+        in_rel_cols = data.get('in_rel_cols', '')
+        in_missing_threshold_percentage = data.get('in_missing_threshold_percentage', '')
+        in_year_colname = data.get('in_year_colname', '')
+        in_value_colname = data.get('in_value_colname', '')
+        in_min_data_point = data.get('in_min_data_point', '')
 
         # Where to store output data
-        downloadfilename = 'points_att_polygon-%s.csv' % self.my_job_id
+        downloadfilename = 'ts_selection_interpolation-%s.csv' % self.my_job_id
         downloadfilepath = DOWNLOAD_DIR.rstrip('/')+os.sep+downloadfilename
 
-        R_SCRIPT_NAME = configJSON["step_1"]
-        r_args = [in_regions, in_dpoints, in_long_col_name, in_lat_col_name, downloadfilepath]
+        R_SCRIPT_NAME = configJSON["step_4"]
+        r_args = [DOWNLOAD_DIR.rstrip('/')+os.sep+in_data_path, in_rel_cols, in_missing_threshold_percentage, in_year_colname, in_value_colname, in_min_data_point, downloadfilepath]
 
         LOGGER.error('RUN R SCRIPT AND STORE TO %s!!!' % downloadfilepath)
         LOGGER.error('R ARGS %s' % r_args)
@@ -85,7 +89,7 @@ class PointsAttPolygonProcessor(BaseProcessor):
             return 'application/json', response_object
 
     def __repr__(self):
-        return f'<PointsAttPolygonProcessor> {self.name}'
+        return f'<TsSelectionInterpolationProcessor> {self.name}'
 
 
 def call_r_script(num, LOGGER, r_file_name, path_rscripts, r_args):

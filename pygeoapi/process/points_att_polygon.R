@@ -26,7 +26,8 @@ if (file.exists(config_file_path)) {
   input_data_dir <- config_data["input_data_dir"]
   print(paste("The value of 'input_data_dir' is:", input_data_dir))
 } else {
-  print("Config file not found.")
+  print("Config file not found. Set to directory ./")
+  input_data_dir <- "./"
 }
 
 # Retrieve command line arguments

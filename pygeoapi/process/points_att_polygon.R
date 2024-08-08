@@ -13,7 +13,10 @@ library(sp)
 library(data.table)
 library(jsonlite)
 
+#in pygeoapi environment
 config_file_path <- "./pygeoapi/process/config.json"
+#in local environment
+#config_file_path <- "config.json"
 
 # Check if the config.json file exists
 if (file.exists(config_file_path)) {

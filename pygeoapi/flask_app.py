@@ -50,6 +50,11 @@ from pygeoapi.config import get_config
 from pygeoapi.util import get_mimetype, get_api_rules
 
 
+## Set the necessary environment variables where they can be read
+os.environ['PYGEOAPI_CONFIG'] = '/xyz/pygeoapi/pygeoapi-config.yml'
+os.environ['PYGEOAPI_OPENAPI'] = '/xyz/pygeoapi/pygeoapi-openapi.yml'
+
+
 CONFIG = get_config()
 OPENAPI = load_openapi_document()
 

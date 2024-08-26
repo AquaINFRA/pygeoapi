@@ -136,3 +136,9 @@ pygeoapi/db.sqlite3
 ./config.json
 ./config.json.NOTCOMMIT
 pygeoapi/process/geofresh/results
+aquainfra-usecase-Daugava
+specleanr
+OLD
+DELETE
+pygeoapi-openapi.yml
+

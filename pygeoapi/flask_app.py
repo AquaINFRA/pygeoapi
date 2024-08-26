@@ -55,6 +55,49 @@ os.environ['PYGEOAPI_CONFIG'] = '/xyz/pygeoapi/pygeoapi-config.yml'
 os.environ['PYGEOAPI_OPENAPI'] = '/xyz/pygeoapi/pygeoapi-openapi.yml'
 
 
+## Logging settings:
+from logging.config import dictConfig
+dictConfig(
+    {
+        "version": 1,
+        "formatters": {
+            "default": {
+                #"format": "[%(levelname)5s in %(filename)s:%(lineno)d] %(message)s",
+                "format": "%(asctime)s [%(levelname)5s in %(filename)s:%(lineno)d] %(message)s",
+                #"format": "[%(asctime)s] %(levelname)s in %(module)s: %(message)s",
+            }
+        },
+        "handlers": {
+            #"console": {
+            #    "level": "DEBUG",
+            #    "class": "logging.StreamHandler",
+            #    "stream": "ext://sys.stdout",
+            #    "formatter": "default",
+            #},
+            'debug_rotating_file_handler': {
+               'level': 'DEBUG',
+               'formatter': 'default',
+               #'class': 'logging.handlers.RotatingFileHandler',
+               'class': 'logging.FileHandler',
+               'filename': '/xyz/debug-pygeoapi.log',
+               'mode': 'a',
+               #'maxBytes': 1048576,
+               #'backupCount': 10
+            },
+            'error_file_handler': {
+              'level': 'WARNING',
+              'formatter': 'default',
+              'class': 'logging.FileHandler',
+              'filename': '/xyz/error-pygeoapi.log',
+              'mode': 'a',
+            }
+        },
+        #"root": {"level": "DEBUG", "handlers": ["console", "error_file_handler", "debug_rotating_file_handler"]},
+        "root": {"level": "DEBUG", "handlers": ["error_file_handler", "debug_rotating_file_handler"]},
+    }
+)
+
+
 CONFIG = get_config()
 OPENAPI = load_openapi_document()
 

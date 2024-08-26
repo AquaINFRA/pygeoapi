@@ -69,7 +69,7 @@ class SubsetterPolygon(BaseProcessor):
         super().__init__(processor_def, PROCESS_METADATA)
 
     def execute(self, data):
-
+        '''
         ## User inputs: Either "polygon" (GeoJSON), or "href" (link to a GeoJSON file)
         polygon = data.get('polygon', None)
         href = data.get('href', None)
@@ -90,6 +90,32 @@ class SubsetterPolygon(BaseProcessor):
             resp = requests.get(href)
             polygon = resp.json()
             LOGGER.debug('We got this content (http %s): %s' % (resp, polygon))
+        '''
+        polygon = data.get('polygon', None)
+        if polygon is None:
+            LOGGER.error('*** ALL THE DATA: %s' % data)
+        else:
+            # TODO: How do I know whether I get a link or a geojson stuff? now it is all called polygon
+            # Try reading geoJSON:
+            #try:
+            #    json.loads(json.dumps(polygon)) # TODO maybe better way to verify if this is json?
+            #    # Damn this does not fail for a string!!!
+            #except:
+            try:
+                if polygon['type'] == 'Feature' or polygon['type'] == 'Polygon' or polygon['type'] == 'FeatureCollection' or polygon['type'] == 'GeometryCollection':
+                    LOGGER.error('LOOKS LIKE GEOJSON: %s' % polygon)
+            except TypeError:
+                if polygon.startswith('http'):
+                    LOGGER.error('THIS IS A URLLL: %s' % polygon)
+                    # Then it must be an URL!
+                    # Read geojson from URL!
+                    LOGGER.debug('Reading GeoJSON from URL: %s' % polygon)
+                    resp = requests.get(polygon)
+                    polygon = resp.json()
+                    LOGGER.debug('We got this content (http %s): %s' % (resp, polygon))
+                else:
+                    LOGGER.error('No clue what this is: %s : %s' % (type(polygon), polygon))
+
 
         with open('config.json') as myfile:
             config = json.load(myfile)

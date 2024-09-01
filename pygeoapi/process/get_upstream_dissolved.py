@@ -162,7 +162,7 @@ class UpstreamDissolvedGetter(BaseProcessor):
         ################
 
         if error_message is None:
-            outputs_list = []
+            outputs_dict = {}
 
             if comment is not None: # TODO this is double!
                 geojson_object['comment'] = comment
@@ -202,12 +202,12 @@ class UpstreamDissolvedGetter(BaseProcessor):
                     downloadlink = 'https://aqua.igb-berlin.de/download/'+downloadfilename
 
                     # Create output to pass back to user
-                    json_response = {'subcatchment': {
+                    json_response = {
                         'title': 'Subcatchment, can I take this from process description TODO',
                         'description': 'Can I take this from process description TODO',
                         'href': downloadlink
-                    }}
-                    outputs_list.append(json_response)
+                    }
+                    outputs_dict['subcatchment'] = json_response
 
                 else:
                     LOGGER.error('Cannot understand transmissionMode: %s' % transmission_mode)
@@ -223,12 +223,7 @@ class UpstreamDissolvedGetter(BaseProcessor):
 
                 if transmission_mode == 'value':
                     LOGGER.info('USER ASKS FOR UPSTREAM CATCHMENT IDS VALUE')
-                    LOGGER.debug('outputs_list: %s' % outputs_list)
-                    LOGGER.debug('upstream_catchment_ids: %s' % upstream_catchment_ids)
-                    json_response = {'upstream_catchment_ids': upstream_catchment_ids}
-                    LOGGER.debug('json_response: %s' % json_response)
-                    outputs_list.append(json_response)
-                    LOGGER.debug('outputs_list AFTRE APPEND: %s' % outputs_list)
+                    outputs_dict['upstream_catchment_ids'] = geojson_object
                 
                 elif transmission_mode == 'reference':
                     LOGGER.info('USER ASKS FOR UPSTREAM CATCHMENT IDS REFERENCE')
@@ -245,17 +240,18 @@ class UpstreamDissolvedGetter(BaseProcessor):
                     downloadlink = 'https://aqua.igb-berlin.de/download/'+downloadfilename
 
                     # Create output to pass back to user
-                    json_response = {'upstream_catchment_ids': {
+                    json_response = {
                         'title': 'Upstream catchment ids, can I take this from process description TODO',
                         'description': 'Can I take this from process description TODO',
                         'href': downloadlink
-                    }}
-                    outputs_list.append(json_response)
+                    }
+                    outputs_dict['upstream_catchment_ids'] = json_response
+
 
                 else:
                     LOGGER.error('Cannot understand transmissionMode: %s' % transmission_mode)
 
-            return 'application/json', outputs_list
+            return 'application/json', outputs_dict
 
 
         else:

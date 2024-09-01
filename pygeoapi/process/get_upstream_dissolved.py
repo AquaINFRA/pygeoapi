@@ -57,6 +57,8 @@ class UpstreamDissolvedGetter(BaseProcessor):
     def execute(self, data, outputs=None):
         LOGGER.info('Starting to get the upstream bounding box..."')
         LOGGER.info('Inputs: %s' % data)
+        LOGGER.info('Outputs: %s' % outputs)
+
         try:
             return self._execute(data, outputs)
         except Exception as e:
@@ -70,12 +72,7 @@ class UpstreamDissolvedGetter(BaseProcessor):
         LOGGER.debug('Content of requested_outputs: %s' % requested_outputs) # TODO is empty now, why?
 
         # Fake contents! Until I found out why it is not passed!
-        requested_outputs = {
-            'transmissionMode': 'reference',
-            'response': 'raw' # or 'document'
-        }
-        LOGGER.error('DANGER! FAKED REQUESTED OUTPUTS: %s:' % requested_outputs) # TODO!! REMOVE THIS, and get the real passed headers!
-
+        # --> They have to be passed by client in request, in outputs section!
 
         ## User inputs
         lon = float(data.get('lon'))
@@ -109,27 +106,27 @@ class UpstreamDissolvedGetter(BaseProcessor):
             # Overall goal: Get the upstream polygon (as one dissolved)!
             LOGGER.info('START: Getting upstream dissolved polygon for lon, lat: %s, %s' % (lon, lat))
 
-            # Get reg_id, basin_id, subc_id, upstream_catchment_subcids
+            # Get reg_id, basin_id, subc_id, upstream_catchment_ids
             subc_id, basin_id, reg_id = helpers.get_subc_id_basin_id_reg_id(conn, lon, lat, LOGGER)
-            upstream_catchment_subcids = helpers.get_upstream_catchment_ids(conn, subc_id, basin_id, reg_id, LOGGER)
+            upstream_catchment_ids = helpers.get_upstream_catchment_ids(conn, subc_id, basin_id, reg_id, LOGGER)
 
             # Get geometry (three types)
             LOGGER.debug('...Getting upstream catchment dissolved polygon for subc_id: %s' % subc_id)
             geojson_object = {}
             if get_type.lower() == 'polygon':
                 geojson_object = get_upstream_catchment_dissolved_geometry(
-                    conn, subc_id, upstream_catchment_subcids, basin_id, reg_id)
+                    conn, subc_id, upstream_catchment_ids, basin_id, reg_id)
                 LOGGER.debug('END: Received simple polygon : %s' % str(geojson_object)[0:50])
 
             elif get_type.lower() == 'feature':
                 geojson_object = get_upstream_catchment_dissolved_feature(
-                    conn, subc_id, upstream_catchment_subcids,
+                    conn, subc_id, upstream_catchment_ids,
                     basin_id, reg_id, comment=comment)
                 LOGGER.debug('END: Received feature : %s' % str(geojson_object)[0:50])
            
             elif get_type.lower() == 'featurecollection':
                 geojson_object = get_upstream_catchment_dissolved_feature_coll(
-                    conn, subc_id, upstream_catchment_subcids, (lon, lat),
+                    conn, subc_id, upstream_catchment_ids, (lon, lat),
                     basin_id, reg_id, comment=comment)
                 LOGGER.debug('END: Received feature collection: %s' % str(geojson_object)[0:50])
 
@@ -165,49 +162,101 @@ class UpstreamDissolvedGetter(BaseProcessor):
         ################
 
         if error_message is None:
+            outputs_list = []
 
-            if comment is not None:
+            if comment is not None: # TODO this is double!
                 geojson_object['comment'] = comment
 
-            # If the client requests raw response, we store it to file and pass the href:
-            if requested_outputs['response'].lower() == 'raw':
-                LOGGER.debug('Client requested raw response.')
+            # Check for which outputs it is asking:
+            if requested_outputs is None:
+                LOGGER.info('USER DID NOT SPECIFY OUTPUT SO WE PASS ALL OF THEM!')
+                requested_outputs = {'ALL': None}
 
-                # Store file
-                downloadfilename = 'polygon-%s.json' % self.my_job_id
-                downloadfilepath = '/var/www/nginx/download'+os.sep+downloadfilename
-                # TODO: Not hardcode that directory!
-                # TODO: Carefully consider permissions of that directory!
-                LOGGER.debug('Writing process result to file: %s' % downloadfilepath)
-                with open(downloadfilepath, 'w', encoding='utf-8') as downloadfile:
-                    json.dump(geojson_object, downloadfile, ensure_ascii=False, indent=4)
+            if 'subcatchment' in requested_outputs or 'ALL' in requested_outputs:
+                LOGGER.info('USER ASKS FOR SUBCATCHMENT')
 
-                # Create download link:
-                downloadlink = 'https://aqua.igb-berlin.de/download/'+downloadfilename
-                # TODO: Not hardcode that URL! Get from my config file, or can I even get it from pygeoapi config?
-                # TODO: Again, carefully consider permissions of that directory!
+                try:
+                    transmission_mode = requested_outputs['subcatchment']['transmissionMode']
+                except KeyError as e:
+                    LOGGER.debug('transmissionMode not passed for subcatchment: %s' % e)
+                    transmission_mode = 'value' # default
 
-                # Build response containing the link
-                response_object = {
-                    "outputs": {
-                        "polygon": {
-                            "title": "this is what you asked for... dissolved polygon",
-                            "description": "i am too lazy to type one...",
-                            "href": downloadlink
-                        }
-                    }
-                }
-                LOGGER.debug('Built response including link: %s' % response_object)
-                return 'application/json', response_object
+                if transmission_mode == 'reference':
+                    # Store file # TODO: Not hardcode that directory!
+                    downloadfilename = 'subcatchment-%s.json' % self.my_job_id
+                    downloadfilepath = '/var/www/nginx/download'+os.sep+downloadfilename
+                    LOGGER.debug('Writing process result to file: %s' % downloadfilepath)
+                    with open(downloadfilepath, 'w', encoding='utf-8') as downloadfile:
+                        json.dump(geojson_object, downloadfile, ensure_ascii=False, indent=4)
+
+                    # Create download link:
+                    # TODO: Not hardcode that URL! Get from my config file, or can I even get it from pygeoapi config?
+                    downloadlink = 'https://aqua.igb-berlin.de/download/'+downloadfilename
+
+                    # Create output to pass back to user
+                    json_response = {'subcatchment': {
+                        'title': 'Subcatchment, can I take this from process description TODO',
+                        'description': 'Can I take this from process description TODO',
+                        'href': downloadlink
+                    }}
+                    outputs_list.append(json_response)
 
 
-            # TODO: Is this the correct behaviour?
-            elif requested_outputs['response'].lower() == 'document':
-                LOGGER.debug('Client requested document response. Returning GeoJSON directly.')
-                return 'application/json', geojson_object
+                elif transmission_mode == 'value':
+                    LOGGER.info('USER ASKS FOR SUBCATCHMENT VALUE')
+                    outputs_list.append({'subcatchment': geojson_object})
+
+                else:
+                    LOGGER.error('Cannot understand transmissionMode: %s' % transmission_mode)
+
+            if 'upstream_catchment_ids' in requested_outputs or 'ALL' in requested_outputs:
+                LOGGER.info('USER ASKS FOR UPSTREAM CATCHMENT IDS')
+
+                try:
+                    transmission_mode = requested_outputs['upstream_catchment_ids']['transmissionMode']
+                except KeyError as e:
+                    LOGGER.debug('transmissionMode not passed for upstream_catchment_ids: %s' % e)
+                    transmission_mode = 'value' # default
+
+                if transmission_mode == 'value':
+                    LOGGER.info('USER ASKS FOR UPSTREAM CATCHMENT IDS VALUE')
+                    LOGGER.debug('outputs_list: %s' % outputs_list)
+                    LOGGER.debug('upstream_catchment_ids: %s' % upstream_catchment_ids)
+                    json_response = {'upstream_catchment_ids': upstream_catchment_ids}
+                    LOGGER.debug('json_response: %s' % json_response)
+                    outputs_list.append(json_response)
+                    LOGGER.debug('outputs_list AFTRE APPEND: %s' % outputs_list)
+                
+                elif transmission_mode == 'reference':
+                    LOGGER.info('USER ASKS FOR UPSTREAM CATCHMENT IDS REFERENCE')
+
+                    # Store file # TODO: Not hardcode that directory!
+                    downloadfilename = 'upstream_catchment_ids-%s.json' % self.my_job_id
+                    downloadfilepath = '/var/www/nginx/download'+os.sep+downloadfilename
+                    LOGGER.debug('Writing process result to file: %s' % downloadfilepath)
+                    with open(downloadfilepath, 'w', encoding='utf-8') as downloadfile:
+                        json.dump(upstream_catchment_ids, downloadfile, ensure_ascii=False, indent=4)
+
+                    # Create download link:
+                    # TODO: Not hardcode that URL! Get from my config file, or can I even get it from pygeoapi config?
+                    downloadlink = 'https://aqua.igb-berlin.de/download/'+downloadfilename
+
+                    # Create output to pass back to user
+                    json_response = {'upstream_catchment_ids': {
+                        'title': 'Upstream catchment ids, can I take this from process description TODO',
+                        'description': 'Can I take this from process description TODO',
+                        'href': downloadlink
+                    }}
+                    outputs_list.append(json_response)
+
+                else:
+                    LOGGER.error('Cannot understand transmissionMode: %s' % transmission_mode)
+
+            return 'application/json', outputs_list
+
 
         else:
-            output = {
+            output = { # TODO check syntax here!
                 'error_message': 'getting upstream polygon (dissolved) failed.',
                 'details': error_message}
 

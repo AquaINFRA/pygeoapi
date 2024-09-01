@@ -177,8 +177,10 @@ class UpstreamDissolvedGetter(BaseProcessor):
 
                 try:
                     transmission_mode = requested_outputs['subcatchment']['transmissionMode']
-                except KeyError as e:
-                    LOGGER.debug('transmissionMode not passed for subcatchment: %s' % e)
+                except (KeyError, TypeError) as e:
+                    # KeyError if requested_outputs is a dict, but without subcatchment
+                    # TypeError if requested_outputs is list! ("list indices must be integers or slices, not str")
+                    LOGGER.debug('transmissionMode not passed for output "subcatchment": %s' % e)
                     transmission_mode = 'value' # default
 
                 if transmission_mode == 'value':
@@ -186,6 +188,8 @@ class UpstreamDissolvedGetter(BaseProcessor):
                     outputs_list.append({'subcatchment': geojson_object})
 
                 elif transmission_mode == 'reference':
+                    # TODO: This may not be correct, as reference includes that the link is returned in
+                    # a location header rather than in the response body!
                     # Store file # TODO: Not hardcode that directory!
                     downloadfilename = 'subcatchment-%s.json' % self.my_job_id
                     downloadfilepath = '/var/www/nginx/download'+os.sep+downloadfilename

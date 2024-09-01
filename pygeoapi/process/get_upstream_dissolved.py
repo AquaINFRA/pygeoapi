@@ -181,7 +181,11 @@ class UpstreamDissolvedGetter(BaseProcessor):
                     LOGGER.debug('transmissionMode not passed for subcatchment: %s' % e)
                     transmission_mode = 'value' # default
 
-                if transmission_mode == 'reference':
+                if transmission_mode == 'value':
+                    LOGGER.info('USER ASKS FOR SUBCATCHMENT VALUE')
+                    outputs_list.append({'subcatchment': geojson_object})
+
+                elif transmission_mode == 'reference':
                     # Store file # TODO: Not hardcode that directory!
                     downloadfilename = 'subcatchment-%s.json' % self.my_job_id
                     downloadfilepath = '/var/www/nginx/download'+os.sep+downloadfilename
@@ -200,11 +204,6 @@ class UpstreamDissolvedGetter(BaseProcessor):
                         'href': downloadlink
                     }}
                     outputs_list.append(json_response)
-
-
-                elif transmission_mode == 'value':
-                    LOGGER.info('USER ASKS FOR SUBCATCHMENT VALUE')
-                    outputs_list.append({'subcatchment': geojson_object})
 
                 else:
                     LOGGER.error('Cannot understand transmissionMode: %s' % transmission_mode)

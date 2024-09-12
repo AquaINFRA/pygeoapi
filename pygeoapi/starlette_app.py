@@ -431,6 +431,11 @@ async def get_processes(request: Request, process_id=None):
     :returns: Starlette HTTP Response
     """
     if 'process_id' in request.path_params:
+        # Here, we cannot use LOGGER, we need to print!
+        # Otherwise: NameError: name 'LOGGER' is not defined
+        # The printed statements end up in the startlette error log!
+        print('PRINT: request.path_params: %s' % request.path_params)
+
         process_id = request.path_params['process_id']
 
     return await execute_from_starlette(processes_api.describe_processes,
@@ -791,6 +796,7 @@ def serve(ctx, server=None, debug=False):
         "pygeoapi.starlette_app:APP",
         reload=True,
         log_level=log_level,
+        #log_config='/.../.../log_config.json', # This does not seem to be picked up!
         loop='asyncio',
         host=api_.config['server']['bind']['host'],
         port=api_.config['server']['bind']['port'])

@@ -53,6 +53,11 @@ from pygeoapi.util import get_mimetype, get_api_rules
 ## Set the necessary environment variables where they can be read
 os.environ['PYGEOAPI_CONFIG'] = '/xyz/pygeoapi/pygeoapi-config.yml'
 os.environ['PYGEOAPI_OPENAPI'] = '/xyz/pygeoapi/pygeoapi-openapi.yml'
+## Where the various modules can find their specific config:
+## Note: At the moment, one combined file is used, but then all keys must be unique!
+## Alternatively, we can also specify a different config file for each set of processes.
+os.environ['DAUGAVA_CONFIG_FILE'] = '/xyz/config.json'
+os.environ['BOKU_CONFIG_FILE'] = '/xyz/config.json'
 
 
 ## Logging settings:

@@ -113,6 +113,14 @@ if 'templates' in CONFIG['server']:
 APP = Flask(__name__, static_folder=STATIC_FOLDER, static_url_path='/static')
 APP.url_map.strict_slashes = API_RULES.strict_slashes
 
+## Added by Merret:
+## See: https://flask.palletsprojects.com/en/2.3.x/deploying/proxy_fix/
+from werkzeug.middleware.proxy_fix import ProxyFix
+APP.wsgi_app = ProxyFix(
+    APP.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
+)
+
+
 BLUEPRINT = Blueprint(
     'pygeoapi',
     __name__,

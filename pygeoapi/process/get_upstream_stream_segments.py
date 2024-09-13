@@ -11,7 +11,7 @@ import json
 import pygeoapi.process.upstream_helpers as helpers
 from pygeoapi.process.geofresh.py_query_db import get_connection_object
 from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_linestrings_feature_coll
-
+from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_linestrings_geometry_coll
 
 import psycopg2
 
@@ -100,7 +100,7 @@ class UpstreamStreamSegmentGetter(BaseProcessor):
 
             elif get_type.lower() == 'geometrycollection':
                 geometry_coll = get_upstream_catchment_linestrings_geometry_coll(
-                    conn, subc_id, upstream_ids, basin_id, reg_id)
+                    conn, subc_id, upstream_catchment_subcids, basin_id, reg_id)
                 geojson_object = geometry_coll
                 LOGGER.debug('END: Received GeometryCollection: %s' % str(geometry_coll)[0:50])
 

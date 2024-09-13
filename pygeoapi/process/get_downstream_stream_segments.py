@@ -21,91 +21,13 @@ curl -X POST "https://aqua.igb-berlin.de/pygeoapi-dev/processes/get-shortest-pat
 
 '''
 
-#: Process metadata and description
-PROCESS_METADATA = {
-    'version': '0.0.1',
-    'id': 'get-shortest-path-to-sea',
-    'title': {'en': 'Dijkstra shortest path to sea'},
-    'description': {
-        'en': 'Return the shortest path stream from the stream segment'
-              ' to which the given start point belongs to sea (outlet).'
-              ' The path is returned as'
-              ' GeoJSON FeatureCollection or GeometryCollection, depending '
-              ' on user input. The geometries are LineStrings in both cases.'
-              ' The start and end segments are included.'
-    },
-    'jobControlOptions': ['sync-execute', 'async-execute'],
-    'keywords': ['dijkstra', 'shortest-path', 'stream', 'stream-segment', 'geojson', 'GeoFRESH', 'hydrography90m', 'routing'],
-    'links': [{
-        'type': 'text/html',
-        'rel': 'about',
-        'title': 'GeoFRESH website',
-        'href': 'https://geofresh.org/',
-        'hreflang': 'en-US'
-    },
-    {
-        'type': 'text/html',
-        'rel': 'about',
-        'title': 'On Stream segments (Hydrography90m)',
-        'href': 'https://hydrography.org/hydrography90m/hydrography90m_layers',
-        'hreflang': 'en-US'
-    }],
-    'inputs': {
-        'lon': {
-            'title': 'Longitude (WGS84)',
-            'description': 'Longitude of the starting point.',
-            'schema': {'type': 'string'},
-            'minOccurs': 1,
-            'maxOccurs': 1,
-            'metadata': None,  # TODO how to use the Metadata item?
-            'keywords': ['longitude', 'wgs84']
-        },
-        'lat': {
-            'title': 'Latitude (WGS84)',
-            'description': 'Latitude of the starting point.',
-            'schema': {'type': 'string'},
-            'minOccurs': 1,
-            'maxOccurs': 1,
-            'metadata': None,
-            'keywords': ['latitude', 'wgs84']
-        },
-        'get_type': {
-            'title': 'Get GeoJSON Feature',
-            'description': 'Can be "GeometryCollection" or "FeatureCollection".',
-            'schema': {'type': 'string'},
-            'minOccurs': 0,
-            'maxOccurs': 1,
-            'metadata': None,
-            'keywords': ['comment']
-        },
-        'comment': {
-            'title': 'Comment',
-            'description': 'Arbitrary string that will not be processed but returned, for user\'s convenience.',
-            'schema': {'type': 'string'},
-            'minOccurs': 0,
-            'maxOccurs': 1,
-            'metadata': None,
-            'keywords': ['comment']
-        },
-    },
-    'outputs': {
-        'path': { # TODO: We return a GeoJSON object without a name, how to put that here?
-            'title': 'Dijkstra shortest path to sea outlet',
-            'description': 'GeometryCollection or FeatureCollection',
-            'schema': {
-                'type': 'object',
-                'contentMediaType': 'application/json'
-            }
-        },
-    },
-    'example': {
-        'inputs': {
-            'lon_start': '9.937520027160646',
-            'lat_start': '54.69422745526058',
-            'comment': 'test query'
-        }
-    }
-}
+# Process metadata and description
+# Has to be in a JSON file of the same name, in the same dir! 
+script_title_and_path = __file__
+metadata_title_and_path = script_title_and_path.replace('.py', '.json')
+PROCESS_METADATA = json.load(open(metadata_title_and_path))
+
+
 
 class DijkstraShortestPathSeaGetter(BaseProcessor):
 

@@ -27,96 +27,12 @@ curl -X POST "http://localhost:5000/processes/get-stream-segment/execution" -H "
 
 '''
 
-#: Process metadata and description
-PROCESS_METADATA = {
-    'version': '0.0.1',
-    'id': 'get-stream-segment-plus',
-    'title': {'en': 'Return a Stream Segment as GeoJSON'},
-    'description': {
-        'en': 'Return the Stream Segment of the single subcatchment'
-              ' (into which the given point falls)'
-              ' as a GeoJSON Feature (where the geometry is a LineString).'
-              ' Upstream not included.'
-    },
-    'jobControlOptions': ['sync-execute', 'async-execute'],
-    'keywords': ['subcatchment', 'stream', 'stream-segment', 'geojson', 'GeoFRESH', 'hydrography90m'],
-    'links': [{
-        'type': 'text/html',
-        'rel': 'about',
-        'title': 'GeoFRESH website',
-        'href': 'https://geofresh.org/',
-        'hreflang': 'en-US'
-    },
-    {
-        'type': 'text/html',
-        'rel': 'about',
-        'title': 'On Stream segments (Hydrography90m)',
-        'href': 'https://hydrography.org/hydrography90m/hydrography90m_layers',
-        'hreflang': 'en-US'
-    }],
-    'inputs': {
-        'lon': {
-            'title': 'Longitude (WGS84)',
-            'description': 'Longitude....',
-            'schema': {'type': 'string'},
-            'minOccurs': 1,
-            'maxOccurs': 1,
-            'metadata': None,  # TODO how to use the Metadata item?
-            'keywords': ['longitude', 'wgs84']
-        },
-        'lat': {
-            'title': 'Latitude (WGS84)',
-            'description': 'Latitude....',
-            'schema': {'type': 'string'},
-            'minOccurs': 1,
-            'maxOccurs': 1,
-            'metadata': None,  # TODO how to use the Metadata item?
-            'keywords': ['latitude', 'wgs84']
-        },
-        'comment': {
-            'title': 'Comment',
-            'description': 'Arbitrary string that will not be processed but returned, for user\'s convenience.',
-            'schema': {'type': 'string'},
-            'minOccurs': 0,
-            'maxOccurs': 1,
-            'metadata': None,  # TODO how to use the Metadata item?
-            'keywords': ['comment']
-        }
-    },
-    'outputs': {
-        'stream_segment': {
-            'title': 'Stream Segment',
-            'description': 'WGS84 coordinates of the stream segment.',
-            'schema': {
-                'type': 'object',
-                'contentMediaType': 'application/json'
-            }
-        },
-        'strahler_order': {
-            'title': 'Strahler Order',
-            'description': 'Strahler order of the stream segment.',
-            'schema': {
-                'type': 'object',
-                'contentMediaType': 'application/json'
-            }
-        },
-        'comment': {
-            'title': 'Comment',
-            'description': 'Arbitrary string provided by the user.',
-            'schema': {
-                'type': 'object',
-                'contentMediaType': 'application/json'
-            }
-        }
-    },
-    'example': {
-        'inputs': {
-            'lon': '9.931555',
-            'lat': '54.695070',
-            'comment': 'located in schlei area'
-        }
-    }
-}
+# Process metadata and description
+# Has to be in a JSON file of the same name, in the same dir! 
+script_title_and_path = __file__
+metadata_title_and_path = script_title_and_path.replace('.py', '.json')
+PROCESS_METADATA = json.load(open(metadata_title_and_path))
+
 
 class StreamSegmentGetterPlus(BaseProcessor):
 

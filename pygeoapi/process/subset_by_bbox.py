@@ -47,93 +47,11 @@ curl -X POST "https://aqua.igb-berlin.de/pygeoapi-dev/processes/get-subset-by-bb
 
 LOGGER = logging.getLogger(__name__)
 
-#: Process metadata and description
-PROCESS_METADATA = {
-    'version': '0.2.0',
-    'id': 'get-subset-by-bbox',
-    'title': {
-        'en': 'Subset by Bounding Box',
-        'fr': 'Subset by Bounding Box'
-    },
-    'description': {
-        'en': 'This process returns a raster subset from a tiff raster'
-              ' image, based on a bounding box provided by the user in'
-              ' WGS84 coordinates. The result is a compressed tiff file.',
-        'fr': 'Pas de description encore.',
-    },
-    'jobControlOptions': ['sync-execute', 'async-execute'],
-    'keywords': ['subset', 'raster', 'bbox', 'bounding box'],
-    'links': [{
-        'type': 'text/html',
-        'rel': 'about',
-        'title': 'information',
-        'href': 'https://example.org/process',
-        'hreflang': 'en-US'
-    }],
-    'inputs': {
-        'north': {
-            'title': 'North',
-            'description': 'Northernmost coordinate (in WGS84 decimal degrees, max 85)',
-            'schema': {
-                'type': 'number'
-            },
-            'minOccurs': 1,
-            'maxOccurs': 1,
-            'metadata': None,  # TODO how to use the Metadata item?
-            'keywords': ['north', 'coordinate', 'wgs84']
-        },
-        'south': {
-            'title': 'South',
-            'description': 'Sourthernmost coordinate (in WGS84 decimal degrees, min 65)',
-            'schema': {
-                'type': 'number'
-            },
-            'minOccurs': 1,
-            'maxOccurs': 1,
-            'metadata': None,
-            'keywords': ['south', 'coordinate', 'wgs84']
-        },
-        'west': {
-            'title': 'West',
-            'description': 'Westernmost coordinate (in WGS84 decimal degrees, min 0)',
-            'schema': {
-                'type': 'number'
-            },
-            'minOccurs': 1,
-            'maxOccurs': 1,
-            'metadata': None,
-            'keywords': ['west', 'coordinate', 'wgs84']
-        },
-        'east': {
-            'title': 'East',
-            'description': 'Easternmost coordinate (in WGS84 decimal degrees, max 20)',
-            'schema': {
-                'type': 'number'
-            },
-            'minOccurs': 1,
-            'maxOccurs': 1,
-            'metadata': None,
-            'keywords': ['east', 'coordinate', 'wgs84']
-        }
-    },
-    'outputs': {
-        'file': {
-            'title': 'Raster subset',
-            'schema': {
-                'type': 'object',
-                'contentMediaType': 'application/octet-stream'
-            }
-        }
-    },
-    'example': {
-        'inputs': {
-            'north': 72.1,
-            'south': 66.1,
-            'west':  13.3,
-            'east':  16.3
-        }
-    }
-}
+# Process metadata and description
+# Has to be in a JSON file of the same name, in the same dir! 
+script_title_and_path = __file__
+metadata_title_and_path = script_title_and_path.replace('.py', '.json')
+PROCESS_METADATA = json.load(open(metadata_title_and_path))
 
 
 class SubsetterBbox(BaseProcessor):

@@ -30,7 +30,6 @@ curl -X POST "http://localhost:5000/processes/get-upstream-dissolved/execution" 
 
 # Process metadata and description
 # Has to be in a JSON file of the same name, in the same dir! 
-
 script_title_and_path = __file__
 metadata_title_and_path = script_title_and_path.replace('.py', '.json')
 PROCESS_METADATA = json.load(open(metadata_title_and_path))

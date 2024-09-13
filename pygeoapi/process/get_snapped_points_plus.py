@@ -150,7 +150,7 @@ class SnappedPointsGetterPlus(BaseProcessor):
         #subc_id = int(data.get('subc_id'))
         comment = data.get('comment') # optional
 
-        with open('/opt/pyg_upstream/config.json') as myfile:
+        with open('/pygeoapi/config.json') as myfile:
             config = json.load(myfile)
 
         geofresh_server = config['geofresh_server']

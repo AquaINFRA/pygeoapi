@@ -151,7 +151,7 @@ class SubsetterBbox(BaseProcessor):
         # Check if inside our boundaries:
         _check_boundaries(north_lat, south_lat, east_lon, west_lon)
 
-        with open('config.json') as myfile:
+        with open('pygeoapi/config.json') as myfile:
             config = json.load(myfile)
 
         # Where to find input data
@@ -283,7 +283,7 @@ if __name__ == "__main__":
 
     gdal.UseExceptions()
 
-    with open('config.json') as myfile:
+    with open('pygeoapi/config.json') as myfile:
         config = json.load(myfile)
 
     input_raster_basedir = config['base_dir_subsetting_tiffs']

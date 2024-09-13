@@ -155,7 +155,7 @@ class SnappedPointsGetter(BaseProcessor):
         if not isinstance(add_subcatchment, bool):
             LOGGER.error('Expected a boolean for "add_subcatchment"!')
 
-        with open('config.json') as myfile:
+        with open('pygeoapi/config.json') as myfile:
             config = json.load(myfile)
 
         geofresh_server = config['geofresh_server']

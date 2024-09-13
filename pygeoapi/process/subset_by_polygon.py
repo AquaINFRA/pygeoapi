@@ -117,7 +117,7 @@ class SubsetterPolygon(BaseProcessor):
                     LOGGER.error('No clue what this is: %s : %s' % (type(polygon), polygon))
 
 
-        with open('config.json') as myfile:
+        with open('pygeoapi/config.json') as myfile:
             config = json.load(myfile)
 
         # Where to find input data
@@ -175,7 +175,7 @@ if __name__ == "__main__":
 
     gdal.UseExceptions()
 
-    with open('config.json') as myfile:
+    with open('pygeoapi/config.json') as myfile:
         config = json.load(myfile)
 
     input_raster_basedir = config['base_dir_subsetting_tiffs']

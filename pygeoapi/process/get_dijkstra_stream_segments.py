@@ -158,7 +158,7 @@ class DijkstraShortestPathGetter(BaseProcessor):
         comment = data.get('comment') # optional
         get_type = data.get('get_type', 'GeometryCollection') # or FeatureCollection
 
-        with open('config.json') as myfile:
+        with open('pygeoapi/config.json') as myfile:
             config = json.load(myfile)
 
         geofresh_server = config['geofresh_server']

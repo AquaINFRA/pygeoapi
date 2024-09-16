@@ -52,7 +52,6 @@ class UpstreamDissolvedGetter(BaseProcessor):
         self.job_id = job_id
 
 
-
     def execute(self, data, outputs=None):
         LOGGER.info('Starting to get the upstream bounding box..."')
         LOGGER.info('Inputs: %s' % data)
@@ -220,7 +219,7 @@ class UpstreamDissolvedGetter(BaseProcessor):
 
                 if transmission_mode == 'value':
                     LOGGER.info('USER ASKS FOR UPSTREAM CATCHMENT IDS VALUE')
-                    outputs_dict['upstream_catchment_ids'] = geojson_object
+                    outputs_dict['upstream_catchment_ids'] = upstream_catchment_ids
                 
                 elif transmission_mode == 'reference':
                     LOGGER.info('USER ASKS FOR UPSTREAM CATCHMENT IDS REFERENCE')

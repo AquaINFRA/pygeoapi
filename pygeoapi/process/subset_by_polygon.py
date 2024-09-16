@@ -67,6 +67,7 @@ class SubsetterPolygon(BaseProcessor):
 
     def __init__(self, processor_def):
         super().__init__(processor_def, PROCESS_METADATA)
+        self.supports_outputs = False
         self.job_id = None
 
 
@@ -74,7 +75,10 @@ class SubsetterPolygon(BaseProcessor):
         self.job_id = job_id
 
 
-    def execute(self, data):
+    def execute(self, data, requested_outputs=None):
+
+        # TODO: Must change behaviour based on content of requested_outputs
+        LOGGER.debug('Content of requested_outputs: %s' % requested_outputs)
         '''
         ## User inputs: Either "polygon" (GeoJSON), or "href" (link to a GeoJSON file)
         polygon = data.get('polygon', None)

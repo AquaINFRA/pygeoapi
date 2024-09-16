@@ -43,6 +43,7 @@ class UpstreamCatchmentIdGetter(BaseProcessor):
 
     def __init__(self, processor_def):
         super().__init__(processor_def, PROCESS_METADATA)
+        self.supports_outputs = True
         self.job_id = None
 
 
@@ -54,16 +55,19 @@ class UpstreamCatchmentIdGetter(BaseProcessor):
         return f'<UpstreamCatchmentIdGetter> {self.name}'
 
 
-    def execute(self, data):
+    def execute(self, data, outputs=None):
         LOGGER.info('Starting to get the upstream subcatchment ids..."')
         try:
-            return self._execute(data)
+            return self._execute(data, outputs)
         except Exception as e:
             LOGGER.error(e)
             print(traceback.format_exc())
             raise ProcessorExecuteError(e)
 
-    def _execute(self, data):
+    def _execute(self, data, requested_outputs):
+
+        # TODO: Must change behaviour based on content of requested_outputs
+        LOGGER.debug('Content of requested_outputs: %s' % requested_outputs)
 
         ## User inputs
         lon = data.get('lon', None)

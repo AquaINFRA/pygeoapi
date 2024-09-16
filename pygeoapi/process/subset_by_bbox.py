@@ -58,6 +58,7 @@ class SubsetterBbox(BaseProcessor):
 
     def __init__(self, processor_def):
         super().__init__(processor_def, PROCESS_METADATA)
+        self.supports_outputs = False
         self.job_id = None
 
 
@@ -65,7 +66,11 @@ class SubsetterBbox(BaseProcessor):
         self.job_id = job_id
 
 
-    def execute(self, data):
+    def execute(self, data, requested_outputs=None):
+
+        requested_outputs = outputs
+        # TODO: Must change behaviour based on content of requested_outputs
+        LOGGER.debug('Content of requested_outputs: %s' % requested_outputs)
 
         north_lat = float(data.get('north'))
         south_lat = float(data.get('south'))

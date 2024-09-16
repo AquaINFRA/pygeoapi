@@ -68,10 +68,7 @@ class UpstreamDissolvedGetter(BaseProcessor):
     def _execute(self, data, requested_outputs):
 
         # TODO: Must change behaviour based on content of requested_outputs
-        LOGGER.debug('Content of requested_outputs: %s' % requested_outputs) # TODO is empty now, why?
-
-        # Fake contents! Until I found out why it is not passed!
-        # --> They have to be passed by client in request, in outputs section!
+        LOGGER.debug('Content of requested_outputs: %s' % requested_outputs)
 
         ## User inputs
         lon = data.get('lon', None)

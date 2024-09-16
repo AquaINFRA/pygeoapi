@@ -14,7 +14,7 @@ def _get_query_basin_id_reg_id(subc_id):
     query = """
     SELECT basin_id, reg_id
     FROM sub_catchments
-    WHERE subc_id == {given_subc_id}
+    WHERE subc_id = {given_subc_id}
     """.format(given_subc_id = subc_id)
     query = query.replace("\n", " ")
     return query
@@ -314,8 +314,8 @@ def get_basin_id_reg_id(conn, subc_id):
         raise ValueError(error_message)
 
     else:
-        reg_id = result_row[0]
-        basin_id = result_row[1]
+        basin_id = result_row[0]
+        reg_id = result_row[1]
     LOGGER.debug("LEAVING: %s: subc_id=%s" % (name, subc_id))
 
     return basin_id, reg_id
@@ -802,7 +802,7 @@ def get_upstream_catchment_polygons_geometry_coll(conn, subc_id, upstream_ids, b
     }
 
     LOGGER.debug('LEAVING: %s: Returning a GeometryCollection with Polygons...' % (name))
-    return feature_coll
+    return geometry_coll
 
 
 def get_dijkstra_ids(conn, subc_id_start, subc_id_end, reg_id, basin_id):
@@ -871,8 +871,8 @@ def get_upstream_catchment_ids_incl_itself(conn, subc_id, basin_id, reg_id, incl
 
     # superfluous warning:
     subc_id_returned = result_row[0]
-    if not subc_id == subc_id_returned:
-        msg = "WARNING: Wrong subc_id!"
+    if not int(subc_id) == int(subc_id_returned):
+        msg = "WARNING: Wrong subc_id! Provided: %s, returned: %s." % (subc_id, subc_id_returned)
         LOGGER.error(msg)
         raise ValueError(msg)
 

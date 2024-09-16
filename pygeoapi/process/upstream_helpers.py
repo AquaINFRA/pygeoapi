@@ -1,4 +1,5 @@
 from pygeoapi.process.geofresh.py_query_db import get_reg_id
+from pygeoapi.process.geofresh.py_query_db import get_basin_id_reg_id
 from pygeoapi.process.geofresh.py_query_db import get_subc_id_basin_id
 from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_ids_incl_itself
 
@@ -48,19 +49,18 @@ def get_subc_id_basin_id_reg_id_from_lon_lat(conn, lon, lat, LOGGER):
 
 def get_subc_id_basin_id_reg_id_from_subc_id(conn, subc_id, LOGGER):
 
-    # Get reg_id
-    reg_id = get_reg_id(conn, lon, lat)
+    # Get basin_id, reg_id
+    basin_id, reg_id = get_basin_id_reg_id(conn, subc_id)
     
-    if reg_id is None: # Might be in the ocean!
-        error_message = "Caught an error that should have been caught before! (reg_id = None)!"
+    if reg_id is None:
+        error_message = 'No reg_id id found for subc_id %s' % subc_id
         LOGGER.error(error_message)
         raise ValueError(error_message)
-
-    # Get basin_id, subc_id
-    subc_id, basin_id = get_subc_id_basin_id(conn, lon, lat, reg_id)
     
     if basin_id is None:
-        LOGGER.error('No basin_id id found for lon %s, lat %s !' % (lon, lat))
+        error_message = 'No basin_id id found for subc_id %s' % subc_id
+        LOGGER.error(error_message)
+        raise ValueError(error_message)
     
     LOGGER.debug('... Subcatchment has subc_id %s, basin_id %s, reg_id %s.' % (subc_id, basin_id, reg_id))
 

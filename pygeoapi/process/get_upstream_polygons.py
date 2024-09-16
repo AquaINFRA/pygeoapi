@@ -11,6 +11,7 @@ import json
 import pygeoapi.process.upstream_helpers as helpers
 from pygeoapi.process.geofresh.py_query_db import get_connection_object
 from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_polygons_feature_coll
+from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_polygons_geometry_coll
 import psycopg2
 
 

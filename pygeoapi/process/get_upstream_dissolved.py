@@ -53,9 +53,9 @@ class UpstreamDissolvedGetter(BaseProcessor):
 
 
     def execute(self, data, outputs=None):
-        LOGGER.info('Starting to get the upstream bounding box..."')
+        LOGGER.info('Starting to get the upstream polygon..."')
         LOGGER.info('Inputs: %s' % data)
-        LOGGER.info('Outputs: %s' % outputs)
+        LOGGER.info('Requested outputs: %s' % outputs)
 
         try:
             return self._execute(data, outputs)

@@ -53,7 +53,7 @@ class UpstreamDissolvedGetter(BaseProcessor):
 
 
     def execute(self, data, outputs=None):
-        LOGGER.info('Starting to get the upstream bounding box..."')
+        LOGGER.info('Starting to get the upstream polygon..."')
         LOGGER.info('Inputs: %s' % data)
         LOGGER.info('Outputs: %s' % outputs)
 
@@ -76,6 +76,7 @@ class UpstreamDissolvedGetter(BaseProcessor):
         get_type = data.get('get_type', 'polygon')
         get_json_directly = data.get('get_json_directly', 'false') # Default: Return URL!
         get_json_directly = (get_json_directly.lower() == 'true')
+        subc_id = None # Needed below...
 
         with open('pygeoapi/config.json') as myfile:
             config = json.load(myfile)
@@ -176,7 +177,7 @@ class UpstreamDissolvedGetter(BaseProcessor):
                 LOGGER.debug('Client requested an URL in the response.')
 
                 # Store file
-                downloadfilename = 'polygon-%s.json' % self.my_job_id
+                downloadfilename = 'polygon-%s.json' % self.job_id
                 downloadfilepath = '/var/www/nginx/download'+os.sep+downloadfilename
                 # TODO: Not hardcode that directory!
                 # TODO: Carefully consider permissions of that directory!

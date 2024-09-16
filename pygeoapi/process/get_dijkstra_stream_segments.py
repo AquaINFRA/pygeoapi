@@ -65,7 +65,7 @@ class DijkstraShortestPathGetter(BaseProcessor):
         subc_id_start = data.get('subc_id_start', None) # optional, need either lonlat OR subc_id
         lon_end = data.get('lon_end', None)
         lat_end = data.get('lat_end', None)
-        subc_id_start = data.get('subc_id_end', None) # optional, need either lonlat OR subc_id
+        subc_id_end = data.get('subc_id_end', None) # optional, need either lonlat OR subc_id
         comment = data.get('comment') # optional
         get_type = data.get('get_type', 'GeometryCollection') # or FeatureCollection
 

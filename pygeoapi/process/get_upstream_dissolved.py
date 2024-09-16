@@ -39,7 +39,7 @@ class UpstreamDissolvedGetter(BaseProcessor):
     def __init__(self, processor_def):
         super().__init__(processor_def, PROCESS_METADATA)
         self.supports_outputs = True # Maybe before super() ?
-        self.my_job_id = 'nnothing-yet'
+        self.job_id = None
         # To support requested outputs, such as transmissionMode
         # https://github.com/geopython/pygeoapi/blob/fef8df120ec52121236be0c07022490803a47b92/pygeoapi/process/manager/base.py#L253
 
@@ -49,7 +49,7 @@ class UpstreamDissolvedGetter(BaseProcessor):
 
 
     def set_job_id(self, job_id: str):
-        self.my_job_id = job_id
+        self.job_id = job_id
 
 
 
@@ -191,7 +191,7 @@ class UpstreamDissolvedGetter(BaseProcessor):
                     # TODO: This may not be correct, as reference includes that the link is returned in
                     # a location header rather than in the response body!
                     # Store file # TODO: Not hardcode that directory!
-                    downloadfilename = 'subcatchment-%s.json' % self.my_job_id
+                    downloadfilename = 'subcatchment-%s.json' % self.job_id
                     downloadfilepath = '/var/www/nginx/download'+os.sep+downloadfilename
                     LOGGER.debug('Writing process result to file: %s' % downloadfilepath)
                     with open(downloadfilepath, 'w', encoding='utf-8') as downloadfile:
@@ -229,7 +229,7 @@ class UpstreamDissolvedGetter(BaseProcessor):
                     LOGGER.info('USER ASKS FOR UPSTREAM CATCHMENT IDS REFERENCE')
 
                     # Store file # TODO: Not hardcode that directory!
-                    downloadfilename = 'upstream_catchment_ids-%s.json' % self.my_job_id
+                    downloadfilename = 'upstream_catchment_ids-%s.json' % self.job_id
                     downloadfilepath = '/var/www/nginx/download'+os.sep+downloadfilename
                     LOGGER.debug('Writing process result to file: %s' % downloadfilepath)
                     with open(downloadfilepath, 'w', encoding='utf-8') as downloadfile:

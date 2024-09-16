@@ -34,6 +34,11 @@ class SnappedPointsGetter(BaseProcessor):
 
     def __init__(self, processor_def):
         super().__init__(processor_def, PROCESS_METADATA)
+        self.job_id = None
+
+
+    def set_job_id(self, job_id: str):
+        self.job_id = job_id
 
 
     def __repr__(self):

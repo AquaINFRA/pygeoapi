@@ -320,9 +320,35 @@ def get_basin_id_reg_id(conn, subc_id):
     return basin_id, reg_id
 
 
+def check_outside_europe(lon, lat):
+    # TODO: Move somewhere else!
+    outside_europe = False
+    err_msg = None
+    LOGGER.debug("CHECKING for in or outside Europe?!")
+
+    if lat > 82:
+        err_msg = 'Too far north to be part of Europe: %s' % lat
+        outside_europe = True
+    elif lat < 34:
+        err_msg = 'Too far south to be part of Europe: %s' % lat
+        outside_europe = True
+    if lon > 70:
+        err_msg = 'Too far east to be part of Europe: %s' % lon
+        outside_europe = True
+    elif lon < -32:
+        err_msg = 'Too far west to be part of Europe: %s' % lon
+        outside_europe = True
+
+    if outside_europe:
+        LOGGER.error(err_msg)
+        raise ValueError(err_msg)
+
 def get_reg_id(conn, lon, lat):
     name = "get_reg_id"
     LOGGER.debug("ENTERING: %s: lon=%s, lat=%s" % (name, lon, lat))
+
+    check_outside_europe(lon, lat) # may raise ValueError!
+
     query = _get_query_reg_id(lon, lat)
     result_row = get_only_row(execute_query(conn, query), name)
     

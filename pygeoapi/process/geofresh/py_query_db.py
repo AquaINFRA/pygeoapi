@@ -13,17 +13,18 @@ LOGGER = logging.getLogger(__name__)
 def _get_query_basin_id_reg_id(subc_id):
     query = """
     SELECT basin_id, reg_id
-    FROM subcatchments
+    FROM sub_catchments
     WHERE subc_id == {given_subc_id}
     """.format(given_subc_id = subc_id)
     query = query.replace("\n", " ")
     return query
 
+
 def _get_query_reg_id(lon, lat):
     """
     Example query:
-    SELECT reg.reg_id FROM regional_units reg
-    WHERE st_intersects(ST_SetSRID(ST_MakePoint(9.931555, 54.695070),4326), reg.geom);
+    SELECT reg_id FROM regional_units
+    WHERE st_intersects(ST_SetSRID(ST_MakePoint(9.931555, 54.695070),4326), geom);
 
     Result:
      reg_id 
@@ -32,9 +33,9 @@ def _get_query_reg_id(lon, lat):
     (1 row)
     """
     query = """
-    SELECT reg.reg_id
-    FROM regional_units reg
-    WHERE st_intersects(ST_SetSRID(ST_MakePoint({longitude}, {latitude}),4326), reg.geom)
+    SELECT reg_id
+    FROM regional_units
+    WHERE st_intersects(ST_SetSRID(ST_MakePoint({longitude}, {latitude}),4326), geom)
     """.format(longitude = lon, latitude = lat)
     query = query.replace("\n", " ")
     return query 
@@ -56,11 +57,11 @@ def _get_query_subc_id_basin_id(lon, lat, reg_id):
 
     query = """
     SELECT
-    sub.subc_id,
-    sub.basin_id
-    FROM sub_catchments sub
-    WHERE st_intersects(ST_SetSRID(ST_MakePoint({longitude}, {latitude}),4326), sub.geom)
-    AND sub.reg_id = {reg_id}
+    subc_id,
+    basin_id
+    FROM sub_catchments
+    WHERE st_intersects(ST_SetSRID(ST_MakePoint({longitude}, {latitude}),4326), geom)
+    AND reg_id = {reg_id}
     """.format(longitude = lon, latitude = lat, reg_id = reg_id)
     query = query.replace("\n", " ")
     return query 
@@ -82,13 +83,13 @@ def _get_query_snapped(lon, lat, subc_id, basin_id, reg_id):
 
     query = """
     SELECT 
-    seg.strahler,
-    ST_AsText(ST_LineInterpolatePoint(seg.geom, ST_LineLocatePoint(seg.geom, ST_SetSRID(ST_MakePoint({longitude}, {latitude}),4326)))),
-    ST_AsText(seg.geom)
-    FROM hydro.stream_segments seg
-    WHERE seg.subc_id = {subc_id}
-    AND seg.basin_id = {basin_id}
-    AND seg.reg_id = {reg_id}
+    strahler,
+    ST_AsText(ST_LineInterpolatePoint(geom, ST_LineLocatePoint(geom, ST_SetSRID(ST_MakePoint({longitude}, {latitude}),4326)))),
+    ST_AsText(geom)
+    FROM hydro.stream_segments
+    WHERE subc_id = {subc_id}
+    AND basin_id = {basin_id}
+    AND reg_id = {reg_id}
     """.format(subc_id = subc_id, longitude = lon, latitude = lat, basin_id = basin_id, reg_id = reg_id)
     query = query.replace("\n", " ")
     return query
@@ -108,12 +109,12 @@ def _get_query_segment(subc_id, basin_id, reg_id):
 
     query = """
     SELECT 
-    seg.strahler,
-    ST_AsText(seg.geom)
-    FROM hydro.stream_segments seg
-    WHERE seg.subc_id = {subc_id}
-    AND seg.reg_id = {reg_id}
-    AND seg.basin_id = {basin_id}
+    strahler,
+    ST_AsText(geom)
+    FROM hydro.stream_segments
+    WHERE subc_id = {subc_id}
+    AND reg_id = {reg_id}
+    AND basin_id = {basin_id}
     """.format(subc_id = subc_id, basin_id = basin_id, reg_id = reg_id)
     query = query.replace("\n", " ")
     return query
@@ -210,19 +211,19 @@ def _get_query_upstream_dissolved(upstream_ids, basin_id, reg_id):
 def _get_query_linestrings_for_subc_ids(subc_ids, basin_id, reg_id):
     '''
     Example query:
-    SELECT  seg.subc_id, seg.strahler, ST_AsText(seg.geom)
-    FROM hydro.stream_segments seg WHERE seg.subc_id IN (506250459, 506251015, 506251126, 506251712);
+    SELECT  subc_id, strahler, ST_AsText(geom)
+    FROM hydro.stream_segments WHERE subc_id IN (506250459, 506251015, 506251126, 506251712);
     '''
     ids = ", ".join([str(elem) for elem in subc_ids])
     # e.g. 506250459, 506251015, 506251126, 506251712
 
     query = '''
     SELECT 
-    seg.subc_id, seg.strahler, ST_AsText(seg.geom)
-    FROM hydro.stream_segments seg
-    WHERE seg.subc_id IN ({ids})
-    AND seg.reg_id = {reg_id}
-    AND seg.basin_id = {basin_id}
+    subc_id, strahler, ST_AsText(geom)
+    FROM hydro.stream_segments
+    WHERE subc_id IN ({ids})
+    AND reg_id = {reg_id}
+    AND basin_id = {basin_id}
     '''.format(ids = ids, basin_id = basin_id, reg_id = reg_id)
     query = query.replace("\n", " ")
     return query

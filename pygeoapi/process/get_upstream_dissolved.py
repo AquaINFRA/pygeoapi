@@ -168,26 +168,26 @@ class UpstreamDissolvedGetter(BaseProcessor):
                 LOGGER.info('USER DID NOT SPECIFY OUTPUT SO WE PASS ALL OF THEM!')
                 requested_outputs = {'ALL': None}
 
-            if 'subcatchment' in requested_outputs or 'ALL' in requested_outputs:
-                LOGGER.info('USER ASKS FOR SUBCATCHMENT')
+            if 'polygon' in requested_outputs or 'ALL' in requested_outputs:
+                LOGGER.info('USER ASKS FOR POLYGON')
 
                 try:
-                    transmission_mode = requested_outputs['subcatchment']['transmissionMode']
+                    transmission_mode = requested_outputs['polygon']['transmissionMode']
                 except (KeyError, TypeError) as e:
                     # KeyError if requested_outputs is a dict, but without subcatchment
                     # TypeError if requested_outputs is list! ("list indices must be integers or slices, not str")
-                    LOGGER.debug('transmissionMode not passed for output "subcatchment": %s' % e)
+                    LOGGER.debug('transmissionMode not passed for output "polygon": %s' % e)
                     transmission_mode = 'value' # default
 
                 if transmission_mode == 'value':
-                    LOGGER.info('USER ASKS FOR SUBCATCHMENT VALUE')
-                    outputs_list.append({'subcatchment': geojson_object})
+                    LOGGER.info('USER ASKS FOR POLYGON VALUE')
+                    outputs_dict['polygon'] = geojson_object
 
                 elif transmission_mode == 'reference':
                     # TODO: This may not be correct, as reference includes that the link is returned in
                     # a location header rather than in the response body!
                     # Store file # TODO: Not hardcode that directory!
-                    downloadfilename = 'subcatchment-%s.json' % self.job_id
+                    downloadfilename = 'polygon-%s.json' % self.job_id
                     downloadfilepath = '/var/www/nginx/download'+os.sep+downloadfilename
                     LOGGER.debug('Writing process result to file: %s' % downloadfilepath)
                     with open(downloadfilepath, 'w', encoding='utf-8') as downloadfile:
@@ -199,11 +199,11 @@ class UpstreamDissolvedGetter(BaseProcessor):
 
                     # Create output to pass back to user
                     json_response = {
-                        'title': 'Subcatchment, can I take this from process description TODO',
+                        'title': 'Upstream Catchment, can I take this from process description TODO',
                         'description': 'Can I take this from process description TODO',
                         'href': downloadlink
                     }
-                    outputs_dict['subcatchment'] = json_response
+                    outputs_dict['polygon'] = json_response
 
                 else:
                     LOGGER.error('Cannot understand transmissionMode: %s' % transmission_mode)

@@ -85,9 +85,9 @@
         }
     },
     "outputs": {
-        "subcatchment": {
+        "polygon": {
              "title": "Subcatchment Polygon",
-             "description": "Area of the subcatchment whose upstream catchment was computed, as GeoJSON.",
+             "description": "Area of the upstream catchment, as GeoJSON.",
              "schema": {
                  "type": "object",
                  "contentMediaType": "application/json"

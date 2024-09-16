@@ -85,14 +85,17 @@
         }
     },
     "outputs": {
-        "polygon": {
-            "title": "this is what you asked for... dissolved polygon",
-            "description": "i am too lazy to type one...",
-            "href": "was muss hier hin?",
-            "schema": {
-                "type": "object",
-                "contentMediaType": "application/json"
-            }
+        "subcatchment": {
+             "title": "Subcatchment Polygon",
+             "description": "Area of the subcatchment whose upstream catchment was computed, as GeoJSON.",
+             "schema": {
+                 "type": "object",
+                 "contentMediaType": "application/json"
+             }
+         },
+         "upstream_catchment_ids": {
+             "title": "Upstream Catchment Ids",
+             "description": "List of subcatchment ids of the subcatchments included in the upstream catchment.",
         }
     },
     "example": {

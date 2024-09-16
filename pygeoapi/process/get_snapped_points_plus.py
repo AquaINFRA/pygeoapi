@@ -8,9 +8,8 @@ import os
 import sys
 import traceback
 import json
+import pygeoapi.process.upstream_helpers as helpers
 from pygeoapi.process.geofresh.py_query_db import get_connection_object
-from pygeoapi.process.geofresh.py_query_db import get_reg_id
-from pygeoapi.process.geofresh.py_query_db import get_subc_id_basin_id
 from pygeoapi.process.geofresh.py_query_db import get_snapped_point_feature
 from pygeoapi.process.geofresh.py_query_db import get_polygon_for_subcid_feature
 import psycopg2
@@ -58,11 +57,9 @@ class SnappedPointsGetterPlus(BaseProcessor):
 
     def _execute(self, data):
 
-        ### USER INPUTS
-
+        ### User inputs
         lon = float(data.get('lon'))
         lat = float(data.get('lat'))
-        #subc_id = int(data.get('subc_id'))
         comment = data.get('comment') # optional
 
         with open('/pygeoapi/config.json') as myfile:
@@ -89,8 +86,7 @@ class SnappedPointsGetterPlus(BaseProcessor):
 
         try:
             LOGGER.debug('Getting subcatchment for lon, lat: %s, %s' % (lon, lat))
-            reg_id = get_reg_id(conn, lon, lat)
-            subc_id, basin_id = get_subc_id_basin_id(conn, lon, lat, reg_id)
+            subc_id, basin_id, reg_id = helpers.get_subc_id_basin_id_reg_id(conn, LOGGER, lon, lat, None)
 
             LOGGER.debug('Getting snapped point for subc_id: %s' % subc_id)
             # Returned as feature "Point", and feature "LineString"

@@ -51,10 +51,12 @@ class DijkstraShortestPathGetter(BaseProcessor):
     def _execute(self, data):
 
         ## User inputs
-        lon_start = float(data.get('lon_start'))
-        lat_start = float(data.get('lat_start'))
-        lon_end   = float(data.get('lon_end'))
-        lat_end   = float(data.get('lat_end'))
+        lon_start = data.get('lon_start', None)
+        lat_start = data.get('lat_start', None)
+        subc_id_start = data.get('subc_id_start', None) # optional, need either lonlat OR subc_id
+        lon_end = data.get('lon_end', None)
+        lat_end = data.get('lat_end', None)
+        subc_id_start = data.get('subc_id_end', None) # optional, need either lonlat OR subc_id
         comment = data.get('comment') # optional
         get_type = data.get('get_type', 'GeometryCollection') # or FeatureCollection
 
@@ -82,12 +84,12 @@ class DijkstraShortestPathGetter(BaseProcessor):
 
         try:
             # Overall goal: Get the dijkstra shortest path (as linestrings)!
-            LOGGER.info('START: Getting dijkstra shortest path for lon %s, lat %s to lon %s, lat %s' % (
-                lon_start, lat_start, lon_end, lat_end))
+            LOGGER.info('START: Getting dijkstra shortest path for lon %s, lat %s (or subc_id %s) to lon %s, lat %s (or subc_id %s)' % (
+                lon_start, lat_start, subc_id_start, lon_end, lat_end, subc_id_end))
 
             # Get reg_id, basin_id, subc_id
-            subc_id1, basin_id1, reg_id1 = helpers.get_subc_id_basin_id_reg_id(conn, lon_start, lat_start, LOGGER)
-            subc_id2, basin_id2, reg_id2 = helpers.get_subc_id_basin_id_reg_id(conn, lon_end, lat_end, LOGGER)
+            subc_id1, basin_id1, reg_id1 = helpers.get_subc_id_basin_id_reg_id(conn, LOGGER, lon_start, lat_start, subc_id_start)
+            subc_id2, basin_id2, reg_id2 = helpers.get_subc_id_basin_id_reg_id(conn, LOGGER, lon_end, lat_end, subc_id_end)
 
             # Check if same region and basin?
             # TODO: Can we route via the sea then??

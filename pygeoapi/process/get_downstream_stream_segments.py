@@ -51,8 +51,9 @@ class DijkstraShortestPathSeaGetter(BaseProcessor):
     def _execute(self, data):
 
         ## User inputs
-        lon_start = float(data.get('lon'))
-        lat_start = float(data.get('lat'))
+        lon_start = data.get('lon', None)
+        lat_start = data.get('lat', None)
+        subc_id1 = data.get('subc_id', None) # optional, need either lonlat OR subc_id
         comment = data.get('comment') # optional
         get_type = data.get('get_type', 'GeometryCollection') # or FeatureCollection
 
@@ -80,11 +81,9 @@ class DijkstraShortestPathSeaGetter(BaseProcessor):
 
         try:
             # Overall goal: Get the dijkstra shortest path (as linestrings)!
-            LOGGER.info('START: Getting dijkstra shortest path for lon %s, lat %s to sea' % (
-                lon_start, lat_start))
-
-            # Get reg_id, basin_id, subc_id
-            subc_id1, basin_id1, reg_id1 = helpers.get_subc_id_basin_id_reg_id(conn, lon_start, lat_start, LOGGER)
+            LOGGER.info('START: Getting dijkstra shortest path for lon %s, lat %s (or subc_id %s) to sea' % (
+                lon_start, lat_start, subc_id1))
+            subc_id1, basin_id1, reg_id1 = helpers.get_subc_id_basin_id_reg_id(conn, LOGGER, lon_start, lat_start, subc_id1)
 
             # Outlet has minus basin_id as subc_id!
             subc_id2 = -basin_id1
@@ -142,4 +141,5 @@ class DijkstraShortestPathSeaGetter(BaseProcessor):
 
             LOGGER.warning('Getting dijkstra stream segments failed. Returning error message.')
             return 'application/json', output
+            # TODO Throw ProcessErrorMessage
 

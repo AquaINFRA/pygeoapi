@@ -61,8 +61,9 @@ class UpstreamBboxGetter(BaseProcessor):
     def _execute(self, data):
 
         ## User inputs
-        lon = float(data.get('lon'))
-        lat = float(data.get('lat'))
+        lon = data.get('lon', None)
+        lat = data.get('lat', None)
+        subc_id = data.get('subc_id', None) # optional, need either lonlat OR subc_id
         comment = data.get('comment') # optional
         get_type = data.get('get_type', 'Polygon')
 
@@ -90,10 +91,10 @@ class UpstreamBboxGetter(BaseProcessor):
 
         try:
             # Overall goal: Get the upstream stream segments!
-            LOGGER.info('START: Getting upstream bbox for lon, lat: %s, %s' % (lon, lat))
+            LOGGER.info('START: Getting upstream bbox for lon, lat: %s, %s (or subc_id %s)' % (lon, lat, subc_id))
 
             # Get reg_id, basin_id, subc_id, upstream_catchment_subcids
-            subc_id, basin_id, reg_id = helpers.get_subc_id_basin_id_reg_id(conn, lon, lat, LOGGER)
+            subc_id, basin_id, reg_id = helpers.get_subc_id_basin_id_reg_id(conn, LOGGER, lon, lat, subc_id)
             upstream_catchment_subcids = helpers.get_upstream_catchment_ids(conn, subc_id, basin_id, reg_id, LOGGER)
 
             # Get geometry (two types)

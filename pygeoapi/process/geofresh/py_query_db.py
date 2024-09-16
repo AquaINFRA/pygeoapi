@@ -10,6 +10,15 @@ LOGGER = logging.getLogger(__name__)
 ### Get SQL queries ###
 #######################
 
+def _get_query_basin_id_reg_id(subc_id):
+    query = """
+    SELECT basin_id, reg_id
+    FROM subcatchments
+    WHERE subc_id == {given_subc_id}
+    """.format(given_subc_id = subc_id)
+    query = query.replace("\n", " ")
+    return query
+
 def _get_query_reg_id(lon, lat):
     """
     Example query:
@@ -291,6 +300,25 @@ def _get_query_test(point_table_name):
 ### get results from SQL result ###
 ### Non-GeoJSON                 ###
 ###################################
+
+def get_basin_id_reg_id(conn, subc_id):
+    name = "get_basin_id_reg_id"
+    LOGGER.debug("ENTERING: %s: subc_id=%s" % (name, subc_id))
+    query = _get_query_basin_id_reg_id(subc_id)
+    result_row = get_only_row(execute_query(conn, query), name)
+    if result_row is None:
+        LOGGER.warning('No basin id and region id found for subc_id %s!' % subc_id)
+        error_message = 'No basin id and region id found for subc_id %s!' % subc_id
+        LOGGER.error(error_message)
+        raise ValueError(error_message)
+
+    else:
+        reg_id = result_row[0]
+        basin_id = result_row[1]
+    LOGGER.debug("LEAVING: %s: subc_id=%s" % (name, subc_id))
+
+    return basin_id, reg_id
+
 
 def get_reg_id(conn, lon, lat):
     name = "get_reg_id"

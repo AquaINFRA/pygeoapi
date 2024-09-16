@@ -9,9 +9,8 @@ import sys
 import traceback
 import json
 import psycopg2
+import pygeoapi.process.upstream_helpers as helpers
 from pygeoapi.process.geofresh.py_query_db import get_connection_object
-from pygeoapi.process.geofresh.py_query_db import get_reg_id
-from pygeoapi.process.geofresh.py_query_db import get_subc_id_basin_id
 from pygeoapi.process.geofresh.py_query_db import get_strahler_and_stream_segment_feature
 from pygeoapi.process.geofresh.py_query_db import get_strahler_and_stream_segment_linestring
 from pygeoapi.process.geofresh.py_query_db import get_polygon_for_subcid_feature
@@ -59,8 +58,9 @@ class StreamSegmentGetter(BaseProcessor):
     def _execute(self, data):
 
         ## User inputs
-        lon = float(data.get('lon'))
-        lat = float(data.get('lat'))
+        lon = data.get('lon', None)
+        lat = data.get('lat', None)
+        subc_id = data.get('subc_id', None) # optional, need either lonlat OR subc_id
         comment = data.get('comment') # optional
         get_type = data.get('get_type', 'LineString')
         add_subcatchment = data.get('add_subcatchment', False)
@@ -90,12 +90,10 @@ class StreamSegmentGetter(BaseProcessor):
             error_message = str(e1)
 
         try:
-            LOGGER.info('Retrieving stream segment for lon, lat: %s, %s' % (lon, lat))
-            LOGGER.debug('First, getting subcatchment for lon, lat: %s, %s' % (lon, lat))
-            reg_id = get_reg_id(conn, lon, lat)
-            subc_id, basin_id = get_subc_id_basin_id(conn, lon, lat, reg_id)
+            LOGGER.info('Retrieving stream segment for lon, lat: %s, %s (or subc_id %s)' % (lon, lat, subc_id))
+            subc_id, basin_id, reg_id = helpers.get_subc_id_basin_id_reg_id(conn, LOGGER, lon, lat, subc_id)
+            
             LOGGER.debug('Now, getting stream segment (incl. strahler order) for subc_id: %s' % subc_id)
-
 
             if get_type.lower() == 'feature':
                 feature_streamsegment = get_strahler_and_stream_segment_feature(

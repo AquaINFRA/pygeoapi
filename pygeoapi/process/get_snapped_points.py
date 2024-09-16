@@ -8,9 +8,8 @@ import os
 import sys
 import traceback
 import json
+import pygeoapi.process.upstream_helpers as helpers
 from pygeoapi.process.geofresh.py_query_db import get_connection_object
-from pygeoapi.process.geofresh.py_query_db import get_reg_id
-from pygeoapi.process.geofresh.py_query_db import get_subc_id_basin_id
 from pygeoapi.process.geofresh.py_query_db import get_snapped_point_feature
 from pygeoapi.process.geofresh.py_query_db import get_snapped_point_simple
 from pygeoapi.process.geofresh.py_query_db import get_polygon_for_subcid_feature
@@ -86,8 +85,7 @@ class SnappedPointsGetter(BaseProcessor):
         try:
             LOGGER.info('Getting snapped point...')
             LOGGER.debug('... First, getting subcatchment for lon, lat: %s, %s' % (lon, lat))
-            reg_id = get_reg_id(conn, lon, lat)
-            subc_id, basin_id = get_subc_id_basin_id(conn, lon, lat, reg_id)
+            subc_id, basin_id, reg_id = helpers.get_subc_id_basin_id_reg_id(conn, LOGGER, lon, lat, None)
 
             # Returned as FeatureCollection containing "Point" and "LineString"
             if get_type.lower() == 'featurecollection':

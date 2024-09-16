@@ -74,8 +74,9 @@ class UpstreamDissolvedGetter(BaseProcessor):
         # --> They have to be passed by client in request, in outputs section!
 
         ## User inputs
-        lon = float(data.get('lon'))
-        lat = float(data.get('lat'))
+        lon = data.get('lon', None)
+        lat = data.get('lat', None)
+        subc_id = data.get('subc_id', None) # optional, need either lonlat OR subc_id
         comment = data.get('comment') # optional
         get_type = data.get('get_type', 'polygon')
 
@@ -103,10 +104,10 @@ class UpstreamDissolvedGetter(BaseProcessor):
 
         try:
             # Overall goal: Get the upstream polygon (as one dissolved)!
-            LOGGER.info('START: Getting upstream dissolved polygon for lon, lat: %s, %s' % (lon, lat))
+            LOGGER.info('START: Getting upstream dissolved polygon for lon, lat: %s, %s (or subc_id %s)' % (lon, lat, subc_id))
 
             # Get reg_id, basin_id, subc_id, upstream_catchment_ids
-            subc_id, basin_id, reg_id = helpers.get_subc_id_basin_id_reg_id(conn, lon, lat, LOGGER)
+            subc_id, basin_id, reg_id = helpers.get_subc_id_basin_id_reg_id(conn, LOGGER, lon, lat, subc_id)
             upstream_catchment_ids = helpers.get_upstream_catchment_ids(conn, subc_id, basin_id, reg_id, LOGGER)
 
             # Get geometry (three types)

@@ -8,9 +8,8 @@ import os
 import sys
 import traceback
 import json
+import pygeoapi.process.upstream_helpers as helpers
 from pygeoapi.process.geofresh.py_query_db import get_connection_object
-from pygeoapi.process.geofresh.py_query_db import get_reg_id
-from pygeoapi.process.geofresh.py_query_db import get_subc_id_basin_id
 import psycopg2
 
 '''
@@ -48,8 +47,9 @@ class SubcatchmentGetter(BaseProcessor):
     def _execute(self, data):
 
         ## User inputs
-        lon = float(data.get('lon'))
-        lat = float(data.get('lat'))
+        lon = data.get('lon', None)
+        lat = data.get('lat', None)
+        subc_id = data.get('subc_id', None) # optional, need either lonlat OR subc_id
         comment = data.get('comment') # optional
 
         with open('pygeoapi/config.json') as myfile:
@@ -76,8 +76,7 @@ class SubcatchmentGetter(BaseProcessor):
 
         try:
             print('Getting subcatchment for lon, lat: %s, %s' % (lon, lat))
-            reg_id = get_reg_id(conn, lon, lat)
-            subc_id, basin_id = get_subc_id_basin_id(conn, lon, lat, reg_id)
+            subc_id, basin_id, reg_id = helpers.get_subc_id_basin_id_reg_id(conn, LOGGER, lon, lat, subc_id)
 
         # TODO move this to execute! and the database stuff!
         except ValueError as e2:

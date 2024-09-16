@@ -882,6 +882,16 @@ def get_upstream_catchment_ids_incl_itself(conn, subc_id, basin_id, reg_id, incl
     else:
         LOGGER.debug('FYI: The database returned the local subcatchment itself in the list of upstream subcatchments, which is fine.')
 
+    # Stop any computations with more than x upstream catchments!
+    # TODO: Allow returning them, but then nothing else!
+    max_num = 200
+    if len(upstream_catchment_subcids) > max_num:
+        LOGGER.warning('Limiting queries to %s upstream subcatchments' % max_num)
+        LOGGER.info("LEAVING EMPTY: %s for subc_id (found %s upstream ids): %s" % (name, len(upstream_catchment_subcids), subc_id))
+        #return []
+        raise ValueError('Found %s subcatchments, but temporarily, calculations over %s subcatchments are not done.' % 
+            (len(upstream_catchment_subcids), max_num))
+
     LOGGER.info("LEAVING: %s for subc_id (found %s upstream ids): %s" % (name, len(upstream_catchment_subcids), subc_id))
     return upstream_catchment_subcids
 
@@ -915,6 +925,16 @@ def get_upstream_catchment_ids_without_itself(conn, subc_id, basin_id, reg_id, i
         LOGGER.info('FYI: The database returned the local subcatchment itself in the list of upstream subcatchments, which is not fine, so we removed it.')
     else:
         LOGGER.debug('FYI: The database did not return the local subcatchment itself in the list of upstream subcatchments, which is fine.')
+
+    # Stop any computations with more than x upstream catchments!
+    # TODO: Allow returning them, but then nothing else!
+    max_num = 200
+    if len(upstream_catchment_subcids) > max_num:
+        LOGGER.warning('Limiting queries to %s upstream subcatchments' % max_num)
+        LOGGER.info("LEAVING EMPTY: %s for subc_id (found %s upstream ids): %s" % (name, len(upstream_catchment_subcids), subc_id))
+        #return []
+        raise ValueError('Found %s subcatchments, but temporarily, calculations over %s subcatchments are not done.' % 
+            (len(upstream_catchment_subcids), max_num))
 
     LOGGER.info("LEAVING: %s for subc_id (found %s upstream ids): %s" % (name, len(upstream_catchment_subcids), subc_id))
     return upstream_catchment_subcids

@@ -44,12 +44,12 @@ class UpstreamDissolvedGetter(BaseProcessor):
         # https://github.com/geopython/pygeoapi/blob/fef8df120ec52121236be0c07022490803a47b92/pygeoapi/process/manager/base.py#L253
 
 
-    def __repr__(self):
-        return f'<UpstreamDissolvedGetter> {self.name}'
-
-
     def set_job_id(self, job_id: str):
         self.job_id = job_id
+
+
+    def __repr__(self):
+        return f'<UpstreamDissolvedGetter> {self.name}'
 
 
     def execute(self, data, outputs=None):
@@ -81,33 +81,6 @@ class UpstreamDissolvedGetter(BaseProcessor):
             raise ProcessorExecuteError(e) # TODO: Can we feed e into ProcessExecuteError?
 
 
-    def get_db_connection(self):
-
-        with open('pygeoapi/config.json') as myfile:
-            # TODO possibly read path to config from some env var, like for daugava?
-            config = json.load(myfile)
-
-        geofresh_server = config['geofresh_server']
-        geofresh_port = config['geofresh_port']
-        database_name = config['database_name']
-        database_username = config['database_username']
-        database_password = config['database_password']
-        use_tunnel = config.get('use_tunnel')
-        ssh_username = config.get('ssh_username')
-        ssh_password = config.get('ssh_password')
-        localhost = config.get('localhost')
-
-        try:
-            conn = get_connection_object(geofresh_server, geofresh_port,
-                database_name, database_username, database_password,
-                use_tunnel=use_tunnel, ssh_username=ssh_username, ssh_password=ssh_password)
-        except sshtunnel.BaseSSHTunnelForwarderError as e1:
-            LOGGER.error('SSH Tunnel Error: %s' % str(e1))
-            raise e1
-
-        return conn
-
-
     def _execute(self, data, requested_outputs, conn):
 
         # TODO: Must change behaviour based on content of requested_outputs
@@ -120,8 +93,6 @@ class UpstreamDissolvedGetter(BaseProcessor):
         comment = data.get('comment') # optional
         get_type = data.get('get_type', 'polygon')
         # TODO: Future, instead of get_type, let user specify desired type in a more OGC way!
-
-        error_message = None
 
         # Overall goal: Get the upstream polygon (as one dissolved)!
         LOGGER.info('START: Getting upstream dissolved polygon for lon, lat: %s, %s (or subc_id %s)' % (lon, lat, subc_id))
@@ -249,3 +220,29 @@ class UpstreamDissolvedGetter(BaseProcessor):
                 LOGGER.error('Cannot understand transmissionMode: %s' % transmission_mode)
 
         return 'application/json', outputs_dict
+
+    def get_db_connection(self):
+
+        with open('pygeoapi/config.json') as myfile:
+            # TODO possibly read path to config from some env var, like for daugava?
+            config = json.load(myfile)
+
+        geofresh_server = config['geofresh_server']
+        geofresh_port = config['geofresh_port']
+        database_name = config['database_name']
+        database_username = config['database_username']
+        database_password = config['database_password']
+        use_tunnel = config.get('use_tunnel')
+        ssh_username = config.get('ssh_username')
+        ssh_password = config.get('ssh_password')
+        localhost = config.get('localhost')
+
+        try:
+            conn = get_connection_object(geofresh_server, geofresh_port,
+                database_name, database_username, database_password,
+                use_tunnel=use_tunnel, ssh_username=ssh_username, ssh_password=ssh_password)
+        except sshtunnel.BaseSSHTunnelForwarderError as e1:
+            LOGGER.error('SSH Tunnel Error: %s' % str(e1))
+            raise e1
+
+        return conn

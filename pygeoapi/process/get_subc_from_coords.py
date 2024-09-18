@@ -90,14 +90,19 @@ class SubcatchmentGetter(BaseProcessor):
         ################
 
         # Note: This is not GeoJSON (on purpose), as we did not look for geometry yet.
-        output = {
-            'region_id': reg_id,
-            'subcatchment_id': subc_id,
-            'basin_id': basin_id
-        }
+        output = {}
 
         if comment is not None:
             output['comment'] = comment
+
+        if 'subc_id' in requested_outputs or 'ALL' in requested_outputs:
+            output['subc_id'] = subc_id
+
+        if 'basin_id' in requested_outputs or 'ALL' in requested_outputs:
+            output['basin_id'] = basin_id
+
+        if 'region_id' in requested_outputs or 'ALL' in requested_outputs:
+            output['region_id'] = region_id
 
         return 'application/json', output
 

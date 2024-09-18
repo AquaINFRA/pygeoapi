@@ -67,9 +67,9 @@
                 "contentMediaType": "application/json"
             }
         },
-        "subcatchment_id": {
+        "subc_id": {
             "title": "Subcatchment Id",
-            "description": "Subcatchment Id of the stream segment.",
+            "description": "Subcatchment Id of the stream segment in which the provided coordinates fall.",
             "schema": {
                 "type": "object",
                 "contentMediaType": "application/json"

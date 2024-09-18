@@ -328,20 +328,27 @@ class BaseManager:
                         raise UnknownProcessError('Not implemented yet...') # TODO
 
                 # more difficult:
-                # Table 11, sync-raw-value-*: http 200, output as multipart/related, one output per part!
-                # Table 12, async-raw-value-*: http 200, output as multipart/related, one output per part!
                 else:
                     fake_multipart_related = ''
                     for key in requested_outputs.keys():
-                        current_output = outputs[key]
-                        # TODO: Return this as part of multipart/related?!?!?!! In the meanwhile, just
-                        # go for comma-separated, hahaha! This is bs, I know, but for testing...
-                        fake_multipart_related += ','
-                        fake_multipart_related += current_output
+
+                        # Table 11, sync-raw-value-*:  http 200, output as multipart/related, one output per part!
+                        # Table 12, async-raw-value-*: http 200, output as multipart/related, one output per part!
+                        if requested_outputs[requested_key]['transmissionMode'] == 'value':
+                            current_output = outputs[key]
+                            # TODO: What about the "requested format", do we have to set it in the response, and how?
+                            # TODO: Return this as part of multipart/related?!?!?!! In the meanwhile, just
+                            # go for comma-separated, hahaha! This is bs, I know, but for testing...
+                            fake_multipart_related += ',' + current_output # TODO treat string and bytes differently!
+
+                        # Table 11, sync-raw-reference-*:  http 204, empty body, no media type, Link headers...
+                        # Table 12, async-raw-reference-*: http 204, empty body, no media type, Link headers...
+                        else:
+                            # reference: See problems above...
+                            # Probably we have to store each output as one file, but then how to return the links?
+                            raise UnknownProcessError('Not implemented yet...') # TODO
 
                     outputs = fake_multipart_related
-
-
 
 
             self.update_job(job_id, {

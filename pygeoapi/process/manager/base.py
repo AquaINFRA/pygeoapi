@@ -283,6 +283,55 @@ class BaseManager:
                     'outputs': outputs # removed: nesting in list
                 }
 
+            elif requested_response == RequestedResponse.document.raw:
+                # Here I am trying to return something to the user that is useful to them
+                # and that complies with the OGC spec...
+                # But this is only for outputs requested as "values". TODO: Must add the "reference" case
+
+                if not isinstance(outputs, dict):
+                    LOGGER.debug('The output is not a dict, so the process already returned raw output! Returning it...')
+                    return outputs
+
+                dict_keys = output.keys()
+                LOGGER.debug('User requested "raw", we got a dict (%s), so we will unpack it!' % list(dict_keys))
+
+                # Check if the keys are the process' outputs, so that we don't accidentally unpack
+                # some output that is inherently JSON, and that was returned by the process unnested...
+                if not set(requested_outputs.keys()) == set(dict_keys):
+                    LOGGER.warning('The process returned a different set of outputs than the client requested!')
+                    LOGGER.debug('Requested outputs: %s' % list(requested_outputs.keys()))
+                    LOGGER.debug('Process returned outputs: %s' % list(dict_keys))
+                    raise UnknownProcessError('The process returned a different set of outputs than the client requested!')
+                    # TODO: This is probably not the correct error to be raised?!
+
+                # easy case:
+                # Table 11, sync-raw-value-1: http 200, output in requested format!
+                # Table 12, async-raw-value-1: http 200, output in requested format!
+                if len(requested_outputs) == 1:
+                    requested_key = list(requested_outputs.keys())[0]
+                    LOGGER.debug('The only requested output is %s.' % requested_key)
+                    LOGGER.debug('The only output key is %s' % list(dict_keys)[0])
+                    outputs = outputs[requested_key]
+                    # outputs now contains the raw value of the only output!
+                    # TODO: What about the "requested format"?
+
+                # more difficult:
+                # Table 11, sync-raw-value-*: http 200, output as multipart/related, one output per part!
+                # Table 12, async-raw-value-*: http 200, output as multipart/related, one output per part!
+                else:
+                    fake_multipart_related = ''
+                    for key in requested_outputs.keys():
+                        current_output = outputs[key]
+                        # TODO: Return this as part of multipart/related?!?!?!! In the meanwhile, just
+                        # go for comma-separated, hahaha! This is bs, I know, but for testing...
+                        fake_multipart_related += ','
+                        fake_multipart_related += current_output
+
+                    outputs = fake_multipart_related
+
+
+
+
             self.update_job(job_id, {
                 'status': current_status.value,
                 'message': 'Writing job output',

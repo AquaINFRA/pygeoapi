@@ -280,7 +280,7 @@ class BaseManager:
 
             if requested_response == RequestedResponse.document.value:
                 outputs = {
-                    'outputs': [outputs]
+                    'outputs': outputs # removed: nesting in list
                 }
 
             self.update_job(job_id, {

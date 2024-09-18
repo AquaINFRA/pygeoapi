@@ -13,21 +13,7 @@ from pygeoapi.process.geofresh.py_query_db import get_connection_object
 import psycopg2
 
 '''
-
 curl -X POST "http://localhost:5000/processes/get-upstream-catchment-ids/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Nordoestliche Schlei, bei Rabenholz\"}}"
-
-
-
-# OLD:
-
-curl -X POST "http://localhost:5000/processes/get-upstream-catchment-ids/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"subc_id\":553495421, \"basin_id\":1274183, \"reg_id\": 65, \"comment\":\"strahler 2, two headwaters directly upstream, nothing else.\"}}"
-
-curl -X POST "http://localhost:5000/processes/get-upstream-catchment-ids/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"subc_id\":553489656, \"basin_id\":1274183, \"reg_id\": 65, \"comment\":\"headwater.\"}}"
-
-curl -X POST "http://localhost:5000/processes/get-upstream-catchment-ids/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"subc_id\":553494913, \"basin_id\":1274183, \"reg_id\": 65, \"comment\":\"not a headwater, strahler 2, but has a headwater directly upstream.\"}}"
-
-curl -X POST "http://localhost:5000/processes/get-upstream-catchment-ids/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"subc_id\":553493913, \"basin_id\":1274183, \"reg_id\": 65, \"comment\":\"not a headwater, strahler 3, no headwater directly upstream.\"}}"
-
 
 '''
 
@@ -99,26 +85,33 @@ class UpstreamCatchmentIdGetter(BaseProcessor):
         # Overall goal: Get the upstream subc_ids!
         LOGGER.info('START: Getting upstream subc_ids for lon, lat: %s, %s (or subc_id %s)' % (lon, lat, subc_id))
 
-        # Get reg_id, basin_id, subc_id, upstream_catchment_subcids
+        # Get reg_id, basin_id, subc_id, upstream_ids
         subc_id, basin_id, reg_id = helpers.get_subc_id_basin_id_reg_id(conn, LOGGER, lon, lat, subc_id)
 
-        upstream_catchment_subcids = helpers.get_upstream_catchment_ids(conn, subc_id, basin_id, reg_id, LOGGER)
-        LOGGER.debug('END: Received ids : %s' % upstream_catchment_subcids)
+        upstream_ids = helpers.get_upstream_catchment_ids(conn, subc_id, basin_id, reg_id, LOGGER)
+        LOGGER.debug('END: Received ids : %s' % upstream_ids)
 
         ################
         ### Results: ###
         ################
 
         # Note: This is not GeoJSON (on purpose), as we did not look for geometry yet.
-        output = {
-            'subcatchment': subc_id,
-            'upstream_catchment_ids': upstream_catchment_subcids,
-            'region_id': reg_id,
-            'basin_id': basin_id
-        }
+        output = {}
 
         if comment is not None:
             output['comment'] = comment
+
+        if 'subc_id' in requested_outputs or 'ALL' in requested_outputs:
+            output['subc_id'] = subc_id
+
+        if 'basin_id' in requested_outputs or 'ALL' in requested_outputs:
+            output['basin_id'] = basin_id
+
+        if 'region_id' in requested_outputs or 'ALL' in requested_outputs:
+            output['region_id'] = region_id
+
+        if 'upstream_ids' in requested_outputs or 'ALL' in requested_outputs:
+            output['upstream_ids'] = upstream_ids
 
         return 'application/json', output
 

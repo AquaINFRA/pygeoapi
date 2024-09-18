@@ -48,29 +48,20 @@
             "maxOccurs": 1,
             "metadata": null,
             "keywords": ["comment"]
-        },
-        "get_type": {
-            "title": "Get GeoJSON Feature",
-            "description": "Can be 'Feature' or 'Polygon'.",
-            "schema": {"type": "string"},
-            "minOccurs": 0,
-            "maxOccurs": 1,
-            "metadata": null,
-            "keywords": ["comment"]
         }
     },
     "outputs": {
-        "subcatchment": {
-            "title": "Subcatchment Id",
-            "description": "Id of the subcatchment whose upstream catchment was computed. Example: 553495421.",
+        "bbox": {
+            "title": "Upstream Bounding Box",
+            "description": "Bounding Box of the upstream catchment was computed, as a GeoJSON Feature with a Polygon geometry.",
             "schema": {
                 "type": "object",
                 "contentMediaType": "application/json"
             }
         },
-        "upstream_catchment_ids": {
+        "upstream_ids": {
             "title": "Upstream Catchment Ids",
-            "description": "List of subcatchment ids of the subcatchments included in the upstream catchment.",
+            "description": "List of ids of the subcatchments included in the upstream catchment. Will be included as a property of the returned GeoJSON Feature.",
             "schema": {
                 "type": "object",
                 "contentMediaType": "application/json"

@@ -11,9 +11,7 @@ import json
 import psycopg2
 import pygeoapi.process.upstream_helpers as helpers
 from pygeoapi.process.geofresh.py_query_db import get_connection_object
-from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_bbox_feature
 from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_bbox_polygon
-from pygeoapi.process.geofresh.py_query_db import get_strahler_and_stream_segment_feature
 
 
 
@@ -59,6 +57,11 @@ class UpstreamBboxGetter(BaseProcessor):
         LOGGER.info('Inputs: %s' % data)
         LOGGER.info('Requested outputs: %s' % outputs)
 
+        # Check for which outputs it is asking:
+        if outputs is None:
+            LOGGER.info('Client did not specify outputs, so all possible outputs are returned!')
+            outputs = {'ALL': None}
+
         try:
             conn = self.get_db_connection()
             res = self._execute(data, outputs, conn)
@@ -92,43 +95,46 @@ class UpstreamBboxGetter(BaseProcessor):
         lon = data.get('lon', None)
         lat = data.get('lat', None)
         subc_id = data.get('subc_id', None) # optional, need either lonlat OR subc_id
-        comment = data.get('comment') # optional
-        get_type = data.get('get_type', 'Polygon')
+        comment = data.get('comment', None) # optional
 
         # Overall goal: Get the upstream stream segments!
         LOGGER.info('START: Getting upstream bbox for lon, lat: %s, %s (or subc_id %s)' % (lon, lat, subc_id))
 
-        # Get reg_id, basin_id, subc_id, upstream_catchment_subcids
+        # Get reg_id, basin_id, subc_id, upstream_ids
         subc_id, basin_id, reg_id = helpers.get_subc_id_basin_id_reg_id(conn, LOGGER, lon, lat, subc_id)
-        upstream_catchment_subcids = helpers.get_upstream_catchment_ids(conn, subc_id, basin_id, reg_id, LOGGER)
+        upstream_ids = helpers.get_upstream_catchment_ids(conn, subc_id, basin_id, reg_id, LOGGER)
 
-        # Get geometry (two types)
-        LOGGER.debug('...Getting upstream catchment bbox for subc_id: %s' % subc_id)
-        if get_type.lower() == 'polygon':
-            geojson_object = get_upstream_catchment_bbox_polygon(
-                conn, subc_id, upstream_catchment_subcids, basin_id, reg_id)
-            LOGGER.debug('END: Received simple polygon: %s' % str(geojson_object)[0:50])
+        # Generate empty feature to be filled with requested outputs:
+        # TODO: Should user have to specify that they want basin_id and reg_id? I guess not?
+        # TODO: Should we include the requested lon and lat? Maybe as a point? Then FeatureCollection?
+        feature = {
+            "type": "Feature",
+            "geometry": None,
+            "properties": {
+                "description": "Bounding box of the upstream catchment of subcatchment %s" % subc_id,
+                "subc_id": subc_id, # TODO how to name it?
+                "basin_id": basin_id,
+                "reg_id": reg_id
+            }
+        }
 
-        elif get_type.lower() == 'feature':
-            geojson_object = get_upstream_catchment_bbox_feature(
-                conn, subc_id, upstream_catchment_subcids,
-                basin_id=basin_id, reg_id=reg_id, comment=comment)
-            LOGGER.debug('END: Received feature: %s' % str(geojson_object)[0:50])
+        if comment is not None:
+            feature['properties']['comment'] = comment
 
-        else:
-            err_msg = "Input parameter 'get_type' can only be one of Polygon or Feature!"
-            LOGGER.error(err_msg)
-            raise ProcessorExecuteError(user_msg=err_msg)
+        if 'bbox' in requested_outputs or 'ALL' in requested_outputs:
+            bbox_geojson = get_upstream_catchment_bbox_polygon(conn, subc_id, upstream_ids, basin_id, reg_id)
+            # This geometry can be None/null, which is the valid value for unlocated Features in GeoJSON spec:
+            # https://datatracker.ietf.org/doc/html/rfc7946#section-3.2
+            feature['geometry'] = bbox_geojson
 
+        if 'upstream_ids' in requested_outputs or 'ALL' in requested_outputs:
+            feature['properties']['upstream_ids'] = upstream_ids
 
         ################
         ### Results: ###
         ################
 
-        if comment is not None:
-            geojson_object['comment'] = comment
-
-        return 'application/json', geojson_object
+        return 'application/json', feature
 
     def get_db_connection(self):
 

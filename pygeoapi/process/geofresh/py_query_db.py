@@ -422,35 +422,6 @@ def get_upstream_catchment_bbox_polygon(conn, subc_id, upstream_ids, basin_id, r
     return bbox_geojson
 
 
-def get_upstream_catchment_bbox_feature(conn, subc_id, upstream_ids, basin_id, reg_id, **kwargs):
-    name = "get_upstream_catchment_bbox_feature"
-    LOGGER.debug('ENTERING: %s for subc_id %s' % (name, subc_id))
-
-    # Get information:
-    bbox_geojson = get_upstream_catchment_bbox_polygon(conn, subc_id, upstream_ids, basin_id, reg_id)
-    # This geometry can be None/null, which is the valid value for unlocated Features in GeoJSON spec:
-    # https://datatracker.ietf.org/doc/html/rfc7946#section-3.2
-
-    # Assembling GeoJSON to return:
-    feature = {
-        "type": "Feature",
-        "geometry": bbox_geojson,
-        "properties": {
-            "description": "Bounding box of the upstream catchment of subcatchment %s" % subc_id,
-            "upstream_subc_ids": upstream_ids,
-            "downstream_subc_id": subc_id,
-            "basin_id": basin_id,
-            "reg_id": reg_id,
-        }
-    }
-
-    if len(kwargs) > 0:
-        feature["properties"].update(kwargs)
-
-    LOGGER.debug('LEAVING: %s for subc_id %s --> Feature/Polygon (bbox)' % (name, subc_id))
-    return feature
-
-
 def get_upstream_catchment_dissolved_feature_coll(conn, subc_id, upstream_ids, lonlat, basin_id, reg_id, **kwargs):
     name = "get_upstream_catchment_dissolved_feature_coll"
     LOGGER.debug('ENTERING: %s for subc_id %s' % (name, subc_id))
@@ -1286,11 +1257,6 @@ if __name__ == "__main__":
     bbox_geojson = get_upstream_catchment_bbox_polygon(
         conn, subc_id, upstream_ids, basin_id, reg_id)
     print("\nRESULT BBOX (Geometry/Polygon)\n%s" % bbox_geojson)
-
-    print("\n(6b) upstream catchment bbox as feature: ")
-    bbox_geojson = get_upstream_catchment_bbox_feature(
-        conn, subc_id, upstream_ids, basin_id, reg_id, bla='test')
-    print("\nRESULT BBOX (Feature/Polygon)\n%s" % bbox_geojson)
 
     print("\n(7) upstream catchment polygons: ")
     poly_collection = get_upstream_catchment_polygons_feature_coll(

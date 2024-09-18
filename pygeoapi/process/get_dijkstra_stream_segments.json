@@ -66,21 +66,23 @@
             "maxOccurs": 1,
             "metadata": null,
             "keywords": ["comment"]
-        },
-        "get_type": {
-            "title": "Get GeoJSON Feature",
-            "description": "Can be 'GeometryCollection' or 'FeatureCollection'.",
-            "schema": {"type": "string"},
-            "minOccurs": 0,
-            "maxOccurs": 1,
-            "metadata": null,
-            "keywords": ["comment"]
         }
     },
     "outputs": {
-        "path": {
-            "title": "Dijkstra shortest path",
-            "description": "GeometryCollection or FeatureCollection",
+        "path_geometry_collection": {
+            "description": "GeometryCollection",
+        },
+        "path_feature_collection": {
+            "title": "Dijkstra shortest path between two points",
+            "description": "Shortest path between the provided locations, as a FeatureCollection. Routing is done via Dijkstra algorithm. Subcatchment ids and strahler order of each line segment along the way are included.",
+            "schema": {
+                "type": "object",
+                "contentMediaType": "application/json"
+            }
+        },
+        "downstream_ids": {
+            "title": "Subcatchment id of each line segment",
+            "description": "Subcatchment id of each line segment along the path. Can be provided as separate list. Will be included in the individual features anyway",
             "schema": {
                 "type": "object",
                 "contentMediaType": "application/json"

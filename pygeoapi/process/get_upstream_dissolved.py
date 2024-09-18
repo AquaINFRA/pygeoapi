@@ -57,6 +57,11 @@ class UpstreamDissolvedGetter(BaseProcessor):
         LOGGER.info('Inputs: %s' % data)
         LOGGER.info('Requested outputs: %s' % outputs)
 
+        # Check for which outputs it is asking:
+        if outputs is None:
+            LOGGER.info('Client did not specify outputs, so all possible outputs are returned!')
+            outputs = {'ALL': None}
+
         try:
             conn = self.get_db_connection()
             res = self._execute(data, outputs, conn)
@@ -135,11 +140,6 @@ class UpstreamDissolvedGetter(BaseProcessor):
 
         if comment is not None: # TODO this is double!
             geojson_object['comment'] = comment
-
-        # Check for which outputs it is asking:
-        if requested_outputs is None:
-            LOGGER.info('USER DID NOT SPECIFY OUTPUT SO WE PASS ALL OF THEM!')
-            requested_outputs = {'ALL': None}
 
         if 'polygon' in requested_outputs or 'ALL' in requested_outputs:
             LOGGER.info('USER ASKS FOR POLYGON')

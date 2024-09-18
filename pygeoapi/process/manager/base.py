@@ -305,15 +305,27 @@ class BaseManager:
                     # TODO: This is probably not the correct error to be raised?!
 
                 # easy case:
-                # Table 11, sync-raw-value-1: http 200, output in requested format!
-                # Table 12, async-raw-value-1: http 200, output in requested format!
                 if len(requested_outputs) == 1:
                     requested_key = list(requested_outputs.keys())[0]
                     LOGGER.debug('The only requested output is %s.' % requested_key)
                     LOGGER.debug('The only output key is %s' % list(dict_keys)[0])
-                    outputs = outputs[requested_key]
-                    # outputs now contains the raw value of the only output!
-                    # TODO: What about the "requested format"?
+
+                    # Table 11, sync-raw-value-1:  http 200, output in requested format!
+                    # Table 12, async-raw-value-1: http 200, output in requested format!
+                    if requested_outputs[requested_key]['transmissionMode'] == 'value':
+                        outputs = outputs[requested_key]
+                        # outputs now contains the raw value of the only output!
+                        # TODO: What about the "requested format", do we have to set it in the response, and how?
+
+                    # Table 11, sync-raw-reference-1:  http 204, empty body, no media type, Link headers...
+                    # Table 12, async-raw-reference-1: http 204, empty body, no media type, Link headers...
+                    else:
+                        # reference: Store the content in file and return file link?
+                        # that probably depends a lot on the instance's reverse proxy setup etc...
+                        # Maybe force processes to implement this?
+                        # Or force instances to write their own manager class for this?
+                        # TODO: How to make sure to return HTTP 204 and link headers...?
+                        raise UnknownProcessError('Not implemented yet...') # TODO
 
                 # more difficult:
                 # Table 11, sync-raw-value-*: http 200, output as multipart/related, one output per part!

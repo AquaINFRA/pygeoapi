@@ -86,16 +86,20 @@
     },
     "outputs": {
         "polygon": {
-             "title": "Subcatchment Polygon",
-             "description": "Area of the upstream catchment, as GeoJSON.",
+            "title": "Upstream Catchment Polygon",
+            "description": "Area of the upstream catchment, as a GeoJSON Feature with a Polygon geometry.",
              "schema": {
                  "type": "object",
                  "contentMediaType": "application/json"
-             }
-         },
-         "upstream_catchment_ids": {
-             "title": "Upstream Catchment Ids",
-             "description": "List of subcatchment ids of the subcatchments included in the upstream catchment."
+            }
+        },
+        "upstream_ids": {
+            "title": "Upstream Catchment Ids",
+            "description": "List of ids of the subcatchments included in the upstream catchment.",
+            "schema": {
+                "type": "object",
+                "contentMediaType": "application/json"
+            }
         }
     },
     "example": {

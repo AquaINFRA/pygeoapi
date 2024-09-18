@@ -114,27 +114,27 @@ class UpstreamDissolvedGetter(BaseProcessor):
         # Overall goal: Get the upstream polygon (as one dissolved)!
         LOGGER.info('START: Getting upstream dissolved polygon for lon, lat: %s, %s (or subc_id %s)' % (lon, lat, subc_id))
 
-        # Get reg_id, basin_id, subc_id, upstream_catchment_ids
+        # Get reg_id, basin_id, subc_id, upstream_ids
         subc_id, basin_id, reg_id = helpers.get_subc_id_basin_id_reg_id(conn, LOGGER, lon, lat, subc_id)
-        upstream_catchment_ids = helpers.get_upstream_catchment_ids(conn, subc_id, basin_id, reg_id, LOGGER)
+        upstream_ids = helpers.get_upstream_catchment_ids(conn, subc_id, basin_id, reg_id, LOGGER)
 
         # Get geometry (three types)
         LOGGER.debug('...Getting upstream catchment dissolved polygon for subc_id: %s' % subc_id)
         geojson_object = {}
         if get_type.lower() == 'polygon':
             geojson_object = get_upstream_catchment_dissolved_geometry(
-                conn, subc_id, upstream_catchment_ids, basin_id, reg_id)
+                conn, subc_id, upstream_ids, basin_id, reg_id)
             LOGGER.debug('END: Received simple polygon : %s' % str(geojson_object)[0:50])
 
         elif get_type.lower() == 'feature':
             geojson_object = get_upstream_catchment_dissolved_feature(
-                conn, subc_id, upstream_catchment_ids,
+                conn, subc_id, upstream_ids,
                 basin_id, reg_id, comment=comment)
             LOGGER.debug('END: Received feature : %s' % str(geojson_object)[0:50])
        
         elif get_type.lower() == 'featurecollection':
             geojson_object = get_upstream_catchment_dissolved_feature_coll(
-                conn, subc_id, upstream_catchment_ids, (lon, lat),
+                conn, subc_id, upstream_ids, (lon, lat),
                 basin_id, reg_id, comment=comment)
             LOGGER.debug('END: Received feature collection: %s' % str(geojson_object)[0:50])
 
@@ -191,27 +191,27 @@ class UpstreamDissolvedGetter(BaseProcessor):
             else:
                 LOGGER.error('Cannot understand transmissionMode: %s' % transmission_mode)
 
-        if 'upstream_catchment_ids' in requested_outputs or 'ALL' in requested_outputs:
+        if 'upstream_ids' in requested_outputs or 'ALL' in requested_outputs:
             LOGGER.info('USER ASKS FOR UPSTREAM CATCHMENT IDS')
 
             try:
-                transmission_mode = requested_outputs['upstream_catchment_ids']['transmissionMode']
+                transmission_mode = requested_outputs['upstream_ids']['transmissionMode']
             except KeyError:
                 transmission_mode = 'value' # default
 
             if transmission_mode == 'value':
                 LOGGER.info('USER ASKS FOR UPSTREAM CATCHMENT IDS VALUE')
-                outputs_dict['upstream_catchment_ids'] = upstream_catchment_ids
+                outputs_dict['upstream_ids'] = upstream_ids
 
             elif transmission_mode == 'reference':
                 LOGGER.info('USER ASKS FOR UPSTREAM CATCHMENT IDS REFERENCE')
 
                 # Store file # TODO: Not hardcode that directory!
-                downloadfilename = 'upstream_catchment_ids-%s.json' % self.job_id
+                downloadfilename = 'upstream_ids-%s.json' % self.job_id
                 downloadfilepath = '/var/www/nginx/download'+os.sep+downloadfilename
                 LOGGER.debug('Writing process result to file: %s' % downloadfilepath)
                 with open(downloadfilepath, 'w', encoding='utf-8') as downloadfile:
-                    json.dump(upstream_catchment_ids, downloadfile, ensure_ascii=False, indent=4)
+                    json.dump(upstream_ids, downloadfile, ensure_ascii=False, indent=4)
 
                 # Create download link:
                 # TODO: Not hardcode that URL! Get from my config file, or can I even get it from pygeoapi config?
@@ -223,7 +223,7 @@ class UpstreamDissolvedGetter(BaseProcessor):
                     'description': 'Can I take this from process description TODO',
                     'href': downloadlink
                 }
-                outputs_dict['upstream_catchment_ids'] = json_response
+                outputs_dict['upstream_ids'] = json_response
 
             else:
                 LOGGER.error('Cannot understand transmissionMode: %s' % transmission_mode)

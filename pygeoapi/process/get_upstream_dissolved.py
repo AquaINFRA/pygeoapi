@@ -61,6 +61,18 @@ class UpstreamDissolvedGetter(BaseProcessor):
         if outputs is None:
             LOGGER.info('Client did not specify outputs, so all possible outputs are returned!')
             outputs = {'ALL': None}
+        else:
+            for key in outputs.keys():
+                if not 'transmissionMode' in outputs[key]:
+                    outputs[key]['transmissionMode'] = 'value' # default
+                elif outputs[key]['transmissionMode'] == 'value':
+                    pass
+                elif outputs[key]['transmissionMode'] == 'reference':
+                    pass
+                else:
+                    error_message = 'Did not understand "transmissionMode" of requested output "%s": "%s". Has to be either "value" or "reference"' % (
+                        key, outputs[key]['transmissionMode'])
+                    raise ProcessorExecuteError(user_msg=error_message)
 
         try:
             conn = self.get_db_connection()
@@ -146,11 +158,9 @@ class UpstreamDissolvedGetter(BaseProcessor):
 
             try:
                 transmission_mode = requested_outputs['polygon']['transmissionMode']
-            except (KeyError, TypeError) as e:
-                # KeyError if requested_outputs is a dict, but without subcatchment
-                # TypeError if requested_outputs is list! ("list indices must be integers or slices, not str")
-                LOGGER.debug('transmissionMode not passed for output "polygon": %s' % e)
+            except KeyError:
                 transmission_mode = 'value' # default
+
 
             if transmission_mode == 'value':
                 LOGGER.info('USER ASKS FOR POLYGON VALUE')
@@ -186,14 +196,13 @@ class UpstreamDissolvedGetter(BaseProcessor):
 
             try:
                 transmission_mode = requested_outputs['upstream_catchment_ids']['transmissionMode']
-            except KeyError as e:
-                LOGGER.debug('transmissionMode not passed for upstream_catchment_ids: %s' % e)
+            except KeyError:
                 transmission_mode = 'value' # default
 
             if transmission_mode == 'value':
                 LOGGER.info('USER ASKS FOR UPSTREAM CATCHMENT IDS VALUE')
                 outputs_dict['upstream_catchment_ids'] = upstream_catchment_ids
-            
+
             elif transmission_mode == 'reference':
                 LOGGER.info('USER ASKS FOR UPSTREAM CATCHMENT IDS REFERENCE')
 

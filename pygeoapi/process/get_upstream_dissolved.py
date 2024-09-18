@@ -57,22 +57,9 @@ class UpstreamDissolvedGetter(BaseProcessor):
         LOGGER.info('Inputs: %s' % data)
         LOGGER.info('Requested outputs: %s' % outputs)
 
-        # Check for which outputs it is asking:
-        if outputs is None:
-            LOGGER.info('Client did not specify outputs, so all possible outputs are returned!')
-            outputs = {'ALL': None}
-        else:
-            for key in outputs.keys():
-                if not 'transmissionMode' in outputs[key]:
-                    outputs[key]['transmissionMode'] = 'value' # default
-                elif outputs[key]['transmissionMode'] == 'value':
-                    pass
-                elif outputs[key]['transmissionMode'] == 'reference':
-                    pass
-                else:
-                    error_message = 'Did not understand "transmissionMode" of requested output "%s": "%s". Has to be either "value" or "reference"' % (
-                        key, outputs[key]['transmissionMode'])
-                    raise ProcessorExecuteError(user_msg=error_message)
+        # Which transmission mode is set for all outputs?
+        # And make outputs dict consistent...
+        outputs, transmissionMode_all = self.get_overall_transmission_mode(outputs)
 
         try:
             conn = self.get_db_connection()
@@ -108,8 +95,6 @@ class UpstreamDissolvedGetter(BaseProcessor):
         lat = data.get('lat', None)
         subc_id = data.get('subc_id', None) # optional, need either lonlat OR subc_id
         comment = data.get('comment') # optional
-        get_type = data.get('get_type', 'polygon')
-        # TODO: Future, instead of get_type, let user specify desired type in a more OGC way!
 
         # Overall goal: Get the upstream polygon (as one dissolved)!
         LOGGER.info('START: Getting upstream dissolved polygon for lon, lat: %s, %s (or subc_id %s)' % (lon, lat, subc_id))
@@ -118,30 +103,22 @@ class UpstreamDissolvedGetter(BaseProcessor):
         subc_id, basin_id, reg_id = helpers.get_subc_id_basin_id_reg_id(conn, LOGGER, lon, lat, subc_id)
         upstream_ids = helpers.get_upstream_catchment_ids(conn, subc_id, basin_id, reg_id, LOGGER)
 
-        # Get geometry (three types)
-        LOGGER.debug('...Getting upstream catchment dissolved polygon for subc_id: %s' % subc_id)
-        geojson_object = {}
-        if get_type.lower() == 'polygon':
-            geojson_object = get_upstream_catchment_dissolved_geometry(
-                conn, subc_id, upstream_ids, basin_id, reg_id)
-            LOGGER.debug('END: Received simple polygon : %s' % str(geojson_object)[0:50])
+        # Generate empty feature to be filled with requested outputs:
+        # TODO: Should user have to specify that they want basin_id and reg_id? I guess not?
+        # TODO: Should we include the requested lon and lat? Maybe as a point? Then FeatureCollection?
+        feature = {
+            "type": "Feature",
+            "geometry": None,
+            "properties": {
+                "description": "Dissolved upstream catchment of subcatchment %s" % subc_id,
+                "subc_id": subc_id, # TODO how to name it?
+                "basin_id": basin_id,
+                "reg_id": reg_id
+            }
+        }
 
-        elif get_type.lower() == 'feature':
-            geojson_object = get_upstream_catchment_dissolved_feature(
-                conn, subc_id, upstream_ids,
-                basin_id, reg_id, comment=comment)
-            LOGGER.debug('END: Received feature : %s' % str(geojson_object)[0:50])
-       
-        elif get_type.lower() == 'featurecollection':
-            geojson_object = get_upstream_catchment_dissolved_feature_coll(
-                conn, subc_id, upstream_ids, (lon, lat),
-                basin_id, reg_id, comment=comment)
-            LOGGER.debug('END: Received feature collection: %s' % str(geojson_object)[0:50])
-
-        else:
-            err_msg = "Input parameter 'get_type' can only be one of Polygon or Feature or FeatureCollection!"
-            LOGGER.error(err_msg)
-            raise ProcessorExecuteError(user_msg=err_msg)
+        if comment is not None:
+            feature['properties']['comment'] = comment
 
 
         ################
@@ -154,81 +131,53 @@ class UpstreamDissolvedGetter(BaseProcessor):
             geojson_object['comment'] = comment
 
         if 'polygon' in requested_outputs or 'ALL' in requested_outputs:
-            LOGGER.info('USER ASKS FOR POLYGON')
 
-            try:
-                transmission_mode = requested_outputs['polygon']['transmissionMode']
-            except KeyError:
-                transmission_mode = 'value' # default
+            # Get geometry
+            LOGGER.debug('...Getting upstream catchment dissolved polygon for subc_id: %s' % subc_id)
+            polygon = get_upstream_catchment_dissolved_geometry(
+                conn, subc_id, upstream_ids, basin_id, reg_id)
 
-
-            if transmission_mode == 'value':
-                LOGGER.info('USER ASKS FOR POLYGON VALUE')
-                outputs_dict['polygon'] = geojson_object
-
-            elif transmission_mode == 'reference':
-                # TODO: This may not be correct, as reference includes that the link is returned in
-                # a location header rather than in the response body!
-                # Store file # TODO: Not hardcode that directory!
-                downloadfilename = 'polygon-%s.json' % self.job_id
-                downloadfilepath = '/var/www/nginx/download'+os.sep+downloadfilename
-                LOGGER.debug('Writing process result to file: %s' % downloadfilepath)
-                with open(downloadfilepath, 'w', encoding='utf-8') as downloadfile:
-                    json.dump(geojson_object, downloadfile, ensure_ascii=False, indent=4)
-
-                # Create download link:
-                # TODO: Not hardcode that URL! Get from my config file, or can I even get it from pygeoapi config?
-                downloadlink = 'https://aqua.igb-berlin.de/download/'+downloadfilename
-
-                # Create output to pass back to user
-                json_response = {
-                    'title': 'Upstream Catchment, can I take this from process description TODO',
-                    'description': 'Can I take this from process description TODO',
-                    'href': downloadlink
-                }
-                outputs_dict['polygon'] = json_response
-
-            else:
-                LOGGER.error('Cannot understand transmissionMode: %s' % transmission_mode)
+            # Adding the geometry to the feature:
+            feature["geometry"] = polygon      
 
         if 'upstream_ids' in requested_outputs or 'ALL' in requested_outputs:
-            LOGGER.info('USER ASKS FOR UPSTREAM CATCHMENT IDS')
+            LOGGER.info('User asks for upstream catchment ids')
 
-            try:
-                transmission_mode = requested_outputs['upstream_ids']['transmissionMode']
-            except KeyError:
-                transmission_mode = 'value' # default
+            ## Adding the upstream ids to the feature:
+            feature["properties"]["upstream_ids"] = upstream_ids
 
-            if transmission_mode == 'value':
-                LOGGER.info('USER ASKS FOR UPSTREAM CATCHMENT IDS VALUE')
-                outputs_dict['upstream_ids'] = upstream_ids
 
-            elif transmission_mode == 'reference':
-                LOGGER.info('USER ASKS FOR UPSTREAM CATCHMENT IDS REFERENCE')
+        ###########################
+        ### Return JSON or link ###
+        ###########################
 
-                # Store file # TODO: Not hardcode that directory!
-                downloadfilename = 'upstream_ids-%s.json' % self.job_id
-                downloadfilepath = '/var/www/nginx/download'+os.sep+downloadfilename
-                LOGGER.debug('Writing process result to file: %s' % downloadfilepath)
-                with open(downloadfilepath, 'w', encoding='utf-8') as downloadfile:
-                    json.dump(upstream_ids, downloadfile, ensure_ascii=False, indent=4)
+        if transmissionMode_all == 'value':
+            return 'application/json', feature
 
-                # Create download link:
-                # TODO: Not hardcode that URL! Get from my config file, or can I even get it from pygeoapi config?
-                downloadlink = 'https://aqua.igb-berlin.de/download/'+downloadfilename
+        else:
+            # TODO: This may not be correct, as reference includes that the link is returned in
+            # a location header rather than in the response body!
+            # Store file # TODO: Not hardcode that directory!
+            downloadfilename = 'outputs-get-upstream-dissolved-%s.json' % self.job_id
+            downloadfilepath = '/var/www/nginx/download'+os.sep+downloadfilename
+            LOGGER.debug('Writing process result to file: %s' % downloadfilepath)
+            with open(downloadfilepath, 'w', encoding='utf-8') as downloadfile:
+                json.dump(feature, downloadfile, ensure_ascii=False, indent=4)
 
-                # Create output to pass back to user
-                json_response = {
-                    'title': 'Upstream catchment ids, can I take this from process description TODO',
-                    'description': 'Can I take this from process description TODO',
-                    'href': downloadlink
-                }
-                outputs_dict['upstream_ids'] = json_response
+            # Create download link:
+            # TODO: Not hardcode that URL! Get from my config file, or can I even get it from pygeoapi config?
+            downloadlink = 'https://aqua.igb-berlin.de/download/'+downloadfilename
 
-            else:
-                LOGGER.error('Cannot understand transmissionMode: %s' % transmission_mode)
+            # Create output to pass back to user
+            outputs_dict = {
+                'title': 'Upstream Catchment, can I take this from process description TODO',
+                'description': 'Can I take this from process description TODO',
+                'href': downloadlink
+            }
 
-        return 'application/json', outputs_dict
+            return 'application/json', outputs_dict
+
+
 
     def get_db_connection(self):
 
@@ -255,3 +204,42 @@ class UpstreamDissolvedGetter(BaseProcessor):
             raise e1
 
         return conn
+
+
+    def get_overall_transmission_mode(self, outputs):
+
+        if outputs is None:
+            LOGGER.info('Client did not specify outputs, so all possible outputs are returned!')
+            outputs = {'ALL': None }
+            return outputs, 'value' # default transmissionMode
+
+        # Otherwise, iterate over all outputs. If they all have the same
+        # transmissionMode (or none), great. If not, complain.
+        transmissionMode_all = None
+        for key in outputs.keys():
+
+            if not 'transmissionMode' in outputs[key]:
+                pass # leave empty and see what is set for the others
+
+            elif outputs[key]['transmissionMode'] == 'value':
+                if transmissionMode_all == 'reference':
+                    raise ProcessorExecuteError(user_msg='Cannot mix transmissionMode "value" (%s) with "reference' % key)
+
+            elif outputs[key]['transmissionMode'] == 'reference':
+                if transmissionMode_all == 'value':
+                    raise ProcessorExecuteError(user_msg='Cannot mix transmissionMode "reference" (%s) with "value' % key)
+            else:
+                error_message = 'Did not understand "transmissionMode" of requested output "%s": "%s". Has to be either "value" or "reference"' % (
+                    key, outputs[key]['transmissionMode'])
+                raise ProcessorExecuteError(user_msg=error_message)
+
+        # If no output had a tranmissionMode set, set it to 'value':
+        if transmissionMode_all is None:
+            transmissionMode_all = "value" # default
+
+        # Fill up the ones left empty:
+        for key in outputs.keys():
+            if not 'transmissionMode' in outputs[key]:
+                outputs[key]['transmissionMode'] = transmissionMode_all
+
+        return outputs, transmissionMode_all

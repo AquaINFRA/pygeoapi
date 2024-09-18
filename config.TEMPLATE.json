@@ -1,0 +1,17 @@
+{
+    "geofresh_server": "172.x.x.x",
+    "geofresh_port": 5432,
+    "database_name": "some_db_name",
+    "database_username": "some_db_username",
+    "database_password": "some_db_password",
+    "use_tunnel": false,
+    "ssh_username": "some_ldap_username",
+    "ssh_password": "some_ldap_password",
+    "localhost": "127.0.0.1",
+    "base_dir_subsetting_tiffs": "/opt/cloudrasters/",
+    "download_dir": "/var/www/nginx/download/",
+    "own_url": "https://ourserver/download/",
+    "r_script_dir": "/.../pygeoapi/process/aquainfra-usecase-Daugava/",
+    "r_script_dir_boku": "/.../pygeoapi/process/specleanr/pygeoapi_processes/",
+    "input_data_dir": "/.../inputs/"
+}

@@ -49,45 +49,20 @@
             "metadata": null,
             "keywords": ["comment"]
         },
-        "get_type": {
-            "title": "Get GeoJSON Feature",
-            "description": "Can be 'LineString', 'Feature', 'FeatureCollection' or 'GeometryCollection'.",
-            "schema": {"type": "string"},
+        "geometry_only": {
+            "title": "Get only GeoJSON GeometryCollection?",
+            "description": "Switch whether to return only a GeoJSON GeometryCollection (in this case, LineStrings), instead of a GeoJSON FeatureCollection containing additional properties. Please write \"true\" or \"false\".",
+            "schema": {"enum": ["true", "false"]},
             "minOccurs": 0,
             "maxOccurs": 1,
             "metadata": null,
-            "keywords": ["comment"]
-        },
-        "add_subcatchment": {
-            "title": "Add subcatchment polygon",
-            "description": "Additionally request the subcatchment polygon (only for FeatureCollection or GeometryCollection, will be ignored for Point)",
-            "schema": {"type": "boolean"},
-            "minOccurs": 0,
-            "maxOccurs": 1,
-            "metadata": null,
-            "keywords": ["comment"]
+            "keywords": ["GeoJSON", "GeometryCollection", "FeatureCollection"]
         }
     },
     "outputs": {
         "stream_segment": {
             "title": "Stream Segment",
-            "description": "WGS84 coordinates of the stream segment.",
-            "schema": {
-                "type": "object",
-                "contentMediaType": "application/json"
-            }
-        },
-        "strahler_order": {
-            "title": "Strahler Order",
-            "description": "Strahler order of the stream segment.",
-            "schema": {
-                "type": "object",
-                "contentMediaType": "application/json"
-            }
-        },
-        "comment": {
-            "title": "Comment",
-            "description": "Arbitrary string provided by the user.",
+            "description": "Stream Segment, includes Strahler Order.",
             "schema": {
                 "type": "object",
                 "contentMediaType": "application/json"

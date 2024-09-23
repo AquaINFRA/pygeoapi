@@ -12,7 +12,7 @@ import psycopg2
 import pygeoapi.process.upstream_helpers as helpers
 from pygeoapi.process.geofresh.py_query_db import get_connection_object
 from pygeoapi.process.geofresh.py_query_db import get_polygon_for_subcid_feature 
-from pygeoapi.process.geofresh.py_query_db import get_strahler_and_stream_segment_feature
+from pygeoapi.process.geofresh.py_query_db import get_strahler_and_stream_segment_linestring
 
 
 '''
@@ -91,8 +91,21 @@ class StreamSegmentGetterPlus(BaseProcessor):
 
         LOGGER.info('Getting stream segment and subcatchment for lon, lat: %s, %s (or subc_id %s)' % (lon, lat, subc_id))
         subc_id, basin_id, reg_id = helpers.get_subc_id_basin_id_reg_id(conn, LOGGER, lon, lat, subc_id)
+
         LOGGER.debug('... Now, getting strahler and stream segment for subc_id: %s' % subc_id)
-        feature_streamsegment = get_strahler_and_stream_segment_feature(conn, subc_id, basin_id, reg_id)
+        strahler, streamsegment_simple_geometry = get_strahler_and_stream_segment_linestring(
+            conn, subc_id, basin_id, reg_id)
+        feature_streamsegment = {
+                "type": "Feature",
+                "geometry": streamsegment_simple_geometry,
+                "properties": {
+                    "subcatchment_id": subc_id,
+                    "strahler_order": strahler,
+                    "basin_id": basin_id,
+                    "reg_id": reg_id
+                }
+            }
+
         LOGGER.debug('... Now, getting subcatchment polygon for subc_id: %s' % subc_id)
         feature_subcatchment = get_polygon_for_subcid_feature(conn, subc_id, basin_id, reg_id)
         LOGGER.info('Received two features I think...') # TODO HOW TO CHECK VALIDITY OF RESULT?

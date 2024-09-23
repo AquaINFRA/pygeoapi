@@ -891,32 +891,6 @@ def get_snapped_point_feature(conn, lon, lat, subc_id, basin_id, reg_id, **kwarg
     return strahler, feature_snappedpoint, feature_streamsegment
 
 
-def get_strahler_and_stream_segment_feature(conn, subc_id, basin_id, reg_id, **kwargs):
-    name = "get_strahler_and_stream_segment_feature"
-    LOGGER.debug('ENTERING: %s for subcid %s' % (name, subc_id))
-
-    # Getting info from database:
-    strahler, stream_segment_linestring = get_strahler_and_stream_segment_linestring(conn, subc_id, basin_id, reg_id)
-
-    # Assembling GeoJSON feature to return:
-    feature = {
-        "type": "Feature",
-        "geometry": stream_segment_linestring,
-        "properties": {
-            "subcatchment_id": subc_id,
-            "strahler_order": strahler,
-            "basin_id": basin_id,
-            "reg_id": reg_id
-        }
-    }
-
-    if len(kwargs) > 0:
-        feature["properties"].update(kwargs)
-
-    LOGGER.debug('LEAVING: %s for subcid %s' % (name, subc_id))
-    return feature
-
-
 def get_strahler_and_stream_segment_linestring(conn, subc_id, basin_id, reg_id):
     # TODO Make one query for various subc_ids! When would this be needed?
     """
@@ -1151,10 +1125,8 @@ if __name__ == "__main__":
 
     print("\n(5) strahler, stream segment: ")
     strahler, streamsegment_linestring = get_strahler_and_stream_segment_linestring(conn, subc_id, basin_id, reg_id)
-    streamsegment_feature = get_strahler_and_stream_segment_feature(conn, subc_id, basin_id, reg_id, bla='test')
     print("\nRESULT STRAHLER: %s" % strahler)
     print("RESULT SEGMENT (Geometry/Linestring):\n%s" % streamsegment_linestring)
-    print("\nRESULT SEGMENT FEATURE (Feature/Linestring):\n%s" % streamsegment_feature)
 
     print("\n(6a) upstream catchment bbox as geometry: ")
     bbox_geojson = get_upstream_catchment_bbox_polygon(

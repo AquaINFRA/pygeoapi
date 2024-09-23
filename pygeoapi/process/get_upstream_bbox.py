@@ -88,14 +88,17 @@ class UpstreamBboxGetter(BaseProcessor):
 
     def _execute(self, data, requested_outputs, conn):
 
-        # TODO: Must change behaviour based on content of requested_outputs
-        LOGGER.debug('Content of requested_outputs: %s' % requested_outputs)
-
         ## User inputs
         lon = data.get('lon', None)
         lat = data.get('lat', None)
         subc_id = data.get('subc_id', None) # optional, need either lonlat OR subc_id
         comment = data.get('comment', None) # optional
+        add_upstream_ids = data.get('add_upstream_ids', 'false')
+        geometry_only = data.get('geometry_only', 'false')
+
+        # Parse booleans
+        add_upstream_ids = (add_upstream_ids.lower() == 'true')
+        geometry_only = (geometry_only.lower() == 'true')
 
         # Overall goal: Get the upstream stream segments!
         LOGGER.info('START: Getting upstream bbox for lon, lat: %s, %s (or subc_id %s)' % (lon, lat, subc_id))
@@ -104,12 +107,27 @@ class UpstreamBboxGetter(BaseProcessor):
         subc_id, basin_id, reg_id = helpers.get_subc_id_basin_id_reg_id(conn, LOGGER, lon, lat, subc_id)
         upstream_ids = helpers.get_upstream_catchment_ids(conn, subc_id, basin_id, reg_id, LOGGER)
 
-        # Generate empty feature to be filled with requested outputs:
-        # TODO: Should user have to specify that they want basin_id and reg_id? I guess not?
+        # Get bounding box:
+        bbox_geojson = get_upstream_catchment_bbox_polygon(conn, subc_id, upstream_ids, basin_id, reg_id)
+        # This geometry can be None/null, which is the valid value for unlocated Features in GeoJSON spec:
+        # https://datatracker.ietf.org/doc/html/rfc7946#section-3.2
+
+        ################
+        ### Results: ###
+        ################
+
+        if geometry_only:
+
+            if comment is not None:
+                bbox_geojson['comment'] = comment
+
+            return 'application/json', bbox_geojson
+
+        # Generate feature:
         # TODO: Should we include the requested lon and lat? Maybe as a point? Then FeatureCollection?
         feature = {
             "type": "Feature",
-            "geometry": None,
+            "geometry": bbox_geojson,
             "properties": {
                 "description": "Bounding box of the upstream catchment of subcatchment %s" % subc_id,
                 "subc_id": subc_id, # TODO how to name it?
@@ -121,20 +139,12 @@ class UpstreamBboxGetter(BaseProcessor):
         if comment is not None:
             feature['properties']['comment'] = comment
 
-        if 'bbox' in requested_outputs or 'ALL' in requested_outputs:
-            bbox_geojson = get_upstream_catchment_bbox_polygon(conn, subc_id, upstream_ids, basin_id, reg_id)
-            # This geometry can be None/null, which is the valid value for unlocated Features in GeoJSON spec:
-            # https://datatracker.ietf.org/doc/html/rfc7946#section-3.2
-            feature['geometry'] = bbox_geojson
-
-        if 'upstream_ids' in requested_outputs or 'ALL' in requested_outputs:
+        if add_upstream_ids:
             feature['properties']['upstream_ids'] = upstream_ids
 
-        ################
-        ### Results: ###
-        ################
-
         return 'application/json', feature
+
+
 
     def get_db_connection(self):
 

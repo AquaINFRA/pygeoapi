@@ -11,7 +11,7 @@ import json
 import psycopg2
 import pygeoapi.process.upstream_helpers as helpers
 from pygeoapi.process.geofresh.py_query_db import get_connection_object
-from pygeoapi.process.geofresh.py_query_db import get_polygon_for_subcid_feature 
+from pygeoapi.process.geofresh.py_query_db import get_polygon_for_subcid_simple
 from pygeoapi.process.geofresh.py_query_db import get_strahler_and_stream_segment_linestring
 
 
@@ -80,10 +80,7 @@ class StreamSegmentGetterPlus(BaseProcessor):
 
     def _execute(self, data, requested_outputs, conn):
 
-        # TODO: Must change behaviour based on content of requested_outputs
-        LOGGER.debug('Content of requested_outputs: %s' % requested_outputs)
-
-        ### USER INPUTS
+        # User inputs
         lon = data.get('lon', None)
         lat = data.get('lat', None)
         subc_id = data.get('subc_id', None) # optional, need either lonlat OR subc_id
@@ -107,7 +104,17 @@ class StreamSegmentGetterPlus(BaseProcessor):
             }
 
         LOGGER.debug('... Now, getting subcatchment polygon for subc_id: %s' % subc_id)
-        feature_subcatchment = get_polygon_for_subcid_feature(conn, subc_id, basin_id, reg_id)
+        subcatchment_simple = get_polygon_for_subcid_simple(conn, subc_id, basin_id, reg_id)
+        feature_subcatchment = {
+            "type": "Feature",
+            "geometry": subcatchment_simple,
+            "properties": {
+                "subcatchment_id": subc_id,
+                "basin_id": basin_id,
+                "reg_id": reg_id
+            }
+        }
+
         LOGGER.info('Received two features I think...') # TODO HOW TO CHECK VALIDITY OF RESULT?
 
         ################

@@ -594,28 +594,6 @@ def get_polygon_for_subcid_simple(conn, subc_id, basin_id, reg_id):
     return polygon_subcatchment
 
 
-def get_polygon_for_subcid_feature(conn, subc_id, basin_id, reg_id, **kwargs):
-    name = "get_polygon_for_subcid_feature"
-    LOGGER.debug('ENTERING: %s for subc_id %s' % (name, subc_id))
-
-    # Get info from database:
-    polygon_subcatchment = get_polygon_for_subcid_simple(conn, subc_id, basin_id, reg_id)
-
-    # Construct GeoJSON feature:
-    feature_subcatchment = {
-        "type": "Feature",
-        "geometry": polygon_subcatchment,
-        "properties": {
-            "subcatchment_id": subc_id
-        }
-    }
-    if len(kwargs) > 0:
-        feature_subcatchment["properties"].update(kwargs)
-
-    LOGGER.debug('LEAVING: %s: Returning a single polygon feature: %s' % (name, str(feature_subcatchment)[0:50]))
-    return feature_subcatchment
-
-
 def get_upstream_catchment_polygons_feature_coll(conn, subc_id, upstream_ids, basin_id, reg_id):
     name = "get_upstream_catchment_polygons_feature_coll"
     LOGGER.info("ENTERING: %s for subc_id: %s" % (name, subc_id))
@@ -1196,9 +1174,6 @@ if __name__ == "__main__":
     print("\n(10) Catchment polygon: ")
     polygon = get_polygon_for_subcid_simple(conn, subc_id, basin_id, reg_id)
     print("\nRESULT CATCHMENT (Geometry/Polygon)\n%s\n" % polygon)
-    feature = get_polygon_for_subcid_feature(conn, subc_id, basin_id, reg_id, bla='test')
-    print("\nRESULT CATCHMENT (Feature/Polygon)\n%s\n" % feature)
-
 
     # Finally:
     print("Closing connection...")

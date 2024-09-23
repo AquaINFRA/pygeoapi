@@ -112,10 +112,6 @@ class UpstreamBboxGetter(BaseProcessor):
         # This geometry can be None/null, which is the valid value for unlocated Features in GeoJSON spec:
         # https://datatracker.ietf.org/doc/html/rfc7946#section-3.2
 
-        ################
-        ### Results: ###
-        ################
-
         if geometry_only:
 
             if comment is not None:

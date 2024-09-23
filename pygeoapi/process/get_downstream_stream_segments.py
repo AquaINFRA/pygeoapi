@@ -126,7 +126,7 @@ class DijkstraShortestPathSeaGetter(BaseProcessor):
             feature_coll = {
                 "type": "FeatureCollection",
                 "features": dijkstra_path_list,
-                "description": "Downstream BLABLA TODO of %s" % subc_id1,
+                "description": "Downstream path from subcatchment %s to the outlet of its basin." % subc_id1,
                 "start_subc_id": subc_id1, # TODO how to name it?
                 "basin_id": basin_id1,
                 "region_id": reg_id1,

@@ -66,20 +66,12 @@
             "maxOccurs": 1,
             "metadata": null,
             "keywords": ["GeoJSON", "GeometryCollection", "FeatureCollection"]
-        },
+        }
     },
     "outputs": {
-        "subcatchment": {
-            "title": "Subcatchment Id",
-            "description": "Id of the subcatchment whose upstream catchment was computed. Example: 553495421.",
-            "schema": {
-                "type": "object",
-                "contentMediaType": "application/json"
-            }
-        },
-        "upstream_catchment_ids": {
-            "title": "Upstream Catchment Ids",
-            "description": "List of subcatchment ids of the subcatchments included in the upstream catchment.",
+        "upstream_stream_segments": {
+            "title": "Upstream Stream Segments",
+            "description": "All stream segments upstream of the given location, as a GeoJSON FeatureCollection or GeometryCollection.",
             "schema": {
                 "type": "object",
                 "contentMediaType": "application/json"

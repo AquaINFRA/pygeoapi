@@ -56,7 +56,7 @@
             "minOccurs": 0,
             "maxOccurs": 1,
             "metadata": null,
-            "keywords": ["comment"]
+            "keywords": ["GeoJSON", "GeometryCollection", "FeatureCollection"]
         },
         "comment": {
             "title": "Comment",

@@ -66,7 +66,7 @@
             "maxOccurs": 1,
             "metadata": null,
             "keywords": ["GeoJSON", "GeometryCollection", "FeatureCollection"]
-        },
+        }
     },
     "outputs": {
         "polygons": {

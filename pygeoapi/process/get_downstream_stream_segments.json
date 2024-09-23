@@ -60,7 +60,7 @@
         },
         "add_downstream_ids": {
             "title": "Add downstream ids?",
-            "description": "Switch whether to add the downstream ids to the GeoJSON Feature's properties. Please write \"true\" or \"false\".",
+            "description": "Switch whether to add the subcatchment ids of each segment along the path to the GeoJSON Feature's properties. Please write \"true\" or \"false\".",
             "schema": {"enum": ["true", "false"]},
             "minOccurs": 0,
             "maxOccurs": 1,
@@ -69,20 +69,9 @@
         }
     },
     "outputs": {
-        "path_geometry_collection": {
-            "description": "GeometryCollection",
-        },
-        "path_feature_collection": {
-            "title": "Dijkstra shortest path to sea outlet",
-            "description": "Shortest path from the provided location and the outlet of the river basin, as a FeatureCollection. Routing is done via Dijkstra algorithm. Subcatchment ids and strahler order of each line segment along the way are included.",
-            "schema": {
-                "type": "object",
-                "contentMediaType": "application/json"
-            }
-        },
-        "downstream_ids": {
-            "title": "Subcatchment id of each line segment",
-            "description": "Subcatchment id of each line segment along the path. Can be provided as separate list. Will be included in the individual features anyway",
+        "downstream_path": {
+            "title": "Shortest path to sea outlet",
+            "description": "Shortest path from the provided location and the outlet of the river basin, as a FeatureCollection or GeometryCollection. Routing is done via Dijkstra algorithm. Subcatchment ids and strahler order of each line segment along the way are included.",
             "schema": {
                 "type": "object",
                 "contentMediaType": "application/json"

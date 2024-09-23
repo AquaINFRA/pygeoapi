@@ -1054,8 +1054,7 @@ if __name__ == "__main__":
     print("\nRESULT BASIN_ID, SUBC_ID: %s, %s" % (basin_id, subc_id))
     
     print("\n(3) upstream catchment ids: ")
-    upstream_ids = get_upstream_catchment_ids_incl_itself(
-        conn, subc_id, basin_id, reg_id)
+    upstream_ids = get_upstream_catchment_ids_incl_itself(conn, subc_id, basin_id, reg_id)
     print("\nRESULT UPSTREAM IDS:\n%s" % upstream_ids)
     
     print("\n(4) strahler, snapped point, stream segment: ")

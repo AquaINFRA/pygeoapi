@@ -51,33 +51,9 @@
         }
     },
     "outputs": {
-        "subc_id": {
-            "title": "Subcatchment Id",
-            "description": "Id of the subcatchment whose upstream catchment was computed. Example: 553495421.",
-            "schema": {
-                "type": "object",
-                "contentMediaType": "application/json"
-            }
-        },
-        "region_id": {
-            "title": "Region id",
-            "description": "Region id of the region where the stream segment is located.",
-            "schema": {
-                "type": "object",
-                "contentMediaType": "application/json"
-            }
-        },
-        "basin_id": {
-            "title": "Basin Id",
-            "description": "Basin id of the drainage basin where the stream segment is located.",
-            "schema": {
-                "type": "object",
-                "contentMediaType": "application/json"
-            }
-        },
         "upstream_ids": {
             "title": "Upstream Catchment Ids",
-            "description": "List of subcatchment ids of the subcatchments included in the upstream catchment.",
+            "description": "List of subcatchment ids of the subcatchments included in the upstream catchment. ALso includes Id of the subcatchment whose upstream catchment was computed (subc_id) and regional unit id (reg_id) and basin id (basin_id) of the basin where the stream segment is located.",
             "schema": {
                 "type": "object",
                 "contentMediaType": "application/json"

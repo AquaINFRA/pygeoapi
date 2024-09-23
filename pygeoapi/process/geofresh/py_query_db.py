@@ -855,42 +855,6 @@ def get_snapped_point_simple(conn, lon, lat, subc_id, basin_id, reg_id):
         return strahler, snappedpoint_point, streamsegment_linestring
 
 
-def get_snapped_point_feature(conn, lon, lat, subc_id, basin_id, reg_id, **kwargs):
-    name = "get_snapped_point_feature"
-    LOGGER.debug("ENTERING: %s for point: lon=%s, lat=%s (subc_id %s)" % (name, lon, lat, subc_id))
-
-    strahler, point_snappedpoint, linestring_streamsegment = get_snapped_point_simple(conn, lon, lat, subc_id, basin_id, reg_id)
-    feature_snappedpoint = {
-        "type": "Feature",
-        "geometry": point_snappedpoint,
-        "properties": {
-            "subcatchment_id": subc_id,
-            "basin_id": basin_id,
-            "reg_id": reg_id,
-            "lon_original": lon,
-            "lat_original": lat,
-        }
-    }
-
-    feature_streamsegment = {
-        "type": "Feature",
-        "geometry": linestring_streamsegment,
-        "properties": {
-            "subcatchment_id": subc_id,
-            "basin_id": basin_id,
-            "reg_id": reg_id,
-            "strahler_order": strahler
-        }
-    }
-
-    if len(kwargs) > 0:
-        feature_snappedpoint["properties"].update(kwargs)
-        feature_streamsegment["properties"].update(kwargs)
-
-    LOGGER.debug("LEAVING: %s for point: lon=%s, lat=%s (subc_id %s)" % (name, lon, lat, subc_id))
-    return strahler, feature_snappedpoint, feature_streamsegment
-
-
 def get_strahler_and_stream_segment_linestring(conn, subc_id, basin_id, reg_id):
     # TODO Make one query for various subc_ids! When would this be needed?
     """
@@ -1117,11 +1081,10 @@ if __name__ == "__main__":
     print("\nRESULT UPSTREAM IDS:\n%s" % upstream_ids)
     
     print("\n(4) strahler, snapped point, stream segment: ")
-    strahler, feature_snappedpoint, feature_streamsegment = get_snapped_point_feature(
-        conn, lon, lat, subc_id, basin_id, reg_id, bla='test')
+    strahler, point_snappedpoint, linestring_streamsegment = get_snapped_point_simple(conn, lon, lat, subc_id, basin_id, reg_id)
     print("\nRESULT STRAHLER: %s" % strahler)
-    print("RESULT SNAPPED (Feature/Point):\n%s" % feature_snappedpoint)
-    print("\nRESULT SEGMENT (Feature/Linestring):\n%s" % feature_streamsegment)
+    print("RESULT SNAPPED (Geometry/Point):\n%s" % point_snappedpoint)
+    print("\nRESULT SEGMENT (Geometry/Linestring):\n%s" % linestring_streamsegment)
 
     print("\n(5) strahler, stream segment: ")
     strahler, streamsegment_linestring = get_strahler_and_stream_segment_linestring(conn, subc_id, basin_id, reg_id)

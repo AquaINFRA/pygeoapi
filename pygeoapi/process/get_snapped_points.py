@@ -10,10 +10,7 @@ import traceback
 import json
 import pygeoapi.process.upstream_helpers as helpers
 from pygeoapi.process.geofresh.py_query_db import get_connection_object
-from pygeoapi.process.geofresh.py_query_db import get_snapped_point_feature
 from pygeoapi.process.geofresh.py_query_db import get_snapped_point_simple
-from pygeoapi.process.geofresh.py_query_db import get_polygon_for_subcid_feature
-from pygeoapi.process.geofresh.py_query_db import get_polygon_for_subcid_simple
 import psycopg2
 
 '''
@@ -76,90 +73,54 @@ class SnappedPointsGetter(BaseProcessor):
 
     def _execute(self, data, requested_outputs, conn):
 
-        # TODO: Must change behaviour based on content of requested_outputs
-        LOGGER.debug('Content of requested_outputs: %s' % requested_outputs)
-
-        ## User inputs
+        # User inputs
         lon = float(data.get('lon'))
         lat = float(data.get('lat'))
-        get_type = data.get('get_type', 'Point')
+        geometry_only = data.get('geometry_only', 'false')
         comment = data.get('comment') # optional
-        add_subcatchment = data.get('add_subcatchment')
-        if not isinstance(add_subcatchment, bool):
-            LOGGER.error('Expected a boolean for "add_subcatchment"!')
 
-        LOGGER.info('Getting snapped point...')
-        LOGGER.debug('... First, getting subcatchment for lon, lat: %s, %s' % (lon, lat))
+        # Parse booleans
+        geometry_only = (geometry_only.lower() == 'true')
+
+        # Get reg_id, basin_id, subc_id, upstream_ids
+        LOGGER.info('START: Getting snapped point for lon, lat: %s, %s (or subc_id NONE)' % (lon, lat))
         subc_id, basin_id, reg_id = helpers.get_subc_id_basin_id_reg_id(conn, LOGGER, lon, lat, None)
 
-        # Returned as FeatureCollection containing "Point" and "LineString"
-        if get_type.lower() == 'featurecollection':
-            LOGGER.debug('... Now, getting snapped point for subc_id (as feature): %s' % subc_id)
-            strahler, feature_snappedpoint, feature_streamsegment = get_snapped_point_feature(
-                conn, lon, lat, subc_id, basin_id, reg_id)
+        # Get snapped points:
+        LOGGER.debug('... Now, getting snapped point for subc_id (as simple geometries): %s' % subc_id)
+        strahler, snappedpoint, streamsegment = get_snapped_point_simple(
+            conn, lon, lat, subc_id, basin_id, reg_id)
 
-            # Construct connecting line:
-            snap_lon = feature_snappedpoint["geometry"]["coordinates"][0]
-            snap_lat = feature_snappedpoint["geometry"]["coordinates"][1]
-            feature_connecting_line = {
-                    "type": "Feature",
-                    "properties": {"description": "connecting line"},
-                    "geometry": {
-                        "type": "LineString",
-                        "coordinates":[[lon,lat],[snap_lon,snap_lat]]
-                    }
-            }
-            geojson_object = {
-                "type": "FeatureCollection",
-                "features": [feature_snappedpoint, feature_streamsegment, feature_connecting_line]
-            }
+        # Return geometry only:
+        if geometry_only:
+            
+            if comment is not None:
+                snappedpoint['comment'] = comment
 
-            # In some cases, we also want to add the subcatchment polygon!
-            # (This is faster than querying the service twice).
-            if add_subcatchment:
-                feature_subcatchment = get_polygon_for_subcid_feature(conn, subc_id, basin_id, reg_id)
-                geojson_object["features"].append(feature_subcatchment)
-
+            return 'application/json', snappedpoint
         
-        # Returned as simple GeoJSON geometry "Point"
-        elif get_type.lower() == 'point':
-            LOGGER.debug('... Now, getting snapped point for subc_id (as simple geometries): %s' % subc_id)
-            strahler, point_snappedpoint, linestring_streamsegment = get_snapped_point_simple(
-                conn, lon, lat, subc_id, basin_id, reg_id)
-            geojson_object = point_snappedpoint
-            if add_subcatchment:
-                LOGGER.info('User also requested subcatchment, but that is not compatible with returning a simple point.')
-                geojson_object['note'] = 'Cannot add subcatchment polygon to GeoJSON point.'
 
-        
-        # Returned as collection of simple GeoJSON geometries "Point" and LineString:
-        elif get_type.lower() == 'geometrycollection':
-            geojson_object = {
-                 "type": "GeometryCollection",
-                 "geometries": [point_snappedpoint, linestring_streamsegment]
+        # Return Feature, incl. ids, strahler and original lonlat:
+        if not geometry_only:
+
+            feature = {
+                "type": "Feature",
+                "geometry": snappedpoint,
+                "properties": {
+                    "subcatchment_id": subc_id,
+                    "strahler": strahler,
+                    "basin_id": basin_id,
+                    "reg_id": reg_id,
+                    "lon_original": lon,
+                    "lat_original": lat,
+                }
             }
 
-            # In some cases, we also want to add the subcatchment polygon!
-            # (This is faster than querying the service twice).
-            if add_subcatchment:
-                polygon_subcatchment = get_polygon_for_subcid_simple(conn, subc_id, basin_id, reg_id)
-                geojson_object["geometries"].append(polygon_subcatchment)
+            if comment is not None:
+                feature['properties']['comment'] = comment
 
+            return 'application/json', feature
 
-        else:
-            err_msg = "Input parameter 'get_type' can only be one of Point, GeometryCollection and FeatureCollection!"
-            LOGGER.error(err_msg)
-            raise ProcessorExecuteError(user_msg=err_msg)
-
-
-        ################
-        ### Results: ###
-        ################
-
-        if comment is not None:
-            geojson_object['comment'] = comment
-
-        return 'application/json', geojson_object
 
 
     def get_db_connection(self):

@@ -10,7 +10,7 @@ import traceback
 import json
 import pygeoapi.process.upstream_helpers as helpers
 from pygeoapi.process.geofresh.py_query_db import get_connection_object
-from pygeoapi.process.geofresh.py_query_db import get_snapped_point_feature
+from pygeoapi.process.geofresh.py_query_db import get_snapped_point_simple
 from pygeoapi.process.geofresh.py_query_db import get_polygon_for_subcid_feature
 import psycopg2
 
@@ -95,9 +95,33 @@ class SnappedPointsGetterPlus(BaseProcessor):
         subc_id, basin_id, reg_id = helpers.get_subc_id_basin_id_reg_id(conn, LOGGER, lon, lat, None)
 
         LOGGER.debug('Getting snapped point for subc_id: %s' % subc_id)
-        # Returned as feature "Point", and feature "LineString"
-        strahler, snappedpoint_geojson, streamsegment_geojson = get_snapped_point_feature(
+        strahler, snappedpoint, streamsegment = get_snapped_point_simple(
             conn, lon, lat, subc_id, basin_id, reg_id)
+
+        snappedpoint_geojson = {
+                "type": "Feature",
+                "geometry": snappedpoint,
+                "properties": {
+                    "subcatchment_id": subc_id,
+                    "strahler": strahler,
+                    "basin_id": basin_id,
+                    "reg_id": reg_id,
+                    "lon_original": lon,
+                    "lat_original": lat,
+                }
+            }
+
+        streamsegment_geojson = {
+            "type": "Feature",
+            "geometry": streamsegment,
+            "properties": {
+                "subcatchment_id": subc_id,
+                "basin_id": basin_id,
+                "reg_id": reg_id,
+                "strahler_order": strahler
+            }
+        }
+
         # Get local subcatchment too
         subcatchment_geojson = get_polygon_for_subcid_feature(conn, subc_id, basin_id, reg_id)
 

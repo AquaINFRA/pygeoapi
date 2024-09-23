@@ -49,37 +49,20 @@
             "metadata": null,
             "keywords": ["comment"]
         },
-        "get_type": {
-            "title": "Get GeoJSON Feature",
-            "description": "Can be 'Point' or 'GeometryCollection' or 'FeatureCollection'.",
-            "schema": {"type": "string"},
+        "geometry_only": {
+            "title": "Get only GeoJSON Geometry?",
+            "description": "Switch whether to return only a GeoJSON Geometry (in this case, Point), instead of a GeoJSON Feature containing additional properties. Please write \"true\" or \"false\".",
+            "schema": {"enum": ["true", "false"]},
             "minOccurs": 0,
             "maxOccurs": 1,
             "metadata": null,
-            "keywords": ["comment"]
-        },
-        "add_subcatchment": {
-            "title": "Add subcatchment polygon",
-            "description": "Additionally request the subcatchment polygon (only for FeatureCollection or GeometryCollection, will be ignored for Point)",
-            "schema": {"type": "boolean"},
-            "minOccurs": 0,
-            "maxOccurs": 1,
-            "metadata": null,
-            "keywords": ["comment"]
+            "keywords": ["GeoJSON", "Geometry", "Feature"]
         }
     },
     "outputs": {
         "snapped_point": {
             "title": "Snapped Point",
-            "description": "WGS84 coordinates of the snapped point.",
-            "schema": {
-                "type": "object",
-                "contentMediaType": "application/json"
-            }
-        },
-        "stream_segment": {
-            "title": "Stream Segment",
-            "description": "WGS84 coordinates of the stream segment.",
+            "description": "Snapped point as a GeoJSON Feature (in this case, Point), including its strahler order.",
             "schema": {
                 "type": "object",
                 "contentMediaType": "application/json"

@@ -76,14 +76,17 @@ class DijkstraShortestPathSeaGetter(BaseProcessor):
 
     def _execute(self, data, requested_outputs, conn):
 
-        # TODO: Must change behaviour based on content of requested_outputs
-        LOGGER.debug('Content of requested_outputs: %s' % requested_outputs)
-
         ## User inputs
         lon_start = data.get('lon', None)
         lat_start = data.get('lat', None)
         subc_id1 = data.get('subc_id', None) # optional, need either lonlat OR subc_id
         comment = data.get('comment') # optional
+        geometry_only = data.get('geometry_only', 'false')
+        add_downstream_ids = data.get('add_downstream_ids', 'true')
+
+        # Parse booleans
+        geometry_only = (geometry_only.lower() == 'true')
+        add_downstream_ids = (add_downstream_ids.lower() == 'true')
 
         # Overall goal: Get the dijkstra shortest path (as linestrings)!
         LOGGER.info('START: Getting dijkstra shortest path for lon %s, lat %s (or subc_id %s) to sea' % (
@@ -97,57 +100,47 @@ class DijkstraShortestPathSeaGetter(BaseProcessor):
         LOGGER.debug('Getting network connection for subc_id: start = %s, end = %s' % (subc_id1, subc_id2))
         downstream_ids = get_dijkstra_ids(conn, subc_id1, subc_id2, reg_id1, basin_id1)
 
-        # To be returned
-        outputs = {}
-
-        # If user ONLY wants geometry collection, make Geometry collection.
-        # In all other cases, a FeatureCollection is returned. This slightly
-        # violates the principles of returning ALL if none are requested, and
-        # we'll ignore the user's wish for GeometryCollection if they also ask
-        # for other things, but overall, this seems more useful than anything else...
-        if set('path_geometry_collection') == set(requested_outputs.keys())
+        # Get geometry only:
+        if geometry_only:
             dijkstra_path_list = get_simple_linestrings_for_subc_ids(
                 conn, downstream_ids, basin_id1, reg_id1)
 
-            outputs = {
+            geometry_coll = {
                 "type": "GeometryCollection",
                 "geometries": dijkstra_path_list
             }
+
+            if comment is not None:
+                geometry_coll['comment'] = comment
+
+            return 'application/json', geometry_coll
+
+
+        # Get FeatureCollection
+        if not geometry_only:
+
+            dijkstra_path_list = get_feature_linestrings_for_subc_ids(
+                conn, downstream_ids, basin_id1, reg_id1):
         
-        else:
-            # Generate empty feature collection to be filled with requested outputs:
-            # TODO: Should user have to specify that they want basin_id and reg_id? I guess not?
             # TODO: Should we include the requested lon and lat? Maybe as a point?
-            outputs = {
+            feature_coll = {
                 "type": "FeatureCollection",
-                "features": [],
+                "features": dijkstra_path_list,
                 "description": "Downstream BLABLA TODO of %s" % subc_id1,
                 "start_subc_id": subc_id1, # TODO how to name it?
                 "basin_id": basin_id1,
                 "region_id": reg_id1,
                 "outlet_id": subc_id2
             }
-            if comment is not None:
-                outputs['comment'] = comment
 
-        if 'downstream_ids' in requested_outputs or 'ALL' in requested_outputs:
-            outputs['downstream_ids'] = downstream_ids
-
-        if 'path_feature_collection' in requested_outputs or 'ALL' in requested_outputs:
+            if add_downstream_ids:
+                feature_coll['downstream_ids'] = downstream_ids
             
-            dijkstra_path_list = get_feature_linestrings_for_subc_ids(
-                conn, downstream_ids, basin_id1, reg_id1):
+            if comment is not None:
+                feature_coll['comment'] = comment
 
-            outputs["features"] = dijkstra_path_list
+            return 'application/json', feature_coll
 
-
-        ################
-        ### Results: ###
-        ################
-
-        return 'application/json', outputs
-        # TODO: So far, we are packaging all requested outputs into one GeoJSON
-        # object.
 
 
     def get_db_connection(self):

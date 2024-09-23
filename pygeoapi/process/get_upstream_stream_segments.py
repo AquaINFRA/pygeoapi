@@ -10,8 +10,8 @@ import traceback
 import json
 import pygeoapi.process.upstream_helpers as helpers
 from pygeoapi.process.geofresh.py_query_db import get_connection_object
-from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_linestrings_feature_coll
-from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_linestrings_geometry_coll
+from pygeoapi.process.geofresh.py_query_db import get_feature_linestrings_for_subc_ids
+from pygeoapi.process.geofresh.py_query_db import get_simple_linestrings_for_subc_ids
 
 import psycopg2
 
@@ -78,52 +78,83 @@ class UpstreamStreamSegmentGetter(BaseProcessor):
 
     def _execute(self, data, requested_outputs, conn):
 
-        # TODO: Must change behaviour based on content of requested_outputs
-        LOGGER.debug('Content of requested_outputs: %s' % requested_outputs)
-
         ## User inputs
         lon = data.get('lon', None)
         lat = data.get('lat', None)
         subc_id = data.get('subc_id', None) # optional, need either lonlat OR subc_id
         comment = data.get('comment') # optional
-        get_type = data.get('get_type', 'GeometryCollection')
+        add_upstream_ids = data.get('add_upstream_ids', 'false')
+        geometry_only = data.get('geometry_only', 'false')
+
+        # Parse add_upstream_ids
+        geometry_only = (geometry_only.lower() == 'true')
+        add_upstream_ids = (add_upstream_ids.lower() == 'true')
 
         # Overall goal: Get the upstream stream segments
         LOGGER.info('Getting upstream line segments for lon, lat: %s, %s (or subc_id %s)' % (lon, lat, subc_id))
 
-        # Get reg_id, basin_id, subc_id, upstream_catchment_subcids
+        # Get reg_id, basin_id, subc_id, upstream_ids
         subc_id, basin_id, reg_id = helpers.get_subc_id_basin_id_reg_id(conn, LOGGER, lon, lat, subc_id)
-        upstream_catchment_subcids = helpers.get_upstream_catchment_ids(conn, subc_id, basin_id, reg_id, LOGGER)
+        upstream_ids = helpers.get_upstream_catchment_ids(conn, subc_id, basin_id, reg_id, LOGGER)
 
-        # Get geometry (feature coll only):
-        LOGGER.debug('... Getting upstream catchment line segments for subc_id: %s' % subc_id)
+        # Log interesting cases:
+        if len(upstream_ids) == 0
+            LOGGER.warning('No upstream ids. Cannot get upstream linestrings .')
+        if len(upstream_ids) == 1 and subc_id == upstream_ids[0]:
+            LOGGER.debug('Upstream catchments equals subcatchment!')
 
-        if get_type.lower() == 'featurecollection':
-            # Note: The feature collection contains the strahler order for each feature (each stream segment)
-            feature_coll = get_upstream_catchment_linestrings_feature_coll(
-                conn, subc_id, upstream_catchment_subcids, basin_id, reg_id)
-            geojson_object = feature_coll
-            LOGGER.debug('END: Received FeatureCollection: %s' % str(feature_coll)[0:50])
 
-        elif get_type.lower() == 'geometrycollection':
-            geometry_coll = get_upstream_catchment_linestrings_geometry_coll(
-                conn, subc_id, upstream_catchment_subcids, basin_id, reg_id)
-            geojson_object = geometry_coll
+        # Get geometry only:
+        if geometry_only:
+
+            if len(upstream_ids) == 0
+                geometries = []
+            else:
+                LOGGER.debug('... Getting upstream catchment line segments for subc_id: %s' % subc_id)
+                geometries = get_simple_linestrings_for_subc_ids(conn, upstream_ids, basin_id, reg_id)
+
+            geometry_coll = {
+                "type": "GeometryCollection",
+                "geometries": geometries
+            }
+
             LOGGER.debug('END: Received GeometryCollection: %s' % str(geometry_coll)[0:50])
 
-        else:
-            err_msg = "Input parameter 'get_type' can only be one of GeometryCollection or FeatureCollection!"
-            LOGGER.error(err_msg)
-            raise ProcessorExecuteError(user_msg=err_msg)
+            if comment is not None:
+                geometry_coll['comment'] = comment
 
-        ################
-        ### Results: ###
-        ################
+            return 'application/json', geometry_coll
 
-        if comment is not None:
-            geojson_object['comment'] = comment
 
-        return 'application/json', geojson_object
+        # Get FeatureCollection
+        if not geometry_only:
+
+            if len(upstream_ids) == 0
+                features = []
+                # Feature Collections can have empty array according to GeoJSON spec::
+                # https://datatracker.ietf.org/doc/html/rfc7946#section-3.3
+            else:
+                # Note: The feature collection contains the strahler order for each feature (each stream segment)
+                LOGGER.debug('... Getting upstream catchment line segments for subc_id: %s' % subc_id)
+                features = get_feature_linestrings_for_subc_ids(conn, upstream_ids, basin_id, reg_id)
+
+            feature_coll = {
+                "type": "FeatureCollection",
+                "features": features,
+                "basin_id": basin_id,
+                "reg_id": reg_id,
+                "part_of_upstream_catchment_of": subc_id
+            }
+
+            LOGGER.debug('END: Received FeatureCollection: %s' % str(feature_coll)[0:50])
+
+            if add_upstream_ids:
+                feature_coll['upstream_ids'] = upstream_ids 
+
+            if comment is not None:
+                feature_coll['comment'] = comment
+
+            return 'application/json', feature_coll
 
 
     def get_db_connection(self):

@@ -40,6 +40,15 @@
             "metadata": null,
             "keywords": ["latitude", "wgs84"]
         },
+        "add_upstream_ids": {
+            "title": "Add upstream ids?",
+            "description": "Switch whether to add the upstream ids to the GeoJSON Feature's properties. Please write \"true\" or \"false\".",
+            "schema": {"enum": ["true", "false"]},
+            "minOccurs": 0,
+            "maxOccurs": 1,
+            "metadata": null,
+            "keywords": []
+        },
         "comment": {
             "title": "Comment",
             "description": "Arbitrary string that will not be processed but returned, for user\"s convenience.",
@@ -49,15 +58,15 @@
             "metadata": null,
             "keywords": ["comment"]
         },
-        "get_type": {
-            "title": "Get GeoJSON Feature",
-            "description": "Can be 'GeometryCollection' or 'FeatureCollection'.",
-            "schema": {"type": "string"},
+        "geometry_only": {
+            "title": "Get only GeoJSON GeometryCollection?",
+            "description": "Switch whether to return only a GeoJSON GeometryCollection (in this case, LineStrings), instead of a GeoJSON FeatureCollection containing additional properties. Please write \"true\" or \"false\".",
+            "schema": {"enum": ["true", "false"]},
             "minOccurs": 0,
             "maxOccurs": 1,
             "metadata": null,
-            "keywords": ["comment"]
-        }
+            "keywords": ["GeoJSON", "GeometryCollection", "FeatureCollection"]
+        },
     },
     "outputs": {
         "subcatchment": {

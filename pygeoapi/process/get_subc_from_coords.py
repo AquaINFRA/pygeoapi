@@ -72,9 +72,6 @@ class SubcatchmentGetter(BaseProcessor):
 
     def _execute(self, data, requested_outputs, conn):
 
-        # TODO: Must change behaviour based on content of requested_outputs
-        LOGGER.debug('Content of requested_outputs: %s' % requested_outputs)
-
         ## User inputs
         lon = data.get('lon', None)
         lat = data.get('lat', None)
@@ -90,19 +87,14 @@ class SubcatchmentGetter(BaseProcessor):
         ################
 
         # Note: This is not GeoJSON (on purpose), as we did not look for geometry yet.
-        output = {}
+        output = {
+            "subc_id": subc_id,
+            "region_id": reg_id,
+            "basin_id": basin_id
+        }
 
         if comment is not None:
             output['comment'] = comment
-
-        if 'subc_id' in requested_outputs or 'ALL' in requested_outputs:
-            output['subc_id'] = subc_id
-
-        if 'basin_id' in requested_outputs or 'ALL' in requested_outputs:
-            output['basin_id'] = basin_id
-
-        if 'region_id' in requested_outputs or 'ALL' in requested_outputs:
-            output['region_id'] = region_id
 
         return 'application/json', output
 

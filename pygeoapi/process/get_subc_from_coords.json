@@ -53,23 +53,7 @@
     "outputs": {
         "subc_id": {
             "title": "Subcatchment Id",
-            "description": "Subcatchment Id of the stream segment in which the provided coordinates fall.",
-            "schema": {
-                "type": "object",
-                "contentMediaType": "application/json"
-            }
-        },
-        "region_id": {
-            "title": "Region id",
-            "description": "Region id of the region where the stream segment is located.",
-            "schema": {
-                "type": "object",
-                "contentMediaType": "application/json"
-            }
-        },
-        "basin_id": {
-            "title": "Basin Id",
-            "description": "Basin id of the drainage basin where the stream segment is located.",
+            "description": "Subcatchment Id of the stream segment in which the provided coordinates fall. ALso includes regional unit id (reg_id) and basin id (basin_id) of the basin where the stream segment is located",
             "schema": {
                 "type": "object",
                 "contentMediaType": "application/json"

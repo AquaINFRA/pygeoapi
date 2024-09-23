@@ -78,52 +78,58 @@ class UpstreamPolygonGetter(BaseProcessor):
 
     def _execute(self, data, requested_outputs, conn):
 
-        # TODO: Must change behaviour based on content of requested_outputs
-        LOGGER.debug('Content of requested_outputs: %s' % requested_outputs)
-
         ## User inputs
         lon = data.get('lon', None)
         lat = data.get('lat', None)
         subc_id = data.get('subc_id', None) # optional, need either lonlat OR subc_id
         comment = data.get('comment') # optional
-        get_type = data.get('get_type', 'GeometryCollection')
+        geometry_only = data.get('geometry_only', 'false')
+        add_upstream_ids = data.get('add_upstream_ids', 'false')
+
+        # Parse add_upstream_ids
+        geometry_only = (geometry_only.lower() == 'true')
+        add_upstream_ids = (add_upstream_ids.lower() == 'true')
 
         # Overall goal: Get the upstream polygons (individual ones)
         LOGGER.info('START: Getting upstream polygons (individual ones) for lon, lat: %s, %s (or subc_id %s)' % (lon, lat, subc_id))
 
-        # Get reg_id, basin_id, subc_id, upstream_catchment_subcids
+        # Get reg_id, basin_id, subc_id, upstream_ids
         subc_id, basin_id, reg_id = helpers.get_subc_id_basin_id_reg_id(conn, LOGGER, lon, lat, subc_id)
-        upstream_catchment_subcids = helpers.get_upstream_catchment_ids(conn, subc_id, basin_id, reg_id, LOGGER)
+        upstream_ids = helpers.get_upstream_catchment_ids(conn, subc_id, basin_id, reg_id, LOGGER)
 
-        # Get geometry (feature collection only!)
-        LOGGER.debug('...Getting upstream catchment polygons for subc_id: %s' % subc_id)
-
-        if get_type.lower() == 'featurecollection':
-            feature_coll = get_upstream_catchment_polygons_feature_coll(
-                conn, subc_id, upstream_catchment_subcids, basin_id, reg_id)
-            LOGGER.debug('END: Received FeatureCollection: %s' % str(feature_coll)[0:50])
-            geojson_object = feature_coll
-
-        elif get_type.lower() == 'geometrycollection':
+        # Get geometry only:
+        if geometry_only:
+            LOGGER.debug('...Getting upstream catchment polygons for subc_id: %s' % subc_id)
             geometry_coll = get_upstream_catchment_polygons_geometry_coll(
-                conn, subc_id, upstream_catchment_subcids, basin_id, reg_id)
+                conn, subc_id, upstream_ids, basin_id, reg_id)
             LOGGER.debug('END: Received GeometryCollection: %s' % str(geometry_coll)[0:50])
-            geojson_object = geometry_coll
 
-        else:
-            err_msg = "Input parameter 'get_type' can only be one of GeometryCollection or FeatureCollection!"
-            LOGGER.error(err_msg)
-            raise ProcessorExecuteError(user_msg=err_msg)
+            if comment is not None:
+                geometry_coll['comment'] = comment
+
+            return 'application/json', geometry_coll
+
+        # Get FeatureCollection
+        if not geometry_only:
+            LOGGER.debug('...Getting upstream catchment polygons for subc_id: %s' % subc_id)
+            feature_coll = get_upstream_catchment_polygons_feature_coll(
+                conn, subc_id, upstream_ids, basin_id, reg_id)
+            LOGGER.debug('END: Received FeatureCollection: %s' % str(feature_coll)[0:50])
+
+            feature_coll['reg_id'] = reg_id
+            feature_coll['basin_id'] = basin_id
+            feature_coll['upstream_catchment_of'] = subc_id
+
+            if add_upstream_ids:
+                feature_coll['upstream_ids'] = upstream_ids 
+
+            if comment is not None:
+                feature_coll['comment'] = comment
+
+            return 'application/json', feature_coll
 
 
-        ################
-        ### Results: ###
-        ################
 
-        if comment is not None:
-            geojson_object['comment'] = comment
-
-        return 'application/json', geojson_object
 
     def get_db_connection(self):
 

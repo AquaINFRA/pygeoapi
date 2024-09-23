@@ -682,7 +682,7 @@ def get_polygon_for_subcid_feature(conn, subc_id, basin_id, reg_id, **kwargs):
     return feature_subcatchment
 
 
-def get_upstream_catchment_polygons_feature_coll(conn, subc_id, upstream_ids, basin_id, reg_id, **kwargs):
+def get_upstream_catchment_polygons_feature_coll(conn, subc_id, upstream_ids, basin_id, reg_id):
     name = "get_upstream_catchment_polygons_feature_coll"
     LOGGER.info("ENTERING: %s for subc_id: %s" % (name, subc_id))
     
@@ -714,16 +714,10 @@ def get_upstream_catchment_polygons_feature_coll(conn, subc_id, upstream_ids, ba
             "type": "Feature",
             "geometry": geomet.wkt.loads(row[1]),
             "properties": {
-                "subcatchment_id": row[0],
-                "part_of_upstream_catchment_of": subc_id,
-                "basin_id": basin_id,
-                "reg_id": reg_id
+                "subcatchment_id": row[0]
             }
 
         }
-        
-        if len(kwargs) > 0:
-            feature["properties"].update(kwargs)
 
         features_geojson.append(feature)
 
@@ -747,7 +741,7 @@ def get_upstream_catchment_polygons_geometry_coll(conn, subc_id, upstream_ids, b
         LOGGER.warning('No upstream ids. Cannot get upstream catchments (individual polygons) .')
         geometry_coll = {
             "type": "GeometryCollection",
-            "features": []
+            "geometries": []
         }
         LOGGER.debug('LEAVING: %s for subcid %s: No upstream catchment, empty GeometryCollection!' % (name, subc_id))
         return geometry_coll
@@ -768,7 +762,7 @@ def get_upstream_catchment_polygons_geometry_coll(conn, subc_id, upstream_ids, b
 
     geometry_coll = {
         "type": "GeometryCollection",
-        "features": geometries_geojson
+        "geometries": geometries_geojson
     }
 
     LOGGER.debug('LEAVING: %s: Returning a GeometryCollection with Polygons...' % (name))
@@ -1235,7 +1229,7 @@ if __name__ == "__main__":
 
     print("\n(7) upstream catchment polygons: ")
     poly_collection = get_upstream_catchment_polygons_feature_coll(
-        conn, subc_id, upstream_ids, basin_id, reg_id, bla='test')
+        conn, subc_id, upstream_ids, basin_id, reg_id)
     print("\nRESULT UPSTREAM POLYGONS (FeatureCollection/MultiPolygons)\n%s" % poly_collection)
 
     print("\n(8a): dissolved polygon as geometry/polygon")

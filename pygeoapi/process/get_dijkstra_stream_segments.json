@@ -58,6 +58,24 @@
             "metadata": null,
             "keywords": ["latitude", "wgs84"]
         },
+        "geometry_only": {
+            "title": "Get only GeoJSON GeometryCollection?",
+            "description": "Switch whether to return only a GeoJSON GeometryCollection (in this case, LineStrings), instead of a GeoJSON FeatureCollection containing additional properties. Please write \"true\" or \"false\".",
+            "schema": {"enum": ["true", "false"]},
+            "minOccurs": 0,
+            "maxOccurs": 1,
+            "metadata": null,
+            "keywords": ["GeoJSON", "GeometryCollection", "FeatureCollection"]
+        },
+        "add_segment_ids": {
+            "title": "Add segment ids?",
+            "description": "Switch whether to add the subcatchment ids of each segment along the path to the GeoJSON Feature's properties. Please write \"true\" or \"false\".",
+            "schema": {"enum": ["true", "false"]},
+            "minOccurs": 0,
+            "maxOccurs": 1,
+            "metadata": null,
+            "keywords": []
+        },
         "comment": {
             "title": "Comment",
             "description": "Arbitrary string that will not be processed but returned, for user\"s convenience.",
@@ -69,20 +87,9 @@
         }
     },
     "outputs": {
-        "path_geometry_collection": {
-            "description": "GeometryCollection",
-        },
-        "path_feature_collection": {
-            "title": "Dijkstra shortest path between two points",
-            "description": "Shortest path between the provided locations, as a FeatureCollection. Routing is done via Dijkstra algorithm. Subcatchment ids and strahler order of each line segment along the way are included.",
-            "schema": {
-                "type": "object",
-                "contentMediaType": "application/json"
-            }
-        },
-        "downstream_ids": {
-            "title": "Subcatchment id of each line segment",
-            "description": "Subcatchment id of each line segment along the path. Can be provided as separate list. Will be included in the individual features anyway",
+        "connecting_path": {
+            "title": "Shortest path between two points",
+            "description": "Shortest path between the provided locations, as a FeatureCollection or GeometryCollection. Routing is done via Dijkstra algorithm. Subcatchment ids and strahler order of each line segment along the way are included.",
             "schema": {
                 "type": "object",
                 "contentMediaType": "application/json"

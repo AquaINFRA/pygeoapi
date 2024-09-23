@@ -79,10 +79,7 @@ class DijkstraShortestPathGetter(BaseProcessor):
 
     def _execute(self, data, requested_outputs, conn):
 
-        # TODO: Must change behaviour based on content of requested_outputs
-        LOGGER.debug('Content of requested_outputs: %s' % requested_outputs)
-
-        ## User inputs
+        # User inputs
         lon_start = data.get('lon_start', None)
         lat_start = data.get('lat_start', None)
         subc_id_start = data.get('subc_id_start', None) # optional, need either lonlat OR subc_id
@@ -90,6 +87,12 @@ class DijkstraShortestPathGetter(BaseProcessor):
         lat_end = data.get('lat_end', None)
         subc_id_end = data.get('subc_id_end', None) # optional, need either lonlat OR subc_id
         comment = data.get('comment') # optional
+        add_segment_ids = data.get('add_segment_ids', 'false')
+        geometry_only = data.get('geometry_only', 'false')
+
+        # Parse booleans
+        add_segment_ids = (add_segment_ids.lower() == 'true')
+        geometry_only = (geometry_only.lower() == 'true')
 
         # Overall goal: Get the dijkstra shortest path (as linestrings)!
         LOGGER.info('START: Getting dijkstra shortest path for lon %s, lat %s (or subc_id %s) to lon %s, lat %s (or subc_id %s)' % (
@@ -117,28 +120,30 @@ class DijkstraShortestPathGetter(BaseProcessor):
         LOGGER.debug('Getting network connection for subc_id: start = %s, end = %s' % (subc_id1, subc_id2))
         segment_ids = get_dijkstra_ids(conn, subc_id1, subc_id2, reg_id1, basin_id1)
 
-        # To be returned
-        outputs = {}
-
-        # If user ONLY wants geometry collection, make Geometry collection.
-        # In all other cases, a FeatureCollection is returned. This slightly
-        # violates the principles of returning ALL if none are requested, and
-        # we'll ignore the user's wish for GeometryCollection if they also ask
-        # for other things, but overall, this seems more useful than anything else...
-        if set('path_geometry_collection') == set(requested_outputs.keys())
+        # Get geometry only:
+        if geometry_only:
             dijkstra_path_list = get_simple_linestrings_for_subc_ids(
                 conn, segment_ids, basin_id1, reg_id1)
 
-            outputs = {
+            geometry_coll = {
                 "type": "GeometryCollection",
                 "geometries": dijkstra_path_list
             }
 
-        else:
-            # Generate empty feature collection to be filled with requested outputs:
-            # TODO: Should user have to specify that they want basin_id and reg_id? I guess not?
+            if comment is not None:
+                geometry_coll['comment'] = comment
+
+            return 'application/json', geometry_coll
+
+
+        # Get FeatureCollection
+        if not geometry_only:
+
+            dijkstra_path_list = get_feature_linestrings_for_subc_ids(
+                conn, segment_ids, basin_id1, reg_id1):
+
             # TODO: Should we include the requested lon and lat? Maybe as a point?
-            outputs = {
+            feature_coll = {
                 "type": "FeatureCollection",
                 "features": [],
                 "description": "Connecting path between %s and %s" % (subc_id1, subc_id2),
@@ -147,27 +152,15 @@ class DijkstraShortestPathGetter(BaseProcessor):
                 "basin_id": basin_id1,
                 "region_id": reg_id1
             }
+
+            if add_segment_ids:
+                feature_coll['segment_ids'] = segment_ids
+
             if comment is not None:
                 outputs['comment'] = comment
 
-        if 'segment_ids' in requested_outputs or 'ALL' in requested_outputs:
-            outputs['segment_ids'] = segment_ids
+            return 'application/json', feature_coll
 
-        if 'path_feature_collection' in requested_outputs or 'ALL' in requested_outputs:
-            
-            dijkstra_path_list = get_feature_linestrings_for_subc_ids(
-                conn, segment_ids, basin_id1, reg_id1):
-
-            outputs["features"] = dijkstra_path_list
-
-
-        ################
-        ### Results: ###
-        ################
-
-        return 'application/json', outputs
-        # TODO: So far, we are packaging all requested outputs into one GeoJSON
-        # object.
 
     def get_db_connection(self):
 

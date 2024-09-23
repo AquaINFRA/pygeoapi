@@ -53,15 +53,7 @@
     "outputs": {
         "snapped_point": {
             "title": "Snapped Point",
-            "description": "WGS84 coordinates of the snapped point.",
-            "schema": {
-                "type": "object",
-                "contentMediaType": "application/json"
-            }
-        },
-        "stream_segment": {
-            "title": "Stream Segment",
-            "description": "WGS84 coordinates of the stream segment.",
+            "description": "GeoJSON FeatureCollection or GeometryCollection, containing the snapped point (as a Point), the local stream segment (as a LineString, including Strahler Order), the local subcatchment (as a Polygon, including Strahler Order), and a connecting line from the given point to the snapped point (as a LineString).",
             "schema": {
                 "type": "object",
                 "contentMediaType": "application/json"

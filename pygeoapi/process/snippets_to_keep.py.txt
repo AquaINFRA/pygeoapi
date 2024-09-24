@@ -1,0 +1,312 @@
+
+'''
+
+Several ideas of how to take into account the
+requested outputs in case several outputs do
+exist.
+
+And also the transmissionMode which is specified
+in requested outputs.
+
+Merret, August-September 2024
+
+'''
+
+
+################################################################################
+
+
+    def execute(self, data, outputs=None):
+
+        [...]
+
+        # Which transmission mode is set for all outputs?
+        # And make outputs dict consistent...
+        outputs, transmissionMode_all = self.get_overall_transmission_mode(outputs)
+
+        [...]
+
+
+    def get_overall_transmission_mode(self, outputs):
+
+        if outputs is None:
+            LOGGER.info('Client did not specify outputs, so all possible outputs are returned!')
+            outputs = {'ALL': None }
+            return outputs, 'value' # default transmissionMode
+
+        # Otherwise, iterate over all outputs. If they all have the same
+        # transmissionMode (or none), great. If not, complain.
+        transmissionMode_all = None
+        for key in outputs.keys():
+
+            if not 'transmissionMode' in outputs[key]:
+                pass # leave empty and see what is set for the others
+
+            elif outputs[key]['transmissionMode'] == 'value':
+                if transmissionMode_all == 'reference':
+                    raise ProcessorExecuteError(user_msg='Cannot mix transmissionMode "value" (%s) with "reference' % key)
+
+            elif outputs[key]['transmissionMode'] == 'reference':
+                if transmissionMode_all == 'value':
+                    raise ProcessorExecuteError(user_msg='Cannot mix transmissionMode "reference" (%s) with "value' % key)
+            else:
+                error_message = 'Did not understand "transmissionMode" of requested output "%s": "%s". Has to be either "value" or "reference"' % (
+                    key, outputs[key]['transmissionMode'])
+                raise ProcessorExecuteError(user_msg=error_message)
+
+        # If no output had a tranmissionMode set, set it to 'value':
+        if transmissionMode_all is None:
+            transmissionMode_all = "value" # default
+
+        # Fill up the ones left empty:
+        for key in outputs.keys():
+            if not 'transmissionMode' in outputs[key]:
+                outputs[key]['transmissionMode'] = transmissionMode_all
+
+        return outputs, transmissionMode_all
+
+################################################################################
+
+
+    def execute(self, data, outputs=None):
+
+        [...]
+
+
+        # Check for which outputs it is asking:
+        if outputs is None:
+            LOGGER.info('Client did not specify outputs, so all possible outputs are returned!')
+            outputs = {'ALL': None}
+        else:
+            for key in outputs.keys():
+                if not 'transmissionMode' in outputs[key]:
+                    outputs[key]['transmissionMode'] = 'value' # default
+                elif outputs[key]['transmissionMode'] == 'value':
+                    pass
+                elif outputs[key]['transmissionMode'] == 'reference':
+                    pass
+                else:
+                    error_message = 'Did not understand "transmissionMode" of requested output "%s": "%s". Has to be either "value" or "reference"' % (
+                        key, outputs[key]['transmissionMode'])
+                    raise ProcessorExecuteError(user_msg=error_message)
+
+        [...]
+
+
+# and then later in _execute(...):
+
+    def _execute(self, data, requested_outputs, conn):
+
+        # TODO: Must change behaviour based on content of requested_outputs
+        LOGGER.debug('Content of requested_outputs: %s' % requested_outputs)
+
+        [...]
+
+        ################
+        ### Results: ###
+        ################
+
+        outputs_dict = {}
+
+        if comment is not None: # TODO this is double!
+            geojson_object['comment'] = comment
+
+        if 'polygon' in requested_outputs or 'ALL' in requested_outputs:
+            LOGGER.info('USER ASKS FOR POLYGON')
+
+            try:
+                transmission_mode = requested_outputs['polygon']['transmissionMode']
+            except KeyError:
+                transmission_mode = 'value' # default
+
+
+            if transmission_mode == 'value':
+                LOGGER.info('USER ASKS FOR POLYGON VALUE')
+                outputs_dict['polygon'] = geojson_object
+
+            elif transmission_mode == 'reference':
+                # TODO: This may not be correct, as reference includes that the link is returned in
+                # a location header rather than in the response body!
+                # Store file # TODO: Not hardcode that directory!
+                downloadfilename = 'polygon-%s.json' % self.job_id
+                downloadfilepath = '/var/www/nginx/download'+os.sep+downloadfilename
+                LOGGER.debug('Writing process result to file: %s' % downloadfilepath)
+                with open(downloadfilepath, 'w', encoding='utf-8') as downloadfile:
+                    json.dump(geojson_object, downloadfile, ensure_ascii=False, indent=4)
+
+                # Create download link:
+                # TODO: Not hardcode that URL! Get from my config file, or can I even get it from pygeoapi config?
+                downloadlink = 'https://aqua.igb-berlin.de/download/'+downloadfilename
+
+                # Create output to pass back to user
+                json_response = {
+                    'title': 'Upstream Catchment, can I take this from process description TODO',
+                    'description': 'Can I take this from process description TODO',
+                    'href': downloadlink
+                }
+                outputs_dict['polygon'] = json_response
+
+            else:
+                LOGGER.error('Cannot understand transmissionMode: %s' % transmission_mode)
+
+        if 'upstream_ids' in requested_outputs or 'ALL' in requested_outputs:
+            LOGGER.info('USER ASKS FOR UPSTREAM CATCHMENT IDS')
+
+            try:
+                transmission_mode = requested_outputs['upstream_ids']['transmissionMode']
+            except KeyError:
+                transmission_mode = 'value' # default
+
+            if transmission_mode == 'value':
+                LOGGER.info('USER ASKS FOR UPSTREAM CATCHMENT IDS VALUE')
+                outputs_dict['upstream_ids'] = upstream_ids
+
+            elif transmission_mode == 'reference':
+                LOGGER.info('USER ASKS FOR UPSTREAM CATCHMENT IDS REFERENCE')
+
+                # Store file # TODO: Not hardcode that directory!
+                downloadfilename = 'upstream_ids-%s.json' % self.job_id
+                downloadfilepath = '/var/www/nginx/download'+os.sep+downloadfilename
+                LOGGER.debug('Writing process result to file: %s' % downloadfilepath)
+                with open(downloadfilepath, 'w', encoding='utf-8') as downloadfile:
+                    json.dump(upstream_ids, downloadfile, ensure_ascii=False, indent=4)
+
+                # Create download link:
+                # TODO: Not hardcode that URL! Get from my config file, or can I even get it from pygeoapi config?
+                downloadlink = 'https://aqua.igb-berlin.de/download/'+downloadfilename
+
+                # Create output to pass back to user
+                json_response = {
+                    'title': 'Upstream catchment ids, can I take this from process description TODO',
+                    'description': 'Can I take this from process description TODO',
+                    'href': downloadlink
+                }
+                outputs_dict['upstream_ids'] = json_response
+
+            else:
+                LOGGER.error('Cannot understand transmissionMode: %s' % transmission_mode)
+
+        return 'application/json', outputs_dict
+
+###############################################################
+
+
+    def execute(self, data, outputs=None):
+        
+        [...]
+
+        # Check for which outputs it is asking:
+        if outputs is None:
+            LOGGER.info('Client did not specify outputs, so all possible outputs are returned!')
+            outputs = {'ALL': None}
+
+
+        [...]
+
+    def _execute(self, data, requested_outputs, conn):
+
+
+        [...]
+
+
+                stream_segment = None
+        if 'stream_segment' in requested_outputs or 'ALL' in requested_outputs:
+
+            if get_type.lower() == 'feature':
+                feature_streamsegment = get_strahler_and_stream_segment_feature(
+                    conn, subc_id, basin_id, reg_id)
+                stream_segment = feature_streamsegment
+
+            elif get_type.lower() == 'linestring':
+                strahler, streamsegment_simple_geometry = get_strahler_and_stream_segment_linestring(
+                    conn, subc_id, basin_id, reg_id)
+                stream_segment = streamsegment_simple_geometry
+
+            elif get_type.lower() == 'featurecollection':
+                feature_streamsegment = get_strahler_and_stream_segment_feature(
+                    conn, subc_id, basin_id, reg_id)
+
+                stream_segment = {
+                    "type": "FeatureCollection",
+                    "features": [feature_streamsegment]
+                }
+
+            elif get_type.lower() == 'geometrycollection':
+                strahler, streamsegment_simple_geometry = get_strahler_and_stream_segment_linestring(
+                    conn, subc_id, basin_id, reg_id)
+
+                stream_segment = {
+                     "type": "GeometryCollection",
+                     "geometries": [streamsegment_simple_geometry]
+                }
+
+             else:
+                err_msg = "Input parameter 'get_type' can only be one of LineString, Feature, FeatureCollection and GeometryCollection!"
+                # TODO: API definition: What is better: Feature vs SimpleGeometry, or Feature vs LineString / Point / Polygon / ... ?
+                LOGGER.error(err_msg)
+                raise ProcessorExecuteError(user_msg=err_msg)
+
+
+        subcatchment = None
+        if 'subcatchment' in requested_outputs or 'ALL' in requested_outputs:
+            # In some cases, we also want to add the subcatchment polygon!
+            # (This is faster than querying the service twice).
+
+            # TODO: But in which type? Also check get_type?
+            # TODO: But like this, it cannot be added to the Feature Collection!
+            feature_subcatchment = get_polygon_for_subcid_feature(conn, subc_id, basin_id, reg_id)
+            subcatchment = feature_subcatchment
+
+            polygon_subcatchment = get_polygon_for_subcid_simple(conn, subc_id, basin_id, reg_id)
+            subcatchment = polygon_subcatchment
+
+
+
+
+        ################
+        ### Results: ###
+        ################
+
+        outputs_dict = {}
+
+        # TODO API definition: Comments as part of properties (for features), and then for geometries just adding it??
+        if comment is not None:
+            geojson_object['comment'] = comment
+
+        if 'stream_segment' in requested_outputs or 'ALL' in requested_outputs:
+
+            try:
+                tmode = requested_outputs['stream_segment']['transmissionMode']
+            except (KeyError, TypeError) as e:
+                LOGGER.debug('transmissionMode not passed for output "stream_segment": %s' % e)
+                tmode = 'value' # default
+
+            if tmode == 'value':
+                LOGGER.info('Client asks for stream_segment (value)')
+                outputs_dict['stream_segment'] = stream_segment
+            elif tmode == 'reference':
+                pass
+                # WIP TODO URGENT store response
+            else:
+                LOGGER.error('Cannot understand transmissionMode: %s' % tmode)
+
+
+        if 'subcatchment' in requested_outputs or 'ALL' in requested_outputs:
+
+            try:
+                tmode = requested_outputs['subcatchment']['transmissionMode']
+            except (KeyError, TypeError) as e:
+                LOGGER.debug('transmissionMode not passed for output "subcatchment": %s' % e)
+                tmode = 'value' # default
+
+            if tmode == 'value':
+                LOGGER.info('Client asks for subcatchment (value)')
+                outputs_dict['subcatchment'] = subcatchment
+            elif tmode == 'reference':
+                pass
+                # WIP TODO URGENT store response
+            else:
+                LOGGER.error('Cannot understand transmissionMode: %s' % tmode)
+
+
+        return 'application/json', geojson_object

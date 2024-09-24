@@ -35,7 +35,7 @@ import rasterio.mask
 from osgeo import gdal
 import json
 import requests
-import pygeoapi.process.raster_helpers as helpers
+import pygeoapi.process.utils.raster_helpers as helpers
 from pygeoapi.process.base import BaseProcessor, ProcessorExecuteError
 
 

@@ -7,7 +7,7 @@ import os
 import sys
 import traceback
 import json
-import pygeoapi.process.upstream_helpers as helpers
+import pygeoapi.process.utils.upstream_helpers as helpers
 from pygeoapi.process.geofresh.py_query_db import get_connection_object
 from pygeoapi.process.geofresh.py_query_db import get_snapped_point_simple
 import psycopg2

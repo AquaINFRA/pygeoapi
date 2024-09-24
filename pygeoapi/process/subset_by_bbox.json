@@ -63,7 +63,7 @@
         }
     },
     "outputs": {
-        "file": {
+        "subset": {
             "title": "Raster subset",
             "schema": {
                 "type": "object",

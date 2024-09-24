@@ -33,9 +33,7 @@ from rasterio import warp
 #import rasterio
 #import rasterio.mask
 from osgeo import gdal
-import uuid
 import json
-import datetime
 import pygeoapi.process.raster_helpers as helpers
 from pygeoapi.process.base import BaseProcessor, ProcessorExecuteError
 
@@ -61,10 +59,11 @@ class SubsetterBbox(BaseProcessor):
         self.supports_outputs = False
         self.job_id = None
 
-
     def set_job_id(self, job_id: str):
         self.job_id = job_id
 
+    def __repr__(self):
+        return f'<SubsetBboxProcessor> {self.name}'
 
     def execute(self, data, requested_outputs=None):
 
@@ -88,10 +87,9 @@ class SubsetterBbox(BaseProcessor):
         input_raster_filepath = input_raster_basedir.rstrip('/')+'/sub_catchment_h18v00.cog.tiff' # TODO this is just one small file!
 
         # Where to store output data
-        randomstring = uuid.uuid4().hex[0:8]
-        now = datetime.datetime.today().strftime('%Y%m%d')
-        result_filepath_uncompressed = r'/tmp/subset_%s_%s_uncompressed.tiff' % (now, randomstring)
-        result_filepath_compressed = r'/tmp/subset_%s_%s_compressed.tiff' % (now, randomstring)
+        result_filepath_uncompressed = r'/tmp/subset_%s_%s_uncompressed.tiff' % (self.metadata['id'], self.job_id)
+        downloadfilename = 'outputs-%s-%s.tiff' % (self.metadata['id'], self.job_id)
+        result_filepath_compressed = r'/var/www/nginx/download'+os.sep+downloadfilename # TODO Not hardcode this directory.
         # TODO: Must delete result files!
 
         LOGGER.info('Subsetting by window (bbox)')
@@ -107,11 +105,46 @@ class SubsetterBbox(BaseProcessor):
         with open(result_filepath_compressed, 'r+b') as myraster:
             resultfile = myraster.read()
 
-        mimetype = 'application/octet-stream'
-        return mimetype, resultfile
+        mimetype = 'application/octet-stream' # TODO: Probably a more specific type for GeoTIFF?
 
-    def __repr__(self):
-        return f'<SubsetBboxProcessor> {self.name}'
+        if self.return_hyperlink('subset', requested_outputs):
+            return 'application/json', self.get_download_link(self, 'subset', downloadfilename, mimetype)
+        else:
+            return mimetype, resultfile
+
+
+    def return_hyperlink(self, output_name, requested_outputs):
+
+        if requested_outputs is None:
+            return False
+
+        if 'transmissionMode' in requested_outputs.keys():
+            if requested_outputs['transmissionMode'] == 'reference':
+                return True
+
+        if output_name in requested_outputs.keys():
+            if 'transmissionMode' in requested_outputs[output_name]:
+                if requested_outputs[output_name]['transmissionMode'] == 'reference':
+                    return True
+
+        return False
+
+
+    def get_download_link(self, output_name, downloadfilename, mimetype):
+
+        # Create download link:
+        # TODO: Not hardcode that URL! Get from my config file, or can I even get it from pygeoapi config?
+        downloadlink = 'https://aqua.igb-berlin.de/download/'+downloadfilename
+
+        # Create output to pass back to user
+        outputs_dict = {
+            'title': self.metadata['outputs'][output_name]['title'],
+            'description': self.metadata['outputs'][output_name]['description'],
+            'mediatype': mimetype,
+            'href': downloadlink
+        }
+
+        return outputs_dict
 
 
 def _check_boundaries(north_lat, south_lat, east_lon, west_lon):

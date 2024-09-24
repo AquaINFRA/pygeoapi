@@ -19,12 +19,11 @@ from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_dissolv
 
 
 '''
+# Small:
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-upstream-dissolved/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.931555, \"lat\": 54.695070, \"get_type\":\"Feature\",  \"comment\":\"Nordoestliche Schlei bei Rabenholz\"}}"
 
-curl -X POST "http://localhost:5000/processes/get-upstream-dissolved/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Nordoestliche Schlei, bei Rabenholz\"}}"
-
-Mitten in der ELbe:
-53.537158298376575, 9.99475350366553
-curl -X POST "http://localhost:5000/processes/get-upstream-dissolved/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.994753, \"lat\": 53.537158, \"comment\":\"Mitten inner Elbe bei Hamburg\"}}"
+# Large: Mitten in der Elbe: 53.537158298376575, 9.99475350366553
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-upstream-dissolved/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.994753, \"lat\": 53.537158, \"comment\":\"Mitten inner Elbe bei Hamburg\"}}"
 '''
 
 
@@ -75,8 +74,10 @@ class UpstreamDissolvedGetter(BaseProcessor):
         comment = data.get('comment') # optional
         get_type = data.get('get_type', 'polygon')
         get_json_directly = data.get('get_json_directly', 'false') # Default: Return URL!
-        get_json_directly = (get_json_directly.lower() == 'true')
         subc_id = None # Needed below...
+
+        # Parse booleans...
+        get_json_directly = (get_json_directly.lower() == 'true')
 
         with open('pygeoapi/config.json') as myfile:
             config = json.load(myfile)
@@ -134,8 +135,6 @@ class UpstreamDissolvedGetter(BaseProcessor):
                 raise ProcessorExecuteError(user_msg=err_msg)
 
                 
-
-        # TODO move this to execute! and the database stuff!
         except ValueError as e2:
             error_message = str(e2)
             conn.close()
@@ -194,8 +193,8 @@ class UpstreamDissolvedGetter(BaseProcessor):
                 response_object = {
                     "outputs": {
                         "polygon": {
-                            "title": "this is what you asked for... dissolved polygon",
-                            "description": "i am too lazy to type one...",
+                        'title': self.metadata['outputs'][output_name]['title'],
+                        'description': self.metadata['outputs'][output_name]['description'],
                             "href": downloadlink
                         }
                     }

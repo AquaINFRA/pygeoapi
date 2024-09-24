@@ -22,7 +22,9 @@ This should be replaced by using the normal get_stream_segment.py with parameter
 but then I need to change my test HTML client, which currently only can make different process calls
 by using different process id, and not by adding parameters.
 
-curl -X POST "http://localhost:5000/processes/get-stream-segment/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Nordoestliche Schlei, bei Rabenholz\"}}"
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-stream-segment/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Nordoestliche Schlei, bei Rabenholz\"}}"
+
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-stream-segment/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Nordoestliche Schlei, bei Rabenholz\", \"geometry_only\": \"true\"}}"
 
 '''
 

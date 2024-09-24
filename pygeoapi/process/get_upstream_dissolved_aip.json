@@ -84,8 +84,8 @@
             "keywords": ["comment"]
         },
         "get_json_directly": {
-            "title": "Get GeoJSON directly, not a link",
-            "description": "Can true or false, defaults to false.",
+            "title": "Get GeoJSON directly?",
+            "description": "Specity whether to return GeoJSON directly in the response, or a link. Can be \"true\" or \"false\", defaults to \"false\".",
             "schema": {"type": "string"},
             "minOccurs": 0,
             "maxOccurs": 1,
@@ -95,9 +95,8 @@
     },
     "outputs": {
         "polygon": {
-            "title": "this is what you asked for... dissolved polygon",
-            "description": "i am too lazy to type one...",
-            "href": "was muss hier hin?",
+            "title": "Upstream Catchment Polygon",
+            "description": "Area of the upstream catchment, as a GeoJSON Feature with a Polygon geometry. If requested, contains list of ids of the subcatchments included in the upstream catchment.",
             "schema": {
                 "type": "object",
                 "contentMediaType": "application/json"

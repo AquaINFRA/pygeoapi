@@ -51,7 +51,7 @@
         },
         "geometry_only": {
             "title": "Get only GeoJSON GeometryCollection?",
-            "description": "Switch whether to return only a GeoJSON GeometryCollection (in this case, LineStrings), instead of a GeoJSON FeatureCollection containing additional properties. Please write \"true\" or \"false\".",
+            "description": "Specify whether to return only a GeoJSON GeometryCollection (in this case, LineStrings), instead of a GeoJSON FeatureCollection containing additional properties. Please write \"true\" or \"false\".",
             "schema": {"enum": ["true", "false"]},
             "minOccurs": 0,
             "maxOccurs": 1,
@@ -60,7 +60,7 @@
         },
         "add_downstream_ids": {
             "title": "Add downstream ids?",
-            "description": "Switch whether to add the subcatchment ids of each segment along the path to the GeoJSON Feature's properties. Please write \"true\" or \"false\".",
+            "description": "Specify whether to add the subcatchment ids of each segment along the path to the GeoJSON Feature's properties. Please write \"true\" or \"false\".",
             "schema": {"enum": ["true", "false"]},
             "minOccurs": 0,
             "maxOccurs": 1,
@@ -82,7 +82,9 @@
         "inputs": {
             "lon_start": "9.937520027160646",
             "lat_start": "54.69422745526058",
-            "comment": "test query"
+            "comment": "test query",
+            "add_downstream_ids": "true",
+            "geometry_only": "false"
         }
     }
 }

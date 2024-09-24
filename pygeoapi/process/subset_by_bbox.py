@@ -41,7 +41,7 @@ from pygeoapi.process.base import BaseProcessor, ProcessorExecuteError
 
 
 '''
-curl -X POST "https://aqua.igb-berlin.de/pygeoapi-dev/processes/get-subset-by-bbox/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"north\": 72.1, \"south\": 66.1, \"west\": 13.3, \"east\": 16.3}}" -o /tmp/rasteroutput.tiff
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-subset-by-bbox/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"north\": 72.1, \"south\": 66.1, \"west\": 13.3, \"east\": 16.3}}" -o /tmp/rasteroutput.tiff
 '''
 
 

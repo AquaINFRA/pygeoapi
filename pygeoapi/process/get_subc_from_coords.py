@@ -13,7 +13,7 @@ from pygeoapi.process.geofresh.py_query_db import get_connection_object
 import psycopg2
 
 '''
-curl -X POST "http://localhost:5000/processes/get-subcatchment-id/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Nordoestliche Schlei, bei Rabenholz\"}}"
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-subcatchment-id/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Nordoestliche Schlei, bei Rabenholz\"}}"
 
 
 '''

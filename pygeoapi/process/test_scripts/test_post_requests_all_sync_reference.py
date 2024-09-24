@@ -95,7 +95,8 @@ inputs = {
     "inputs": {
         "lon": "9.931555",
         "lat": "54.695070",
-        "comment": "located in schlei area"
+        "comment": "located in schlei area",
+        "geometry_only": "false"
     },
     "outputs": {
         "transmissionMode": "reference"
@@ -187,7 +188,8 @@ inputs = {
     "inputs": {
         "lon": "9.931555",
         "lat": "54.695070",
-        "comment": "located in schlei area"
+        "comment": "located in schlei area",
+        "geometry_only": "false"
     },
     "outputs": {
         "transmissionMode": "reference"
@@ -216,7 +218,8 @@ inputs = {
     "inputs": {
         "lon": "9.931555",
         "lat": "54.695070",
-        "comment": "located in schlei area"
+        "comment": "located in schlei area",
+        "geometry_only": "false"
     },
     "outputs": {
         "transmissionMode": "reference"
@@ -254,7 +257,9 @@ inputs = {
     "inputs": {
         "lon": "9.931555",
         "lat": "54.695070",
-        "comment": "located in schlei area"
+        "comment": "located in schlei area",
+        "geometry_only": "false",
+        "add_segment_ids": "true"
     },
     "outputs": {
         "transmissionMode": "reference"
@@ -284,7 +289,10 @@ inputs = {
         "lon_start": "9.937520027160646",
         "lat_start": "54.69422745526058",
         "lon_end": "9.9217",
-        "lat_end": "54.6917"
+        "lat_end": "54.6917",
+        "comment": "test bla",
+        "geometry_only": "false",
+        "add_segment_ids": "true"
     },
     "outputs": {
         "transmissionMode": "reference"
@@ -416,7 +424,9 @@ inputs = {
     "inputs": {
         "lon": "9.931555",
         "lat": "54.695070",
-        "comment": "located in schlei area"
+        "add_upstream_ids": "true",
+        "comment": "located in schlei area",
+        "geometry_only": "false"
     },
     "outputs": {
         "transmissionMode": "reference"
@@ -445,7 +455,9 @@ inputs = {
     "inputs": {
         "lon": "9.931555",
         "lat": "54.695070",
-        "comment": "located in schlei area"
+        "add_upstream_ids": "true",
+        "comment": "located in schlei area",
+        "geometry_only": "false"
     },
     "outputs": {
         "transmissionMode": "reference"
@@ -475,7 +487,9 @@ inputs = {
     "inputs": {
         "lon": "9.931555",
         "lat": "54.695070",
-        "comment": "located in schlei area"
+        "add_upstream_ids": "true",
+        "comment": "located in schlei area",
+        "geometry_only": "false"
     },
     "outputs": {
         "transmissionMode": "reference"
@@ -505,7 +519,8 @@ inputs = {
         "lon": "9.931555",
         "lat": "54.695070",
         "comment": "located in schlei area",
-        "get_type": "Feature"
+        "geometry_only": "false",
+        "add_upstream_ids": "true"
     },
     "outputs": {
         "transmissionMode": "reference"

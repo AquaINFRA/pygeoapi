@@ -20,11 +20,11 @@ from pygeoapi.process.geofresh.py_query_db import get_upstream_catchment_dissolv
 
 '''
 
-curl -X POST "http://localhost:5000/processes/get-upstream-dissolved/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Nordoestliche Schlei, bei Rabenholz\"}}"
+# Small:
+curl -X POST "https:/aqua.igb-berlin.de/pygeoapi/processes/get-upstream-dissolved/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.931555, \"lat\": 54.695070, \"comment\": \"Nordoestliche Schlei bei Rabenholz\", \"add_upstream_ids\": \"true\"}}"
 
-Mitten in der ELbe:
-53.537158298376575, 9.99475350366553
-curl -X POST "http://localhost:5000/processes/get-upstream-dissolved/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.994753, \"lat\": 53.537158, \"comment\":\"Mitten inner Elbe bei Hamburg\"}}"
+# Large: Mitten in der Elbe: 53.537158298376575, 9.99475350366553
+curl -X POST "https:/aqua.igb-berlin.de/pygeoapi/processes/get-upstream-dissolved/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.994753, \"lat\": 53.537158, \"comment\": \"Mitten inner Elbe bei Hamburg\", \"geometry_only\": \"true\"}}"
 '''
 
 

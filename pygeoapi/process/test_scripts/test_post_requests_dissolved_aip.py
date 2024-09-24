@@ -55,7 +55,7 @@ else:
     sys.exit(1)
 
 
-# Requesting GeoJSON:
+# Requesting GeoJSON Feature:
 print('\nSynchronous, value (via input "get_json_directly") %s...' % name)
 inputs = { 
     "inputs": {
@@ -70,6 +70,34 @@ resp = session.post(url, headers=headers, json=inputs)
 print('### Calling %s... done. HTTP %s' % (name, resp.status_code))
 if resp.status_code == 200:
     print('Response content: %s' % resp.json())
+    if not resp.json()['type'] == "Feature":
+        print('Response is not a Feature!')
+        sys.exit(1)
+else:
+    print('%s> HTTP %s <%s' % (70*'-', resp.status_code, 100*'-'))
+    print('Response content: %s' % resp.json())
+    print('Failed. Stopping...')
+    sys.exit(1)
+
+
+# Requesting GeoJSON Polygon:
+print('\nSynchronous, value (via input "get_json_directly") %s...' % name)
+inputs = { 
+    "inputs": {
+        "lon": "9.931555",
+        "lat": "54.695070",
+        "comment": "located in schlei area",
+        "get_type": "Polygon",
+        "get_json_directly": "true"
+    }
+}
+resp = session.post(url, headers=headers, json=inputs)
+print('### Calling %s... done. HTTP %s' % (name, resp.status_code))
+if resp.status_code == 200:
+    print('Response content: %s' % resp.json())
+    if not resp.json()['type'] == "Polygon":
+        print('Response is not a Polygon!')
+        sys.exit(1)
 else:
     print('%s> HTTP %s <%s' % (70*'-', resp.status_code, 100*'-'))
     print('Response content: %s' % resp.json())

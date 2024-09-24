@@ -17,8 +17,9 @@ from pygeoapi.process.geofresh.py_query_db import get_simple_linestrings_for_sub
 from pygeoapi.process.geofresh.py_query_db import get_feature_linestrings_for_subc_ids
 
 '''
-curl -X POST "https://aqua.igb-berlin.de/pygeoapi-dev/processes/get-shortest-path-to-sea/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.937520027160646, \"lat\": 54.69422745526058, \"comment\":\"Test\"}}"
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-shortest-path-to-sea/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.937520027160646, \"lat\": 54.69422745526058, \"geometry_only\": \"true\"}}"
 
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-shortest-path-to-sea/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.937520027160646, \"lat\": 54.69422745526058, \"comment\":\"Test\", \"add_downstream_ids\": \"true\", \"geometry_only\": \"false\"}}"
 '''
 
 # Process metadata and description

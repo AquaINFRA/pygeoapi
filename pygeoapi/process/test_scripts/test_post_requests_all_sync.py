@@ -91,7 +91,8 @@ inputs = {
     "inputs": {
         "lon": "9.931555",
         "lat": "54.695070",
-        "comment": "located in schlei area"
+        "comment": "located in schlei area",
+        "geometry_only": "false"
     }
 }
 
@@ -171,7 +172,8 @@ inputs = {
     "inputs": {
         "lon": "9.931555",
         "lat": "54.695070",
-        "comment": "located in schlei area"
+        "comment": "located in schlei area",
+        "geometry_only": "false"
     }
 }
 print('\nSynchronous %s...' % name)
@@ -196,7 +198,8 @@ inputs = {
     "inputs": {
         "lon": "9.931555",
         "lat": "54.695070",
-        "comment": "located in schlei area"
+        "comment": "located in schlei area",
+        "geometry_only": "false"
     }
 }
 print('\nSynchronous %s...' % name)
@@ -256,7 +259,10 @@ inputs = {
         "lon_start": "9.937520027160646",
         "lat_start": "54.69422745526058",
         "lon_end": "9.9217",
-        "lat_end": "54.6917"
+        "lat_end": "54.6917",
+        "comment": "test bla",
+        "geometry_only": "false",
+        "add_segment_ids": "true"
     }
 }
 print('\nSynchronous %s...' % name)
@@ -264,6 +270,9 @@ resp = session.post(url, headers=headers, json=inputs)
 print('### Calling %s... done. HTTP %s' % (name, resp.status_code))
 if resp.status_code == 200:
     print('Response content: %s' % resp.json())
+    if not "segment_ids" in resp.json():
+        print('Missing: segment_ids')
+        sys.exit(1)
 else:
     print('%s> HTTP %s <%s' % (70*'-', resp.status_code, 100*'-'))
     print('Response content: %s' % resp.json())
@@ -372,7 +381,9 @@ inputs = {
     "inputs": {
         "lon": "9.931555",
         "lat": "54.695070",
-        "comment": "located in schlei area"
+        "add_upstream_ids": "true",
+        "comment": "located in schlei area",
+        "geometry_only": "false"
     }
 }
 print('\nSynchronous %s...' % name)
@@ -380,6 +391,9 @@ resp = session.post(url, headers=headers, json=inputs)
 print('### Calling %s... done. HTTP %s' % (name, resp.status_code))
 if resp.status_code == 200:
     print('Response content: %s' % resp.json())
+    if not 'upstream_ids' in resp.json()['properties']:
+        print('Missing: upstream_ids')
+        sys.exit(1)
 else:
     print('%s> HTTP %s <%s' % (70*'-', resp.status_code, 100*'-'))
     print('Response content: %s' % resp.json())
@@ -397,7 +411,9 @@ inputs = {
     "inputs": {
         "lon": "9.931555",
         "lat": "54.695070",
-        "comment": "located in schlei area"
+        "add_upstream_ids": "true",
+        "comment": "located in schlei area",
+        "geometry_only": "false"
     }
 }
 
@@ -406,6 +422,9 @@ resp = session.post(url, headers=headers, json=inputs)
 print('### Calling %s... done. HTTP %s' % (name, resp.status_code))
 if resp.status_code == 200:
     print('Response content: %s' % resp.json())
+    if not 'upstream_ids' in resp.json()['properties']:
+        print('Missing: upstream_ids')
+        sys.exit(1)
 else:
     print('%s> HTTP %s <%s' % (70*'-', resp.status_code, 100*'-'))
     print('Response content: %s' % resp.json())
@@ -423,7 +442,9 @@ inputs = {
     "inputs": {
         "lon": "9.931555",
         "lat": "54.695070",
-        "comment": "located in schlei area"
+        "add_upstream_ids": "true",
+        "comment": "located in schlei area",
+        "geometry_only": "false"
     }
 }
 print('\nSynchronous %s...' % name)
@@ -431,6 +452,9 @@ resp = session.post(url, headers=headers, json=inputs)
 print('### Calling %s... done. HTTP %s' % (name, resp.status_code))
 if resp.status_code == 200:
     print('Response content: %s' % resp.json())
+    if not 'upstream_ids' in resp.json()['properties']:
+        print('Missing: upstream_ids')
+        sys.exit(1)
 else:
     print('%s> HTTP %s <%s' % (70*'-', resp.status_code, 100*'-'))
     print('Response content: %s' % resp.json())
@@ -450,7 +474,8 @@ inputs = {
         "lon": "9.931555",
         "lat": "54.695070",
         "comment": "located in schlei area",
-        "get_type": "Feature"
+        "geometry_only": "false",
+        "add_upstream_ids": "true"
     }
 }
 
@@ -459,12 +484,14 @@ resp = session.post(url, headers=headers, json=inputs)
 print('### Calling %s... done. HTTP %s' % (name, resp.status_code))
 if resp.status_code == 200:
     print('Response content: %s' % resp.json())
+    if not 'upstream_ids' in resp.json()['properties']:
+        print('Missing: upstream_ids')
+        sys.exit(1)
 else:
     print('%s> HTTP %s <%s' % (70*'-', resp.status_code, 100*'-'))
     print('Response content: %s' % resp.json())
     print('Failed. Stopping...')
     sys.exit(1)
-
 
 
 ###################

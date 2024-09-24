@@ -51,7 +51,7 @@
         },
         "geometry_only": {
             "title": "Get only GeoJSON GeometryCollection?",
-            "description": "Switch whether to return only a GeoJSON GeometryCollection (in this case, LineStrings), instead of a GeoJSON FeatureCollection containing additional properties. Please write \"true\" or \"false\".",
+            "description": "Specify whether to return only a GeoJSON Geometry (in this case, a LineString), instead of a GeoJSON Feature containing additional properties. Please write \"true\" or \"false\".",
             "schema": {"enum": ["true", "false"]},
             "minOccurs": 0,
             "maxOccurs": 1,
@@ -73,7 +73,8 @@
         "inputs": {
             "lon": "9.931555",
             "lat": "54.695070",
-            "comment": "located in schlei area"
+            "comment": "located in schlei area",
+            "geometry_only": "false"
         }
     }
 }

@@ -42,7 +42,7 @@
         },
         "add_upstream_ids": {
             "title": "Add upstream ids?",
-            "description": "Switch whether to add the upstream ids to the GeoJSON Feature's properties. Please write \"true\" or \"false\".",
+            "description": "Specify whether to add the upstream ids to the GeoJSON Feature's properties. Please write \"true\" or \"false\".",
             "schema": {"enum": ["true", "false"]},
             "minOccurs": 0,
             "maxOccurs": 1,
@@ -51,7 +51,7 @@
         },
         "geometry_only": {
             "title": "Get only the GeoJSON Geometry (in this case, a Polygon)?",
-            "description": "Switch whether to return only a GeoJSON Geometry, instead of a GeoJSON Feature containing additional properties. Please write \"true\" or \"false\".",
+            "description": "Specify whether to return only a GeoJSON Geometry, instead of a GeoJSON Feature containing additional properties. Please write \"true\" or \"false\".",
             "schema": {"enum": ["true", "false"]},
             "minOccurs": 0,
             "maxOccurs": 1,
@@ -82,7 +82,9 @@
         "inputs": {
             "lon": "9.931555",
             "lat": "54.695070",
-            "comment": "located in schlei area"
+            "comment": "located in schlei area",
+            "geometry_only": "false",
+            "add_upstream_ids": "true"
         }
     }
 }

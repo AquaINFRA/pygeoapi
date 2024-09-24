@@ -20,7 +20,9 @@ from pygeoapi.process.geofresh.py_query_db import get_feature_linestrings_for_su
 
 '''
 
-curl -X POST "https://aqua.igb-berlin.de/pygeoapi-dev/processes/get-shortest-path/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon_start\": 9.937520027160646, \"lat_start\": 54.69422745526058, \"lon_end\": 9.9217, \"lat_end\": 54.6917, \"comment\":\"Test\"}}"
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-shortest-path/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon_start\": 9.937520027160646, \"lat_start\": 54.69422745526058, \"lon_end\": 9.9217, \"lat_end\": 54.6917, \"geometry_only\": \"true\"}}"
+
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-shortest-path/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon_start\": 9.937520027160646, \"lat_start\": 54.69422745526058, \"lon_end\": 9.9217, \"lat_end\": 54.6917, \"comment\":\"Test\", \"add_segment_ids\": \"true\", \"geometry_only\": \"false\"}}"
 
 '''
 
@@ -82,12 +84,12 @@ class DijkstraShortestPathGetter(BaseProcessor):
         # User inputs
         lon_start = data.get('lon_start', None)
         lat_start = data.get('lat_start', None)
-        subc_id_start = data.get('subc_id_start', None) # optional, need either lonlat OR subc_id
         lon_end = data.get('lon_end', None)
         lat_end = data.get('lat_end', None)
-        subc_id_end = data.get('subc_id_end', None) # optional, need either lonlat OR subc_id
+        subc_id_start = data.get('subc_id_start', None) # optional, need either lonlat OR subc_id
+        subc_id_end = data.get('subc_id_end', None)     # optional, need either lonlat OR subc_id
         comment = data.get('comment') # optional
-        add_segment_ids = data.get('add_segment_ids', 'false')
+        add_segment_ids = data.get('add_segment_ids', 'true')
         geometry_only = data.get('geometry_only', 'false')
 
         # Parse booleans

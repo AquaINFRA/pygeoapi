@@ -41,13 +41,13 @@ from pygeoapi.process.base import BaseProcessor, ProcessorExecuteError
 
 
 '''
-curl -X POST "https://aqua.igb-berlin.de/pygeoapi-dev/processes/get-subset-by-polygon/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"polygon\": {\"type\": \"Polygon\", \"coordinates\": [ [ [ 15.081460166988848, 66.296144397828058 ], [ 13.809362140071178, 66.465757468083737 ], [ 13.809362140071178, 66.465757468083737 ], [ 13.809362140071178, 66.465757468083737 ], [ 14.948192754645092, 67.683337008133506 ], [ 15.711451570795695, 66.859502095463029 ], [ 14.493872030745925, 66.84738687615905 ], [ 15.081460166988848, 66.296144397828058 ] ] ] }}}" -o /tmp/rasteroutput.tiff
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-subset-by-polygon/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"polygon\": {\"type\": \"Polygon\", \"coordinates\": [ [ [ 15.081460166988848, 66.296144397828058 ], [ 13.809362140071178, 66.465757468083737 ], [ 13.809362140071178, 66.465757468083737 ], [ 13.809362140071178, 66.465757468083737 ], [ 14.948192754645092, 67.683337008133506 ], [ 15.711451570795695, 66.859502095463029 ], [ 14.493872030745925, 66.84738687615905 ], [ 15.081460166988848, 66.296144397828058 ] ] ] }}}" -o /tmp/rasteroutput.tiff
 
 # Curl without polygon (fill in):
-curl -X POST "https://aqua.igb-berlin.de/pygeoapi-dev/processes/get-subset-by-polygon/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"polygon\": FILL_IN}}" -o /tmp/rasteroutput.tiff
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-subset-by-polygon/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"polygon\": FILL_IN}}" -o /tmp/rasteroutput.tiff
 
 # Curl with input reference url:
-curl -X POST "https://aqua.igb-berlin.de/pygeoapi-dev/processes/get-subset-by-polygon/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"href\": \"https://aqua.igb-berlin.de/download/example_input_polygon_for_subset_by_polygon.json\"}}" -o /tmp/rasteroutput.tiff
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-subset-by-polygon/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"href\": \"https://aqua.igb-berlin.de/download/example_input_polygon_for_subset_by_polygon.json\"}}" -o /tmp/rasteroutput.tiff
 
 # Example polygon:
 {\"type\": \"Polygon\", \"coordinates\": [ [ [ 15.081460166988848, 66.296144397828058 ], [ 13.809362140071178, 66.465757468083737 ], [ 13.809362140071178, 66.465757468083737 ], [ 13.809362140071178, 66.465757468083737 ], [ 14.948192754645092, 67.683337008133506 ], [ 15.711451570795695, 66.859502095463029 ], [ 14.493872030745925, 66.84738687615905 ], [ 15.081460166988848, 66.296144397828058 ] ] ] }

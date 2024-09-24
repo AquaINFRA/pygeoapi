@@ -1,4 +1,3 @@
-
 import logging
 from pygeoapi.process.base import BaseProcessor, ProcessorExecuteError
 LOGGER = logging.getLogger(__name__)
@@ -15,8 +14,7 @@ import psycopg2
 
 '''
 curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-snapped-point/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Schlei\"}}"
-curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-snapped-point/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Schlei\", \"add_subcatchment\": true, \"get_type\": \"FeatureCollection\"}}"
-curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-snapped-point/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Schlei\", \"add_subcatchment\": true}}"
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-snapped-point/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Schlei\", \"geometry_only\": \"true\"}}"
 
 '''
 

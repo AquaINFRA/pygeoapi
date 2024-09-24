@@ -10,6 +10,7 @@
     "localhost": "127.0.0.1",
     "base_dir_subsetting_tiffs": "/opt/cloudrasters/",
     "download_dir": "/var/www/nginx/download/",
+    "download_url": "https://ourserver/download/",
     "own_url": "https://ourserver/download/",
     "r_script_dir": "/.../pygeoapi/process/aquainfra-usecase-Daugava/",
     "r_script_dir_boku": "/.../pygeoapi/process/specleanr/pygeoapi_processes/",

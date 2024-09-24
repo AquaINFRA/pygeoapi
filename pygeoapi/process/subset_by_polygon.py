@@ -69,6 +69,12 @@ class SubsetterPolygon(BaseProcessor):
         super().__init__(processor_def, PROCESS_METADATA)
         self.supports_outputs = True
         self.job_id = None
+        self.config = None
+
+        # Get config
+        config_file_path = os.environ.get('AQUA90M_CONFIG_FILE', "./config.json")
+        with open(config_file_path, 'r') as config_file:
+            self.config = json.load(config_file)
 
     def set_job_id(self, job_id: str):
         self.job_id = job_id
@@ -147,19 +153,15 @@ class SubsetterPolygon(BaseProcessor):
                     LOGGER.error('No clue what this is: %s : %s' % (type(polygon), polygon))
 
 
-        # Get config
-        config_file_path = os.environ.get('AQUA90M_CONFIG_FILE', "./config.json")
-        with open(config_file_path, 'r') as config_file:
-            config = json.load(config_file)
-
         # Where to find input data
-        input_raster_basedir = config['base_dir_subsetting_tiffs']
+        input_raster_basedir = self.config['base_dir_subsetting_tiffs']
         input_raster_filepath = input_raster_basedir.rstrip('/')+'/sub_catchment_h18v00.cog.tiff' # TODO this is just one small file!
 
         # Where to store output data
         result_filepath_uncompressed = r'/tmp/subset_%s_%s_uncompressed.tiff' % (self.metadata['id'], self.job_id)
         downloadfilename = 'outputs-%s-%s.tiff' % (self.metadata['id'], self.job_id)
-        result_filepath_compressed = r'/var/www/nginx/download'+os.sep+downloadfilename # TODO Not hardcode this directory.
+        #result_filepath_compressed = r'/var/www/nginx/download'+os.sep+downloadfilename
+        result_filepath_compressed = r'%s%s' % (self.config['download_url'], downloadfilename) # TODO Test!
         # TODO: Must delete result files!
 
         # Run it:
@@ -198,8 +200,8 @@ class SubsetterPolygon(BaseProcessor):
     def get_download_link(self, output_name, downloadfilename, mimetype):
 
         # Create download link:
-        # TODO: Not hardcode that URL! Get from my config file, or can I even get it from pygeoapi config?
-        downloadlink = 'https://aqua.igb-berlin.de/download/'+downloadfilename
+        #downloadlink = 'https://aqua.igb-berlin.de/download/'+downloadfilename
+        downloadlink = self.config['download_url'] + downloadfilename
 
         # Create output to pass back to user
         outputs_dict = {

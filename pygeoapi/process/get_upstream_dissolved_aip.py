@@ -179,17 +179,15 @@ class UpstreamDissolvedGetter(BaseProcessor):
 
                 # Store file
                 downloadfilename = 'polygon-%s.json' % self.job_id
-                downloadfilepath = '/var/www/nginx/download'+os.sep+downloadfilename
-                # TODO: Not hardcode that directory!
-                # TODO: Carefully consider permissions of that directory!
+                #downloadfilepath = '/var/www/nginx/download'+os.sep+downloadfilename
+                downloadfilepath = config['download_dir']+downloadfilename
                 LOGGER.debug('Writing process result to file: %s' % downloadfilepath)
                 with open(downloadfilepath, 'w', encoding='utf-8') as downloadfile:
                     json.dump(geojson_object, downloadfile, ensure_ascii=False, indent=4)
 
                 # Create download link:
-                downloadlink = 'https://aqua.igb-berlin.de/download/'+downloadfilename
-                # TODO: Not hardcode that URL! Get from my config file, or can I even get it from pygeoapi config?
-                # TODO: Again, carefully consider permissions of that directory!
+                #downloadlink = 'https://aqua.igb-berlin.de/download/'+downloadfilename
+                downloadlink = config['download_url'] + downloadfilename
 
                 # Build response containing the link
                 response_object = {

@@ -38,7 +38,12 @@ class DijkstraShortestPathGetter(BaseProcessor):
         super().__init__(processor_def, PROCESS_METADATA)
         self.supports_outputs = True
         self.job_id = None
+        self.config = None
 
+        # Set config:
+        config_file_path = os.environ.get('AQUA90M_CONFIG_FILE', "./config.json")
+        with open(config_file_path, 'r') as config_file:
+            self.config = json.load(config_file)
 
     def set_job_id(self, job_id: str):
         self.job_id = job_id
@@ -168,6 +173,7 @@ class DijkstraShortestPathGetter(BaseProcessor):
             else:
                 return 'application/json', feature_coll
 
+
     def return_hyperlink(self, output_name, requested_outputs):
 
         if requested_outputs is None:
@@ -186,15 +192,16 @@ class DijkstraShortestPathGetter(BaseProcessor):
 
 
     def store_to_json_file(self, output_name, json_object):
+
+        # Store to file
         downloadfilename = 'outputs-%s-%s.json' % (self.metadata['id'], self.job_id)
-        downloadfilepath = '/var/www/nginx/download'+os.sep+downloadfilename # TODO Not hardcode this directory.
+        downloadfilepath = self.config['download_dir']+downloadfilename
         LOGGER.debug('Writing process result to file: %s' % downloadfilepath)
         with open(downloadfilepath, 'w', encoding='utf-8') as downloadfile:
             json.dump(json_object, downloadfile, ensure_ascii=False, indent=4)
 
         # Create download link:
-        # TODO: Not hardcode that URL! Get from my config file, or can I even get it from pygeoapi config?
-        downloadlink = 'https://aqua.igb-berlin.de/download/'+downloadfilename
+        downloadlink = self.config['download_url'] + downloadfilename
 
         # Create output to pass back to user
         outputs_dict = {
@@ -208,10 +215,7 @@ class DijkstraShortestPathGetter(BaseProcessor):
 
     def get_db_connection(self):
 
-        # Get config
-        config_file_path = os.environ.get('AQUA90M_CONFIG_FILE', "./config.json")
-        with open(config_file_path, 'r') as config_file:
-            config = json.load(config_file)
+        config = self.config
 
         geofresh_server = config['geofresh_server']
         geofresh_port = config['geofresh_port']

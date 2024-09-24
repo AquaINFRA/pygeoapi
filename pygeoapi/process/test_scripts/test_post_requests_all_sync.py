@@ -391,7 +391,7 @@ resp = session.post(url, headers=headers, json=inputs)
 print('### Calling %s... done. HTTP %s' % (name, resp.status_code))
 if resp.status_code == 200:
     print('Response content: %s' % resp.json())
-    if not 'upstream_ids' in resp.json()['properties']:
+    if not 'upstream_ids' in resp.json():
         print('Missing: upstream_ids')
         sys.exit(1)
 else:
@@ -422,7 +422,7 @@ resp = session.post(url, headers=headers, json=inputs)
 print('### Calling %s... done. HTTP %s' % (name, resp.status_code))
 if resp.status_code == 200:
     print('Response content: %s' % resp.json())
-    if not 'upstream_ids' in resp.json()['properties']:
+    if not 'upstream_ids' in resp.json():
         print('Missing: upstream_ids')
         sys.exit(1)
 else:

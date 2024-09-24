@@ -67,6 +67,7 @@
     "outputs": {
         "subset": {
             "title": "Raster subset",
+            "description": "Subset of raster by polygon",
             "schema": {
                 "type": "object",
                 "contentMediaType": "application/octet-stream"

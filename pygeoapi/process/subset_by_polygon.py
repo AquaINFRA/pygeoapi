@@ -28,6 +28,8 @@
 # =================================================================
 
 import logging
+import traceback
+import os
 import rasterio
 import rasterio.mask
 from osgeo import gdal
@@ -65,7 +67,7 @@ class SubsetterPolygon(BaseProcessor):
 
     def __init__(self, processor_def):
         super().__init__(processor_def, PROCESS_METADATA)
-        self.supports_outputs = False
+        self.supports_outputs = True
         self.job_id = None
 
     def set_job_id(self, job_id: str):
@@ -74,10 +76,29 @@ class SubsetterPolygon(BaseProcessor):
     def __repr__(self):
         return f'<SubsetPolygonProcessor> {self.name}'
 
-    def execute(self, data, requested_outputs=None):
+    def execute(self, data, outputs=None):
+        LOGGER.info('Starting to get the subset from a GeoTIFF..."')
+        LOGGER.info('Inputs: %s' % data)
+        LOGGER.info('Requested outputs: %s' % outputs)
 
-        # TODO: Must change behaviour based on content of requested_outputs
+        # Check for which outputs it is asking:
+        if outputs is None:
+            LOGGER.info('Client did not specify outputs, so all possible outputs are returned!')
+            outputs = {'ALL': None}
+
+        try:
+            res = self._execute(data, outputs)
+            return res
+
+        except Exception as e:
+            LOGGER.error('During process execution, this happened: %s' % e)
+            print(traceback.format_exc())
+            raise ProcessorExecuteError(e) # TODO: Can we feed e into ProcessExecuteError?
+
+    def _execute(self, data, requested_outputs):
         LOGGER.debug('Content of requested_outputs: %s' % requested_outputs)
+
+        # User inputs:
         '''
         ## User inputs: Either "polygon" (GeoJSON), or "href" (link to a GeoJSON file)
         polygon = data.get('polygon', None)
@@ -150,7 +171,7 @@ class SubsetterPolygon(BaseProcessor):
         mimetype = 'application/octet-stream' # TODO: Probably a more specific type for GeoTIFF?
 
         if self.return_hyperlink('subset', requested_outputs):
-            return 'application/json', self.get_download_link(self, 'subset', downloadfilename, mimetype)
+            return 'application/json', self.get_download_link('subset', downloadfilename, mimetype)
         else:
             return mimetype, resultfile
 

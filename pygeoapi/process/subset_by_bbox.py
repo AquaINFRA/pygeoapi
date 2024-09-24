@@ -28,6 +28,8 @@
 # =================================================================
 
 import logging
+import traceback
+import os
 import rasterio
 from rasterio import warp
 #import rasterio
@@ -56,7 +58,7 @@ class SubsetterBbox(BaseProcessor):
 
     def __init__(self, processor_def):
         super().__init__(processor_def, PROCESS_METADATA)
-        self.supports_outputs = False
+        self.supports_outputs = True
         self.job_id = None
 
     def set_job_id(self, job_id: str):
@@ -65,12 +67,29 @@ class SubsetterBbox(BaseProcessor):
     def __repr__(self):
         return f'<SubsetBboxProcessor> {self.name}'
 
-    def execute(self, data, requested_outputs=None):
+    def execute(self, data, outputs=None):
+        LOGGER.info('Starting to get the subset from a GeoTIFF..."')
+        LOGGER.info('Inputs: %s' % data)
+        LOGGER.info('Requested outputs: %s' % outputs)
 
-        requested_outputs = outputs
-        # TODO: Must change behaviour based on content of requested_outputs
+        # Check for which outputs it is asking:
+        if outputs is None:
+            LOGGER.info('Client did not specify outputs, so all possible outputs are returned!')
+            outputs = {'ALL': None}
+
+        try:
+            res = self._execute(data, outputs)
+            return res
+
+        except Exception as e:
+            LOGGER.error('During process execution, this happened: %s' % e)
+            print(traceback.format_exc())
+            raise ProcessorExecuteError(e) # TODO: Can we feed e into ProcessExecuteError?
+
+    def _execute(self, data, requested_outputs):
         LOGGER.debug('Content of requested_outputs: %s' % requested_outputs)
 
+        # User inputs:
         north_lat = float(data.get('north'))
         south_lat = float(data.get('south'))
         east_lon = float(data.get('east'))
@@ -108,7 +127,7 @@ class SubsetterBbox(BaseProcessor):
         mimetype = 'application/octet-stream' # TODO: Probably a more specific type for GeoTIFF?
 
         if self.return_hyperlink('subset', requested_outputs):
-            return 'application/json', self.get_download_link(self, 'subset', downloadfilename, mimetype)
+            return 'application/json', self.get_download_link('subset', downloadfilename, mimetype)
         else:
             return mimetype, resultfile
 

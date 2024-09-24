@@ -65,6 +65,7 @@
     "outputs": {
         "subset": {
             "title": "Raster subset",
+            "description": "Subset of raster by bbox",
             "schema": {
                 "type": "object",
                 "contentMediaType": "application/octet-stream"

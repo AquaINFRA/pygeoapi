@@ -149,7 +149,7 @@ class UpstreamBboxGetter(BaseProcessor):
                 return 'application/json', feature
 
 
-   def return_hyperlink(self, output_name, requested_outputs):
+    def return_hyperlink(self, output_name, requested_outputs):
 
         if requested_outputs is None:
             return False

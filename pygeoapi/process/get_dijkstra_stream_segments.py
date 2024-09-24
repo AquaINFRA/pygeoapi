@@ -166,7 +166,7 @@ class DijkstraShortestPathGetter(BaseProcessor):
                 feature_coll['segment_ids'] = segment_ids
 
             if comment is not None:
-                outputs['comment'] = comment
+                feature_coll['comment'] = comment
 
             if self.return_hyperlink('connecting_path', requested_outputs):
                 return 'application/json', self.store_to_json_file('connecting_path', feature_coll)

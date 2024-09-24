@@ -204,9 +204,10 @@ class UpstreamStreamSegmentGetter(BaseProcessor):
 
     def get_db_connection(self):
 
-        with open('pygeoapi/config.json') as myfile:
-            # TODO possibly read path to config from some env var, like for daugava?
-            config = json.load(myfile)
+        # Get config
+        config_file_path = os.environ.get('AQUA90M_CONFIG_FILE', "./config.json")
+        with open(config_file_path, 'r') as config_file:
+            config = json.load(config_file)
 
         geofresh_server = config['geofresh_server']
         geofresh_port = config['geofresh_port']

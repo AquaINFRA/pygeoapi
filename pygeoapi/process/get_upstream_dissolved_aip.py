@@ -79,8 +79,10 @@ class UpstreamDissolvedGetter(BaseProcessor):
         # Parse booleans...
         get_json_directly = (get_json_directly.lower() == 'true')
 
-        with open('pygeoapi/config.json') as myfile:
-            config = json.load(myfile)
+        # Get config
+        config_file_path = os.environ.get('AQUA90M_CONFIG_FILE', "./config.json")
+        with open(config_file_path, 'r') as config_file:
+            config = json.load(config_file)
 
         geofresh_server = config['geofresh_server']
         geofresh_port = config['geofresh_port']

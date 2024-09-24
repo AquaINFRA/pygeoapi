@@ -98,8 +98,10 @@ class SubsetterBbox(BaseProcessor):
         # Check if inside our boundaries:
         _check_boundaries(north_lat, south_lat, east_lon, west_lon)
 
-        with open('pygeoapi/config.json') as myfile:
-            config = json.load(myfile)
+        # Get config
+        config_file_path = os.environ.get('AQUA90M_CONFIG_FILE', "./config.json")
+        with open(config_file_path, 'r') as config_file:
+            config = json.load(config_file)
 
         # Where to find input data
         input_raster_basedir = config['base_dir_subsetting_tiffs']
@@ -264,7 +266,7 @@ if __name__ == "__main__":
 
     gdal.UseExceptions()
 
-    with open('pygeoapi/config.json') as myfile:
+    with open('config.json') as myfile:
         config = json.load(myfile)
 
     input_raster_basedir = config['base_dir_subsetting_tiffs']

@@ -85,16 +85,44 @@ class StreamSegmentGetterPlus(BaseProcessor):
         lat = data.get('lat', None)
         subc_id = data.get('subc_id', None) # optional, need either lonlat OR subc_id
         comment = data.get('comment') # optional
+        geometry_only = data.get('geometry_only', 'false')
 
+        # Parse booleans
+        geometry_only = (geometry_only.lower() == 'true')
+
+        # Get subc_id, basin_ic, reg_id
         LOGGER.info('Getting stream segment and subcatchment for lon, lat: %s, %s (or subc_id %s)' % (lon, lat, subc_id))
         subc_id, basin_id, reg_id = helpers.get_subc_id_basin_id_reg_id(conn, LOGGER, lon, lat, subc_id)
 
+        # Get stream segment and strahler order, as GeoJSON LineString (and integer)
         LOGGER.debug('... Now, getting strahler and stream segment for subc_id: %s' % subc_id)
-        strahler, streamsegment_simple_geometry = get_strahler_and_stream_segment_linestring(
+        strahler, streamsegment_simple = get_strahler_and_stream_segment_linestring(
             conn, subc_id, basin_id, reg_id)
-        feature_streamsegment = {
+
+        # Get subcatchment polygon, as GeoJSON Polygon:
+        LOGGER.debug('... Now, getting subcatchment polygon for subc_id: %s' % subc_id)
+        subcatchment_simple = get_polygon_for_subcid_simple(conn, subc_id, basin_id, reg_id)
+
+        # Return only geometry:
+        if geometry_only:
+            geometry_coll = {
+                "type": "GeometryCollection",
+                "geometries": [streamsegment_simple, subcatchment_simple]
+            }
+
+            if comment is not None:
+                geometry_coll['comment'] = comment
+
+            return 'application/json', geometry_coll
+
+
+        # Return feature collection:
+        if not geometry_only:
+
+            # Make GeoJSON Feature from stream segment:
+            feature_streamsegment = {
                 "type": "Feature",
-                "geometry": streamsegment_simple_geometry,
+                "geometry": streamsegment_simple,
                 "properties": {
                     "subcatchment_id": subc_id,
                     "strahler_order": strahler,
@@ -103,34 +131,29 @@ class StreamSegmentGetterPlus(BaseProcessor):
                 }
             }
 
-        LOGGER.debug('... Now, getting subcatchment polygon for subc_id: %s' % subc_id)
-        subcatchment_simple = get_polygon_for_subcid_simple(conn, subc_id, basin_id, reg_id)
-        feature_subcatchment = {
-            "type": "Feature",
-            "geometry": subcatchment_simple,
-            "properties": {
-                "subcatchment_id": subc_id,
-                "basin_id": basin_id,
-                "reg_id": reg_id
+            # Make GeoJSON Feature from subcatchment:
+            feature_subcatchment = {
+                "type": "Feature",
+                "geometry": subcatchment_simple,
+                "properties": {
+                    "subcatchment_id": subc_id,
+                    "basin_id": basin_id,
+                    "reg_id": reg_id
+                }
             }
-        }
 
-        LOGGER.info('Received two features I think...') # TODO HOW TO CHECK VALIDITY OF RESULT?
-
-        ################
-        ### Results: ###
-        ################
-      
-        if comment is not None:
-            feature_streamsegment['properties']['comment'] = comment
-            feature_subcatchment['properties']['comment'] = comment
-        
-        outputs = {
+            # Make FeatureCollection from both:
+            feature_coll = {
                 "type": "FeatureCollection",
                 "features": [feature_streamsegment, feature_subcatchment]
-        }
-        
-        return 'application/json', outputs
+            }
+
+
+            if comment is not None:
+                feature_streamsegment['properties']['comment'] = comment
+                feature_subcatchment['properties']['comment'] = comment
+
+            return 'application/json', feature_coll
 
 
 

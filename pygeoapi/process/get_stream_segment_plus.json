@@ -51,25 +51,9 @@
         }
     },
     "outputs": {
-        "stream_segment": {
-            "title": "Stream Segment",
-            "description": "WGS84 coordinates of the stream segment.",
-            "schema": {
-                "type": "object",
-                "contentMediaType": "application/json"
-            }
-        },
-        "strahler_order": {
-            "title": "Strahler Order",
-            "description": "Strahler order of the stream segment.",
-            "schema": {
-                "type": "object",
-                "contentMediaType": "application/json"
-            }
-        },
-        "comment": {
-            "title": "Comment",
-            "description": "Arbitrary string provided by the user.",
+        "stream_segment_subcatchment": {
+            "title": "Stream Segment and Subcatchment Area",
+            "description": "Stream Segment (incl. Strahler Order) and Subcatchment Area (as a Polygon) of the local subcatchment, as a GeoJSON GeometryCollection or FeatureCollection.",
             "schema": {
                 "type": "object",
                 "contentMediaType": "application/json"

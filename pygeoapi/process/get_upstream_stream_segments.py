@@ -98,7 +98,7 @@ class UpstreamStreamSegmentGetter(BaseProcessor):
         upstream_ids = helpers.get_upstream_catchment_ids(conn, subc_id, basin_id, reg_id, LOGGER)
 
         # Log interesting cases:
-        if len(upstream_ids) == 0
+        if len(upstream_ids) == 0:
             LOGGER.warning('No upstream ids. Cannot get upstream linestrings .')
         if len(upstream_ids) == 1 and subc_id == upstream_ids[0]:
             LOGGER.debug('Upstream catchments equals subcatchment!')
@@ -107,7 +107,7 @@ class UpstreamStreamSegmentGetter(BaseProcessor):
         # Get geometry only:
         if geometry_only:
 
-            if len(upstream_ids) == 0
+            if len(upstream_ids) == 0:
                 geometries = []
             else:
                 LOGGER.debug('... Getting upstream catchment line segments for subc_id: %s' % subc_id)
@@ -129,7 +129,7 @@ class UpstreamStreamSegmentGetter(BaseProcessor):
         # Get FeatureCollection
         if not geometry_only:
 
-            if len(upstream_ids) == 0
+            if len(upstream_ids) == 0:
                 features = []
                 # Feature Collections can have empty array according to GeoJSON spec::
                 # https://datatracker.ietf.org/doc/html/rfc7946#section-3.3

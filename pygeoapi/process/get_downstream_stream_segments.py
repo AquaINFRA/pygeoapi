@@ -120,7 +120,7 @@ class DijkstraShortestPathSeaGetter(BaseProcessor):
         if not geometry_only:
 
             dijkstra_path_list = get_feature_linestrings_for_subc_ids(
-                conn, segment_ids, basin_id1, reg_id1):
+                conn, segment_ids, basin_id1, reg_id1)
         
             # TODO: Should we include the requested lon and lat? Maybe as a point?
             feature_coll = {

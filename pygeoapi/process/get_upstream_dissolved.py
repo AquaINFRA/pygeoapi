@@ -57,10 +57,6 @@ class UpstreamDissolvedGetter(BaseProcessor):
         LOGGER.info('Inputs: %s' % data)
         LOGGER.info('Requested outputs: %s' % outputs)
 
-        # Which transmission mode is set for all outputs?
-        # And make outputs dict consistent...
-        outputs, transmissionMode_all = self.get_overall_transmission_mode(outputs)
-
         try:
             conn = self.get_db_connection()
             res = self._execute(data, outputs, conn)
@@ -87,95 +83,62 @@ class UpstreamDissolvedGetter(BaseProcessor):
 
     def _execute(self, data, requested_outputs, conn):
 
-        # TODO: Must change behaviour based on content of requested_outputs
-        LOGGER.debug('Content of requested_outputs: %s' % requested_outputs)
-
-        ## User inputs
+        # User inputs
         lon = data.get('lon', None)
         lat = data.get('lat', None)
         subc_id = data.get('subc_id', None) # optional, need either lonlat OR subc_id
         comment = data.get('comment') # optional
+        geometry_only = data.get('geometry_only', 'false')
+        add_upstream_ids = data.get('add_upstream_ids', 'true')
+
+        # Parse booleans
+        geometry_only = (geometry_only.lower() == 'true')
+        add_upstream_ids = (add_upstream_ids.lower() == 'true')
 
         # Overall goal: Get the upstream polygon (as one dissolved)!
         LOGGER.info('START: Getting upstream dissolved polygon for lon, lat: %s, %s (or subc_id %s)' % (lon, lat, subc_id))
 
-        # Get reg_id, basin_id, subc_id, upstream_ids
+        # Get reg_id, basin_id, subc_id
         subc_id, basin_id, reg_id = helpers.get_subc_id_basin_id_reg_id(conn, LOGGER, lon, lat, subc_id)
+
+        # Get upstream id
         upstream_ids = helpers.get_upstream_catchment_ids(conn, subc_id, basin_id, reg_id, LOGGER)
 
-        # Generate empty feature to be filled with requested outputs:
-        # TODO: Should user have to specify that they want basin_id and reg_id? I guess not?
-        # TODO: Should we include the requested lon and lat? Maybe as a point? Then FeatureCollection?
-        feature = {
-            "type": "Feature",
-            "geometry": None,
-            "properties": {
-                "description": "Dissolved upstream catchment of subcatchment %s" % subc_id,
-                "subc_id": subc_id, # TODO how to name it?
-                "basin_id": basin_id,
-                "reg_id": reg_id
+        # Get geometry
+        LOGGER.debug('...Getting upstream catchment dissolved polygon for subc_id: %s' % subc_id)
+        polygon_simple = get_upstream_catchment_dissolved_geometry(
+            conn, subc_id, upstream_ids, basin_id, reg_id)
+
+        # Return only geometry:
+        if geometry_only:
+
+            if comment is not None:
+                polygon_simple['comment'] = comment
+
+            return 'application/json', polygon_simple
+
+        # Return Feature:
+        if not geometry_only:
+
+            # TODO: Should we include the requested lon and lat? Maybe as a point? Then FeatureCollection?
+            feature = {
+                "type": "Feature",
+                "geometry": polygon_simple,
+                "properties": {
+                    "description": "Dissolved upstream catchment of subcatchment %s" % subc_id,
+                    "subc_id": subc_id,
+                    "basin_id": basin_id,
+                    "reg_id": reg_id
+                }
             }
-        }
 
-        if comment is not None:
-            feature['properties']['comment'] = comment
+            if comment is not None:
+                feature['properties']['comment'] = comment
 
+            if add_upstream_ids:
+                feature["properties"]["upstream_ids"] = upstream_ids
 
-        ################
-        ### Results: ###
-        ################
-
-        outputs_dict = {}
-
-        if comment is not None: # TODO this is double!
-            geojson_object['comment'] = comment
-
-        if 'polygon' in requested_outputs or 'ALL' in requested_outputs:
-
-            # Get geometry
-            LOGGER.debug('...Getting upstream catchment dissolved polygon for subc_id: %s' % subc_id)
-            polygon = get_upstream_catchment_dissolved_geometry(
-                conn, subc_id, upstream_ids, basin_id, reg_id)
-
-            # Adding the geometry to the feature:
-            feature["geometry"] = polygon      
-
-        if 'upstream_ids' in requested_outputs or 'ALL' in requested_outputs:
-            LOGGER.info('User asks for upstream catchment ids')
-
-            ## Adding the upstream ids to the feature:
-            feature["properties"]["upstream_ids"] = upstream_ids
-
-
-        ###########################
-        ### Return JSON or link ###
-        ###########################
-
-        if transmissionMode_all == 'value':
             return 'application/json', feature
-
-        else:
-            # TODO: This may not be correct, as reference includes that the link is returned in
-            # a location header rather than in the response body!
-            # Store file # TODO: Not hardcode that directory!
-            downloadfilename = 'outputs-get-upstream-dissolved-%s.json' % self.job_id
-            downloadfilepath = '/var/www/nginx/download'+os.sep+downloadfilename
-            LOGGER.debug('Writing process result to file: %s' % downloadfilepath)
-            with open(downloadfilepath, 'w', encoding='utf-8') as downloadfile:
-                json.dump(feature, downloadfile, ensure_ascii=False, indent=4)
-
-            # Create download link:
-            # TODO: Not hardcode that URL! Get from my config file, or can I even get it from pygeoapi config?
-            downloadlink = 'https://aqua.igb-berlin.de/download/'+downloadfilename
-
-            # Create output to pass back to user
-            outputs_dict = {
-                'title': 'Upstream Catchment, can I take this from process description TODO',
-                'description': 'Can I take this from process description TODO',
-                'href': downloadlink
-            }
-
-            return 'application/json', outputs_dict
 
 
 
@@ -205,41 +168,3 @@ class UpstreamDissolvedGetter(BaseProcessor):
 
         return conn
 
-
-    def get_overall_transmission_mode(self, outputs):
-
-        if outputs is None:
-            LOGGER.info('Client did not specify outputs, so all possible outputs are returned!')
-            outputs = {'ALL': None }
-            return outputs, 'value' # default transmissionMode
-
-        # Otherwise, iterate over all outputs. If they all have the same
-        # transmissionMode (or none), great. If not, complain.
-        transmissionMode_all = None
-        for key in outputs.keys():
-
-            if not 'transmissionMode' in outputs[key]:
-                pass # leave empty and see what is set for the others
-
-            elif outputs[key]['transmissionMode'] == 'value':
-                if transmissionMode_all == 'reference':
-                    raise ProcessorExecuteError(user_msg='Cannot mix transmissionMode "value" (%s) with "reference' % key)
-
-            elif outputs[key]['transmissionMode'] == 'reference':
-                if transmissionMode_all == 'value':
-                    raise ProcessorExecuteError(user_msg='Cannot mix transmissionMode "reference" (%s) with "value' % key)
-            else:
-                error_message = 'Did not understand "transmissionMode" of requested output "%s": "%s". Has to be either "value" or "reference"' % (
-                    key, outputs[key]['transmissionMode'])
-                raise ProcessorExecuteError(user_msg=error_message)
-
-        # If no output had a tranmissionMode set, set it to 'value':
-        if transmissionMode_all is None:
-            transmissionMode_all = "value" # default
-
-        # Fill up the ones left empty:
-        for key in outputs.keys():
-            if not 'transmissionMode' in outputs[key]:
-                outputs[key]['transmissionMode'] = transmissionMode_all
-
-        return outputs, transmissionMode_all

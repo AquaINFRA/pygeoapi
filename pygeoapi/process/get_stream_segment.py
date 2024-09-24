@@ -104,7 +104,10 @@ class StreamSegmentGetter(BaseProcessor):
             if comment is not None:
                 streamsegment['comment'] = comment
 
-            return 'application/json', streamsegment
+            if self.return_hyperlink('snapped_point', requested_outputs):
+                return 'application/json', self.store_to_json_file('stream_segment', streamsegment)
+            else:
+                return 'application/json', streamsegment
 
 
         # Get Feature:
@@ -125,7 +128,48 @@ class StreamSegmentGetter(BaseProcessor):
             if comment is not None:
                 feature['properties']['comment'] = comment
 
-            return 'application/json', feature
+            if self.return_hyperlink('snapped_point', requested_outputs):
+                return 'application/json', self.store_to_json_file('stream_segment', feature)
+            else:
+                return 'application/json', feature
+
+
+    def return_hyperlink(self, output_name, requested_outputs):
+
+        if requested_outputs is None:
+            return False
+
+        if 'transmissionMode' in requested_outputs.keys():
+            if requested_outputs['transmissionMode'] == 'reference':
+                return True
+
+        if output_name in requested_outputs.keys():
+            if 'transmissionMode' in requested_outputs[output_name]:
+                if requested_outputs[output_name]['transmissionMode'] == 'reference':
+                    return True
+
+        return False
+
+
+    def store_to_json_file(self, output_name, json_object):
+        downloadfilename = 'outputs-%s-%s.json' % (self.metadata['id'], self.job_id)
+        downloadfilepath = '/var/www/nginx/download'+os.sep+downloadfilename # TODO Not hardcode this directory.
+        LOGGER.debug('Writing process result to file: %s' % downloadfilepath)
+        with open(downloadfilepath, 'w', encoding='utf-8') as downloadfile:
+            json.dump(json_object, downloadfile, ensure_ascii=False, indent=4)
+
+        # Create download link:
+        # TODO: Not hardcode that URL! Get from my config file, or can I even get it from pygeoapi config?
+        downloadlink = 'https://aqua.igb-berlin.de/download/'+downloadfilename
+
+        # Create output to pass back to user
+        outputs_dict = {
+            'title': self.metadata['outputs'][output_name]['title'],
+            'description': self.metadata['outputs'][output_name]['description'],
+            'href': downloadlink
+        }
+
+        return outputs_dict
 
 
     def get_db_connection(self):

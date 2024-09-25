@@ -36,8 +36,8 @@ Local catchment:
 3b get_stream_segment_plus.py
 
 Routing:
-4  get_downstream_stream_segments.py
-5  get_dijkstra_stream_segments.py
+4  get_shortest_path_to_outlet.py
+5  get_shortest_path_two_points.py
 
 Upstream catchment:
 6  get_upstream_subcids.py
@@ -247,10 +247,10 @@ else:
 #######################
 
 
-##################################
-### 4 get-shortest-path-to-sea ### TODO rename file get_downstream_stream_segments.py
-##################################
-name = 'get-shortest-path-to-sea'
+#####################################
+### 4 get-shortest-path-to-outlet ###
+#####################################
+name = 'get-shortest-path-to-outlet'
 print('\n##### Calling %s... #####' % name)
 url = base_url+'/processes/%s/execution' % name
 inputs = { 
@@ -278,10 +278,10 @@ else:
     sys.exit(1)
 
 
-###########################
-### 5 get-shortest-path ### TODO rename file get_dijkstra_stream_segments.py
-###########################
-name = 'get-shortest-path'
+######################################
+### 5 get-shortest-path-two-points ###
+######################################
+name = 'get-shortest-path-two-points'
 print('\n##### Calling %s... #####' % name)
 url = base_url+'/processes/%s/execution' % name
 inputs = { 

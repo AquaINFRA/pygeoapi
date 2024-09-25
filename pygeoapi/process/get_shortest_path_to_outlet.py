@@ -16,9 +16,9 @@ from pygeoapi.process.geofresh.py_query_db import get_simple_linestrings_for_sub
 from pygeoapi.process.geofresh.py_query_db import get_feature_linestrings_for_subc_ids
 
 '''
-curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-shortest-path-to-sea/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.937520027160646, \"lat\": 54.69422745526058, \"geometry_only\": \"true\"}}"
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-shortest-path-to-outlet/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.937520027160646, \"lat\": 54.69422745526058, \"geometry_only\": \"true\"}}"
 
-curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-shortest-path-to-sea/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.937520027160646, \"lat\": 54.69422745526058, \"comment\":\"Test\", \"add_downstream_ids\": \"true\", \"geometry_only\": \"false\"}}"
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-shortest-path-to-outlet/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.937520027160646, \"lat\": 54.69422745526058, \"comment\":\"Test\", \"add_downstream_ids\": \"true\", \"geometry_only\": \"false\"}}"
 '''
 
 # Process metadata and description
@@ -29,7 +29,7 @@ PROCESS_METADATA = json.load(open(metadata_title_and_path))
 
 
 
-class DijkstraShortestPathSeaGetter(BaseProcessor):
+class ShortestPathToOutletGetter(BaseProcessor):
 
     def __init__(self, processor_def):
         super().__init__(processor_def, PROCESS_METADATA)
@@ -47,7 +47,7 @@ class DijkstraShortestPathSeaGetter(BaseProcessor):
 
 
     def __repr__(self):
-        return f'<DijkstraShortestPathSeaGetter> {self.name}'
+        return f'<ShortestPathToOutletGetter> {self.name}'
 
 
     def execute(self, data, outputs=None):

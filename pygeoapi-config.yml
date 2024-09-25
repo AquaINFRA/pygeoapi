@@ -363,13 +363,13 @@ resources:
         processor:
             name: SubsetterPolygon
 
-    get-shortest-path:
+    get-shortest-path-two-points:
         type: process
         processor:
-            name: DijkstraShortestPathGetter
+            name: ShortestPathTwoPointsGetter
 
-    get-shortest-path-to-sea:
+    get-shortest-path-to-outlet:
         type: process
         processor:
-            name: DijkstraShortestPathSeaGetter
+            name: ShortestPathToOutletGetter
 

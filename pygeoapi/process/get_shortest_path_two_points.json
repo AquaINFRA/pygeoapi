@@ -1,9 +1,9 @@
 {
     "version": "0.0.1",
-    "id": "get-shortest-path-to-sea",
-    "title": {"en": "Dijkstra shortest path to sea"},
+    "id": "get-shortest-path-two-points",
+    "title": {"en": "Shortest path between two points"},
     "description": {
-        "en": "Return the shortest path stream from the stream segment to which the given start point belongs to sea (outlet). The path is returned as GeoJSON FeatureCollection or GeometryCollection, depending  on user input. The geometries are LineStrings in both cases. The start and end segments are included."
+        "en": "Return the shortest path (using the Dijkstra algorithm) stream from the stream segment to which the given start point belongs to the stream segment to which the given end point belongs. They have to be in the same river basin. The path is returned as GeoJSON FeatureCollection or GeometryCollection, depending on user input. The geometries are LineStrings in both cases. The start and end segments are included."
     },
     "jobControlOptions": ["sync-execute", "async-execute"],
     "keywords": ["dijkstra", "shortest-path", "stream", "stream-segment", "geojson", "GeoFRESH", "hydrography90m", "routing"],
@@ -22,7 +22,7 @@
         "hreflang": "en-US"
     }],
     "inputs": {
-        "lon": {
+        "lon_start": {
             "title": "Longitude (WGS84)",
             "description": "Longitude of the starting point.",
             "schema": {"type": "string"},
@@ -31,7 +31,7 @@
             "metadata": null,
             "keywords": ["longitude", "wgs84"]
         },
-        "lat": {
+        "lat_start": {
             "title": "Latitude (WGS84)",
             "description": "Latitude of the starting point.",
             "schema": {"type": "string"},
@@ -40,14 +40,23 @@
             "metadata": null,
             "keywords": ["latitude", "wgs84"]
         },
-        "comment": {
-            "title": "Comment",
-            "description": "Arbitrary string that will not be processed but returned, for user\"s convenience.",
+        "lon_end": {
+            "title": "Longitude (WGS84)",
+            "description": "Longitude of the destination point.",
             "schema": {"type": "string"},
-            "minOccurs": 0,
+            "minOccurs": 1,
             "maxOccurs": 1,
             "metadata": null,
-            "keywords": ["comment"]
+            "keywords": ["longitude", "wgs84"]
+        },
+        "lat_end": {
+            "title": "Latitude (WGS84)",
+            "description": "Latitude of the destination point.",
+            "schema": {"type": "string"},
+            "minOccurs": 1,
+            "maxOccurs": 1,
+            "metadata": null,
+            "keywords": ["latitude", "wgs84"]
         },
         "geometry_only": {
             "title": "Get only GeoJSON GeometryCollection?",
@@ -58,20 +67,29 @@
             "metadata": null,
             "keywords": ["GeoJSON", "GeometryCollection", "FeatureCollection"]
         },
-        "add_downstream_ids": {
-            "title": "Add downstream ids?",
+        "add_segment_ids": {
+            "title": "Add segment ids?",
             "description": "Specify whether to add the subcatchment ids of each segment along the path to the GeoJSON Feature's properties. Please write \"true\" or \"false\".",
             "schema": {"enum": ["true", "false"]},
             "minOccurs": 0,
             "maxOccurs": 1,
             "metadata": null,
             "keywords": []
+        },
+        "comment": {
+            "title": "Comment",
+            "description": "Arbitrary string that will not be processed but returned, for user\"s convenience.",
+            "schema": {"type": "string"},
+            "minOccurs": 0,
+            "maxOccurs": 1,
+            "metadata": null,
+            "keywords": ["comment"]
         }
     },
     "outputs": {
-        "downstream_path": {
-            "title": "Shortest path to sea outlet",
-            "description": "Shortest path from the provided location and the outlet of the river basin, as a FeatureCollection or GeometryCollection. Routing is done via Dijkstra algorithm. Subcatchment ids and strahler order of each line segment along the way are included.",
+        "connecting_path": {
+            "title": "Shortest path between two points",
+            "description": "Shortest path between the provided locations, as a FeatureCollection or GeometryCollection. Routing is done via Dijkstra algorithm. Subcatchment ids and strahler order of each line segment along the way are included.",
             "schema": {
                 "type": "object",
                 "contentMediaType": "application/json"
@@ -82,9 +100,11 @@
         "inputs": {
             "lon_start": "9.937520027160646",
             "lat_start": "54.69422745526058",
+            "lon_end": "9.9217",
+            "lat_end": "54.6917",
             "comment": "test query",
-            "add_downstream_ids": "true",
-            "geometry_only": "false"
+            "geometry_only": "false",
+            "add_segment_ids": "true"
         }
     }
 }

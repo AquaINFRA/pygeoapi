@@ -19,9 +19,9 @@ from pygeoapi.process.geofresh.py_query_db import get_feature_linestrings_for_su
 
 '''
 
-curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-shortest-path/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon_start\": 9.937520027160646, \"lat_start\": 54.69422745526058, \"lon_end\": 9.9217, \"lat_end\": 54.6917, \"geometry_only\": \"true\"}}"
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-shortest-path-two-points/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon_start\": 9.937520027160646, \"lat_start\": 54.69422745526058, \"lon_end\": 9.9217, \"lat_end\": 54.6917, \"geometry_only\": \"true\"}}"
 
-curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-shortest-path/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon_start\": 9.937520027160646, \"lat_start\": 54.69422745526058, \"lon_end\": 9.9217, \"lat_end\": 54.6917, \"comment\":\"Test\", \"add_segment_ids\": \"true\", \"geometry_only\": \"false\"}}"
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-shortest-path-two-points/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon_start\": 9.937520027160646, \"lat_start\": 54.69422745526058, \"lon_end\": 9.9217, \"lat_end\": 54.6917, \"comment\":\"Test\", \"add_segment_ids\": \"true\", \"geometry_only\": \"false\"}}"
 
 '''
 
@@ -32,7 +32,7 @@ metadata_title_and_path = script_title_and_path.replace('.py', '.json')
 PROCESS_METADATA = json.load(open(metadata_title_and_path))
 
 
-class DijkstraShortestPathGetter(BaseProcessor):
+class ShortestPathTwoPointsGetter(BaseProcessor):
 
     def __init__(self, processor_def):
         super().__init__(processor_def, PROCESS_METADATA)
@@ -50,7 +50,7 @@ class DijkstraShortestPathGetter(BaseProcessor):
 
 
     def __repr__(self):
-        return f'<DijkstraShortestPathGetter> {self.name}'
+        return f'<ShortestPathTwoPointsGetter> {self.name}'
 
 
     def execute(self, data, outputs=None):

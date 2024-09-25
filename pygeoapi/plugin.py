@@ -80,7 +80,7 @@ PLUGINS = {
         'SnappedPointsGetterPlus': 'pygeoapi.process.get_snapped_points_plus.SnappedPointsGetterPlus',
         'LocalSubcatchmentIdGetter': 'pygeoapi.process.get_local_subcatchment_ids.LocalSubcatchmentIdGetter',
         'LocalStreamSegmentGetter': 'pygeoapi.process.get_local_stream_segment.LocalStreamSegmentGetter',
-        'StreamSegmentGetterPlus': 'pygeoapi.process.get_stream_segment_plus.StreamSegmentGetterPlus',
+        'LocalStreamSegmentSubcatchmentGetter': 'pygeoapi.process.get_local_streamsegments_subcatchments.LocalStreamSegmentSubcatchmentGetter',
         'UpstreamStreamSegmentGetter': 'pygeoapi.process.get_upstream_stream_segments.UpstreamStreamSegmentGetter',
         'UpstreamBboxGetter': 'pygeoapi.process.get_upstream_bbox.UpstreamBboxGetter',
         'UpstreamSubcatchmentGetter': 'pygeoapi.process.get_upstream_subcatchments.UpstreamSubcatchmentGetter',

@@ -1,9 +1,9 @@
 {
     "version": "0.0.1",
-    "id": "get-stream-segment-plus",
-    "title": {"en": "Return a Stream Segment as GeoJSON"},
+    "id": "get-local-streamsegments-subcatchments",
+    "title": {"en": "Return a Stream Segment and its local subcatchment as GeoJSON"},
     "description": {
-        "en": "Return the Stream Segment of the single subcatchment as a GeoJSON Feature (where the geometry is a LineString). Upstream not included."
+        "en": "Return a Stream Segment and its local subcatchment as a GeoJSON Feature (where the geometry is a LineString). Upstream not included."
     },
     "jobControlOptions": ["sync-execute", "async-execute"],
     "keywords": ["subcatchment", "stream", "stream-segment", "geojson", "GeoFRESH", "hydrography90m"],

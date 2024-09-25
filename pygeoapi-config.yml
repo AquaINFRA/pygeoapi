@@ -328,10 +328,10 @@ resources:
         processor:
             name: LocalStreamSegmentGetter
 
-    get-stream-segment-plus:
+    get-local-streamsegments-subcatchments:
         type: process
         processor:
-            name: StreamSegmentGetterPlus
+            name: LocalStreamSegmentSubcatchmentGetter
 
     get-upstream-stream-segments:
         type: process

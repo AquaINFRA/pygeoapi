@@ -33,7 +33,7 @@ Local catchment:
 2  get_snapped_points.py
 2b get_snapped_points_plus.py
 3  get_local_stream_segments.py
-3b get_stream_segment_plus.py
+3b get_local_streamsegments_subcatchments.py
 
 Routing:
 4  get_shortest_path_to_outlet.py
@@ -188,10 +188,10 @@ else:
     sys.exit(1)
 
 
-##################################
-### 3b get-stream-segment-plus ###
-##################################
-name = "get-stream-segment-plus"
+#################################################
+### 3b get-local-streamsegments-subcatchments ###
+#################################################
+name = "get-local-streamsegments-subcatchments"
 print('\n##### Calling %s... #####' % name)
 url = base_url+'/processes/%s/execution' % name
 inputs = { 

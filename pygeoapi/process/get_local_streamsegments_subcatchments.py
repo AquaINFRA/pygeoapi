@@ -22,9 +22,9 @@ This should be replaced by using the normal get_stream_segment.py with parameter
 but then I need to change my test HTML client, which currently only can make different process calls
 by using different process id, and not by adding parameters.
 
-curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-stream-segment/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Nordoestliche Schlei, bei Rabenholz\"}}"
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-local-streamsegments-subcatchments/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Nordoestliche Schlei, bei Rabenholz\"}}"
 
-curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-stream-segment/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Nordoestliche Schlei, bei Rabenholz\", \"geometry_only\": \"true\"}}"
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-local-streamsegments-subcatchments/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Nordoestliche Schlei, bei Rabenholz\", \"geometry_only\": \"true\"}}"
 
 '''
 
@@ -35,7 +35,7 @@ metadata_title_and_path = script_title_and_path.replace('.py', '.json')
 PROCESS_METADATA = json.load(open(metadata_title_and_path))
 
 
-class StreamSegmentGetterPlus(BaseProcessor):
+class LocalStreamSegmentSubcatchmentGetter(BaseProcessor):
 
     def __init__(self, processor_def):
         super().__init__(processor_def, PROCESS_METADATA)
@@ -53,7 +53,7 @@ class StreamSegmentGetterPlus(BaseProcessor):
 
 
     def __repr__(self):
-        return f'<StreamSegmentGetter> {self.name}'
+        return f'<LocalStreamSegmentSubcatchmentGetter> {self.name}'
 
 
     def execute(self, data, outputs=None):

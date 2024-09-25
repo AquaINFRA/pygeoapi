@@ -81,10 +81,10 @@ else:
 
 
 
-###########################
-### 2 get-snapped-point ###
-###########################
-name = "get-snapped-point"
+############################
+### 2 get-snapped-points ###
+############################
+name = "get-snapped-points"
 print('\n##### Calling %s... #####' % name)
 url = base_url+'/processes/%s/execution' % name
 inputs = { 

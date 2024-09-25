@@ -308,7 +308,7 @@ resources:
         processor:
             name: UpstreamCatchmentIdGetter
 
-    get-snapped-point:
+    get-snapped-points:
         type: process
         processor:
             name: SnappedPointsGetter

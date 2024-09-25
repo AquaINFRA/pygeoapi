@@ -13,8 +13,8 @@ from pygeoapi.process.geofresh.py_query_db import get_snapped_point_simple
 import psycopg2
 
 '''
-curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-snapped-point/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Schlei\"}}"
-curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-snapped-point/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Schlei\", \"geometry_only\": \"true\"}}"
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-snapped-points/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Schlei\"}}"
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-snapped-points/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Schlei\", \"geometry_only\": \"true\"}}"
 
 '''
 

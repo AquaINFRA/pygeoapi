@@ -42,7 +42,7 @@ Routing:
 Upstream catchment:
 6  get_upstream_subcids.py
 7  get_upstream_stream_segments.py
-8  get_upstream_polygons.py
+8  get_upstream_subcatchments.py
 9  get_upstream_bbox.py
 10 get_upstream_dissolved.py
 
@@ -445,10 +445,10 @@ else:
     sys.exit(1)
 
 
-###############################
-### 8 get-upstream-polygons ###
-###############################
-name = "get-upstream-polygons"
+####################################
+### 8 get-upstream-subcatchments ###
+####################################
+name = "get-upstream-subcatchments"
 print('\n##### Calling %s... #####' % name)
 url = base_url+'/processes/%s/execution' % name
 inputs = { 

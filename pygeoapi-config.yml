@@ -343,10 +343,10 @@ resources:
         processor:
             name: UpstreamBboxGetter
 
-    get-upstream-polygons:
+    get-upstream-subcatchments:
         type: process
         processor:
-            name: UpstreamPolygonGetter
+            name: UpstreamSubcatchmentGetter
 
     get-upstream-dissolved:
         type: process

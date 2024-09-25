@@ -1,7 +1,7 @@
 {
     "version": "0.0.1",
-    "id": "get-upstream-polygons",
-    "title": {"en": "Return upstream catchment polygons as GeoJSON"},
+    "id": "get-upstream-subcatchments",
+    "title": {"en": "Return upstream subcatchment polygons as GeoJSON"},
     "description": {
         "en": "Return the geometry of the upstream catchments of the subcatchment into which the given point falls as a GeoJSON Feature Collection (where the geometries are Polygons). The subcatchment itself not included."
     },

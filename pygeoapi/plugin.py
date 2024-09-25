@@ -83,7 +83,7 @@ PLUGINS = {
         'StreamSegmentGetterPlus': 'pygeoapi.process.get_stream_segment_plus.StreamSegmentGetterPlus',
         'UpstreamStreamSegmentGetter': 'pygeoapi.process.get_upstream_stream_segments.UpstreamStreamSegmentGetter',
         'UpstreamBboxGetter': 'pygeoapi.process.get_upstream_bbox.UpstreamBboxGetter',
-        'UpstreamPolygonGetter': 'pygeoapi.process.get_upstream_polygons.UpstreamPolygonGetter',
+        'UpstreamSubcatchmentGetter': 'pygeoapi.process.get_upstream_subcatchments.UpstreamSubcatchmentGetter',
         'UpstreamDissolvedGetter': 'pygeoapi.process.get_upstream_dissolved.UpstreamDissolvedGetter',
         'DijkstraShortestPathGetter': 'pygeoapi.process.get_dijkstra_stream_segments.DijkstraShortestPathGetter',
         'DijkstraShortestPathSeaGetter': 'pygeoapi.process.get_downstream_stream_segments.DijkstraShortestPathSeaGetter',

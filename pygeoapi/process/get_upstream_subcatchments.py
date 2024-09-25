@@ -18,10 +18,10 @@ import psycopg2
 
 '''
 
-curl -X POST "https:/aqua.igb-berlin.de/pygeoapi/processes/get-upstream-polygons/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Nordoestliche Schlei bei Rabenholz\", \"add_upstream_ids\": \"true\"}}"
+curl -X POST "https:/aqua.igb-berlin.de/pygeoapi/processes/get-upstream-subcatchments/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Nordoestliche Schlei bei Rabenholz\", \"add_upstream_ids\": \"true\"}}"
 
 # Large: Mitten in der Elbe: 53.537158298376575, 9.99475350366553
-curl -X POST "https:/aqua.igb-berlin.de/pygeoapi/processes/get-upstream-polygons/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.994753, \"lat\": 53.537158, \"comment\":\"Mitten inner Elbe bei Hamburg\", \"geometry_only\": \"true\"}}"
+curl -X POST "https:/aqua.igb-berlin.de/pygeoapi/processes/get-upstream-subcatchments/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.994753, \"lat\": 53.537158, \"comment\":\"Mitten inner Elbe bei Hamburg\", \"geometry_only\": \"true\"}}"
 
 
 '''
@@ -34,7 +34,7 @@ PROCESS_METADATA = json.load(open(metadata_title_and_path))
 
 
 
-class UpstreamPolygonGetter(BaseProcessor):
+class UpstreamSubcatchmentGetter(BaseProcessor):
 
     def __init__(self, processor_def):
         super().__init__(processor_def, PROCESS_METADATA)
@@ -53,7 +53,7 @@ class UpstreamPolygonGetter(BaseProcessor):
 
 
     def __repr__(self):
-        return f'<UpstreamPolygonGetter> {self.name}'
+        return f'<UpstreamSubcatchmentGetter> {self.name}'
 
 
     def execute(self, data, outputs=None):

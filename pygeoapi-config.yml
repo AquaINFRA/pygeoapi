@@ -303,11 +303,6 @@ resources:
         processor:
             name: HelloWorld
 
-    get-upstream-subcids:
-        type: process
-        processor:
-            name: UpstreamSubcidGetter
-
     get-snapped-points:
         type: process
         processor:
@@ -332,6 +327,11 @@ resources:
         type: process
         processor:
             name: LocalStreamSegmentSubcatchmentGetter
+
+    get-upstream-subcids:
+        type: process
+        processor:
+            name: UpstreamSubcidGetter
 
     get-upstream-stream-segments:
         type: process

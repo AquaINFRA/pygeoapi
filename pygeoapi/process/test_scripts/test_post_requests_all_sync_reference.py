@@ -321,7 +321,7 @@ else:
 ##############################
 ### 6 get-upstream-subcids ###
 ##############################
-name = "get-upstream-catchment-ids"
+name = "get-upstream-subcids"
 print('\n##### Calling %s... #####' % name)
 url = base_url+'/processes/%s/execution' % name
 inputs = { 

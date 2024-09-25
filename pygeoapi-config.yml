@@ -303,10 +303,10 @@ resources:
         processor:
             name: HelloWorld
 
-    get-upstream-catchment-ids:
+    get-upstream-subcids:
         type: process
         processor:
-            name: UpstreamCatchmentIdGetter
+            name: UpstreamSubcidGetter
 
     get-snapped-points:
         type: process

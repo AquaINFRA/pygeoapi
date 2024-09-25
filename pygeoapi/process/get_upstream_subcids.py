@@ -14,10 +14,10 @@ import psycopg2
 
 '''
 # Small:
-curl -X POST "https:/aqua.igb-berlin.de/pygeoapi/processes/get-upstream-catchment-ids/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Nordoestliche Schlei bei Rabenholz\"}}"
+curl -X POST "https:/aqua.igb-berlin.de/pygeoapi/processes/get-upstream-subcids/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Nordoestliche Schlei bei Rabenholz\"}}"
 
 # Large: Mitten in der Elbe: 53.537158298376575, 9.99475350366553
-curl -X POST "https:/aqua.igb-berlin.de/pygeoapi/processes/get-upstream-dissolved/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.994753, \"lat\": 53.537158, \"comment\": \"Mitten inner Elbe bei Hamburg\"}}"
+curl -X POST "https:/aqua.igb-berlin.de/pygeoapi/processes/get-upstream-subcids/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.994753, \"lat\": 53.537158, \"comment\": \"Mitten inner Elbe bei Hamburg\"}}"
 
 '''
 
@@ -29,7 +29,7 @@ PROCESS_METADATA = json.load(open(metadata_title_and_path))
 
 
 
-class UpstreamCatchmentIdGetter(BaseProcessor):
+class UpstreamSubcidGetter(BaseProcessor):
 
     def __init__(self, processor_def):
         super().__init__(processor_def, PROCESS_METADATA)
@@ -47,7 +47,7 @@ class UpstreamCatchmentIdGetter(BaseProcessor):
 
 
     def __repr__(self):
-        return f'<UpstreamCatchmentIdGetter> {self.name}'
+        return f'<UpstreamSubcidGetter> {self.name}'
 
 
     def execute(self, data, outputs=None):

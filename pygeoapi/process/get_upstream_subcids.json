@@ -1,9 +1,9 @@
 {
     "version": "0.0.1",
-    "id": "get-upstream-catchment",
+    "id": "get-upstream-subcids",
     "title": {"en": "Return upstream catchment ids"},
     "description": {
-        "en": "Return the subcatchment ids of the upstream catchment of the subcatchment (into which the given point falls) as a list of integer numbers. The subcatchment itself not included."
+        "en": "Return the subcatchment ids of all the subcatchments making up the upstream catchment (of the subcatchment into which the given point falls) as a list of integer numbers. The subcatchment itself not included."
     },
     "jobControlOptions": ["sync-execute", "async-execute"],
     "keywords": ["subcatchment", "upstream", "GeoFRESH", "hydrography90m"],

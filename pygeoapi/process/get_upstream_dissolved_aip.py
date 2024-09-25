@@ -68,7 +68,7 @@ class UpstreamDissolvedGetter(BaseProcessor):
         # TODO: Must change behaviour based on content of requested_outputs
         LOGGER.debug('Content of requested_outputs: %s' % requested_outputs)
 
-        ## User inputs
+        # User inputs
         lon = data.get('lon', None)
         lat = data.get('lat', None)
         comment = data.get('comment') # optional
@@ -190,6 +190,7 @@ class UpstreamDissolvedGetter(BaseProcessor):
                 downloadlink = config['download_url'] + downloadfilename
 
                 # Build response containing the link
+                output_name = 'polygon'
                 response_object = {
                     "outputs": {
                         "polygon": {

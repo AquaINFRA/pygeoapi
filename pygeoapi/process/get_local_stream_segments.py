@@ -18,10 +18,10 @@ from pygeoapi.process.geofresh.py_query_db import get_strahler_and_stream_segmen
 '''
 
 # Request returning a Feature:
-curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-local-stream-segment/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Schlei\"}}"
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-local-stream-segments/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Schlei\"}}"
 
 # Request, returning a simple geometry (linestring):
-curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-local-stream-segment/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"geometry_only\": true}}"
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-local-stream-segments/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"geometry_only\": true}}"
 '''
 
 # Process metadata and description

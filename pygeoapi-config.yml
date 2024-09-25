@@ -323,7 +323,7 @@ resources:
         processor:
             name: LocalSubcatchmentIdGetter
 
-    get-local-stream-segment:
+    get-local-stream-segments:
         type: process
         processor:
             name: LocalStreamSegmentGetter

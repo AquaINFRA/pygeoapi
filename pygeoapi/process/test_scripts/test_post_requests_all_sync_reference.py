@@ -29,7 +29,7 @@ session = requests.Session()
 
 '''
 Local catchment:
-1  get_subc_from_coords.py
+1  get_local_subcatchment_ids.py
 2  get_snapped_points.py
 2b get_snapped_points_plus.py
 3  get_stream_segment.py
@@ -55,10 +55,10 @@ Upstream catchment:
 #####################
 #####################
 
-#############################
-### 1 get-subcatchment-id ###  get_subc_from_coords
-#############################
-name = "get-subcatchment-id"
+####################################
+### 1 get-local-subcatchment-ids ###
+####################################
+name = "get-local-subcatchment-ids"
 print('\n##### Calling %s... #####' % name)
 url = base_url+'/processes/%s/execution' % name
 inputs = { 

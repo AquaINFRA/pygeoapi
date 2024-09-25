@@ -18,10 +18,10 @@ from pygeoapi.process.geofresh.py_query_db import get_strahler_and_stream_segmen
 '''
 
 # Request returning a Feature:
-curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-stream-segment/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Schlei\"}}"
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-local-stream-segment/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Schlei\"}}"
 
 # Request, returning a simple geometry (linestring):
-curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-stream-segment/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"geometry_only\": true}}"
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-local-stream-segment/execution" -H "Content-Type: application/json" -d "{\"inputs\":{ \"lon\": 9.931555, \"lat\": 54.695070, \"geometry_only\": true}}"
 '''
 
 # Process metadata and description
@@ -31,7 +31,7 @@ metadata_title_and_path = script_title_and_path.replace('.py', '.json')
 PROCESS_METADATA = json.load(open(metadata_title_and_path))
 
 
-class StreamSegmentGetter(BaseProcessor):
+class LocalStreamSegmentGetter(BaseProcessor):
 
     def __init__(self, processor_def):
         super().__init__(processor_def, PROCESS_METADATA)
@@ -50,7 +50,7 @@ class StreamSegmentGetter(BaseProcessor):
 
 
     def __repr__(self):
-        return f'<StreamSegmentGetter> {self.name}'
+        return f'<LocalStreamSegmentGetter> {self.name}'
 
 
     def execute(self, data, outputs=None):

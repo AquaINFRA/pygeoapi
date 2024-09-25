@@ -333,10 +333,10 @@ resources:
         processor:
             name: UpstreamSubcidGetter
 
-    get-upstream-stream-segments:
+    get-upstream-streamsegments:
         type: process
         processor:
-            name: UpstreamStreamSegmentGetter
+            name: UpstreamStreamSegmentsGetter
 
     get-upstream-bbox:
         type: process

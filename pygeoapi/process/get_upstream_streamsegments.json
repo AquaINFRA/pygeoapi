@@ -1,6 +1,6 @@
 {
     "version": "0.0.1",
-    "id": "get-upstream-stream-segments",
+    "id": "get-upstream-streamsegments",
     "title": {"en": "Return upstream catchment stream segments as GeoJSON"},
     "description": {
         "en": "Return the stream segments of the upstream catchments of the subcatchment (into which the given point falls) as a GeoJSON Feature (where the geometry is a LineString). The subcatchment itself not included."

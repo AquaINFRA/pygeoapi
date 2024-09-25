@@ -41,7 +41,7 @@ Routing:
 
 Upstream catchment:
 6  get_upstream_subcids.py
-7  get_upstream_stream_segments.py
+7  get_upstream_streamsegments.py
 8  get_upstream_subcatchments.py
 9  get_upstream_bbox.py
 10 get_upstream_dissolved.py
@@ -414,10 +414,10 @@ else:
     sys.exit(1)
 
 
-######################################
-### 7 get-upstream-stream-segments ###
-######################################
-name = "get-upstream-stream-segments"
+#####################################
+### 7 get-upstream-streamsegments ###
+#####################################
+name = "get-upstream-streamsegments"
 print('\n##### Calling %s... #####' % name)
 url = base_url+'/processes/%s/execution' % name
 inputs = { 

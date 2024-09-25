@@ -13,7 +13,7 @@ from pygeoapi.process.geofresh.py_query_db import get_connection_object
 import psycopg2
 
 '''
-curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-local-subcatchment-ids/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Nordoestliche Schlei, bei Rabenholz\"}}"
+curl -X POST "https://aqua.igb-berlin.de/pygeoapi/processes/get-local-subcids/execution" -H "Content-Type: application/json" -d "{\"inputs\":{\"lon\": 9.931555, \"lat\": 54.695070, \"comment\":\"Nordoestliche Schlei, bei Rabenholz\"}}"
 
 
 '''
@@ -25,7 +25,7 @@ metadata_title_and_path = script_title_and_path.replace('.py', '.json')
 PROCESS_METADATA = json.load(open(metadata_title_and_path))
 
 
-class LocalSubcatchmentIdGetter(BaseProcessor):
+class LocalSubcidGetter(BaseProcessor):
 
     def __init__(self, processor_def):
         super().__init__(processor_def, PROCESS_METADATA)
@@ -44,7 +44,7 @@ class LocalSubcatchmentIdGetter(BaseProcessor):
 
 
     def __repr__(self):
-        return f'<LocalSubcatchmentIdGetter> {self.name}'
+        return f'<LocalSubcidGetter> {self.name}'
 
 
     def execute(self, data, outputs=None):

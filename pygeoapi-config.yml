@@ -313,10 +313,10 @@ resources:
         processor:
             name: SnappedPointsGetterPlus
 
-    get-local-subcatchment-ids:
+    get-local-subcids:
         type: process
         processor:
-            name: LocalSubcatchmentIdGetter
+            name: LocalSubcidGetter
 
     get-local-stream-segments:
         type: process

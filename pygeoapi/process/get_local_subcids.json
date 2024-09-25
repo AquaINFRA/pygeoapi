@@ -1,7 +1,7 @@
 {
     "version": "0.0.1",
-    "id": "get-local-subcatchment-ids",
-    "title": {"en": "Return subcatchment id"},
+    "id": "get-local-subcids",
+    "title": {"en": "Return subcatchment ids"},
     "description": {
         "en": "Return the subcatchment id of the single subcatchment (into which the given point falls), as an integer number"
     },

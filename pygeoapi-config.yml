@@ -318,10 +318,10 @@ resources:
         processor:
             name: LocalSubcidGetter
 
-    get-local-stream-segments:
+    get-local-streamsegments:
         type: process
         processor:
-            name: LocalStreamSegmentGetter
+            name: LocalStreamSegmentsGetter
 
     get-local-streamsegments-subcatchments:
         type: process

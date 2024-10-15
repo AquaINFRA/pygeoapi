@@ -69,3 +69,39 @@ pip3 install -r /.../pygeoapi/requirements.txt
 
 
 * Finally, restart the service: `sudo systemctl restart pygeoapi`
+
+
+
+
+
+## AquaINFRA instance: Freshwater Metadatabase Catalogue
+
+
+```
+ resources:
+    fmdb_catalogue:
+        type: collection
+        title: Freshwater Metadatabase catalogue
+        description: The Freshwater Metadatabase was built as part of the EU BioFresh project to centralise information on freshwater related datasets. It collects various characteristics describing a dataset (e.g. data provider, access and intellectual property rights, regional coverage and spatial extent, environmental and climate related parameter) and allows querying this information.
+        keywords:
+            - freshwater
+            - catalogue
+        links:
+            - type: text/html
+              rel: canonical
+              title: information
+              href: http://www.freshwatermetadata.eu/metadb/
+              hreflang: en-US
+        extents:
+            spatial:
+                bbox: [-180,-90,180,90]
+                crs: http://www.opengis.net/def/crs/OGC/1.3/CRS84
+        providers:
+            - type: record
+              name: TinyDBCatalogue
+              data: /.../metadata/fmdb_20240708.tinydb
+              id_field: id
+              time_field: created
+              title_field: title
+```
+

@@ -1,0 +1,29 @@
+{
+        "version": 1,
+        "formatters": {
+                "simple": {
+                        "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+                 }
+        },
+        "loggers": {
+                "filelock": { "level": "ERROR" },
+                "pygeoapi.l10n": {"level": "WARNING" },
+                "pygeoapi.util": { "level": "INFO" },
+                "asyncio": { "level":"INFO" }
+        },
+        "handlers": {
+                "myhandler": {
+                        "class": "logging.handlers.RotatingFileHandler",
+                        "level": "DEBUG",
+                        "filename": "/opt/pyg_aquainfra/gunicorn.log",
+                        "maxBytes": 10485760,
+                        "backupCount": 40,
+                        "encoding": "utf8",
+                        "formatter": "simple"
+                }
+        },
+        "root": {
+                "level": "DEBUG",
+                "handlers": ["myhandler"]
+        }
+}

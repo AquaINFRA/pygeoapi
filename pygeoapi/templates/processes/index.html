@@ -11,6 +11,7 @@
           <table class="table table-striped table-bordered">
             <thead>
               <tr>
+                <th>{% trans %}Use case{% endtrans %}</th>
                 <th>{% trans %}Name{% endtrans %}</th>
                 <th>{% trans %}Description{% endtrans %}</th>
               </tr>
@@ -18,6 +19,9 @@
             <tbody>
               {% for p in data['processes'] %}
               <tr itemscope itemtype="https://schema.org/WebAPI">
+                <td itemprop="use_case" data-label="use_casee">
+                  {{ p['use_case'] | striptags | truncate }}
+                </td>
                 <td itemprop="name" data-label="name">
                   <meta itemprop="url" content="{{ config['server']['url'] }}/processes/{{ p['id'] }}" />
                   <a title="{{ p['title'] | striptags | truncate }}" href="{{ config['server']['url'] }}/processes/{{ p['id'] }}">{{ p['title'] | striptags | truncate }}</a>

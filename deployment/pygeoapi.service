@@ -7,7 +7,7 @@ User=pyguser
 Group=www-data
 WorkingDirectory=/opt/pyg_aquainfra
 Environment="PATH=/opt/pyg_aquainfra/venv/bin"
-ExecStart=/opt/pyg_aquainfra/venv/bin/gunicorn --workers 3 --log-level DEBUG --access-logfile /opt/pyg_aquainfra/gunicorn-access.log --error-logfile /opt/pyg_aquainfra/gunicorn-error.log --bind unix:pygeo.sock -m 007 pygeoapi.flask_app:APP
+ExecStart=/opt/pyg_aquainfra/venv/bin/gunicorn --workers 3 --bind 0.0.0.0:8000 -m 007 pygeoapi.flask_app:APP
 
 
 [Install]

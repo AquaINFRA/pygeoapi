@@ -7,7 +7,8 @@ User=pyguser
 Group=www-data
 WorkingDirectory=/opt/pyg_aquainfra
 Environment="PATH=/opt/pyg_aquainfra/venv/bin"
-ExecStart=/opt/pyg_aquainfra/venv/bin/gunicorn pygeoapi.starlette_app:APP --log-level DEBUG --access-logfile /opt/pyg_aquainfra/gunicorn-starlette-access.log --error-logfile /opt/pyg_aquainfra/gunicorn-starlette-error.log --bind unix:pygeo.sock -w 4 -k uvicorn.workers.UvicornH11Worker
+ExecStart=/opt/pyg_aquainfra/venv/bin/gunicorn pygeoapi.starlette_app:APP --log-level DEBUG --access-logfile /opt/pyg_aquainfra/gunicorn-starlette-access.log --error-logfile /opt/pyg_aquainfra/gunicorn-starlette-error.log --bind unix:/opt/pyg_aquainfra/pygeo.sock -w 4 -k uvicorn.workers.UvicornH11Worker
+
 
 [Install]
 WantedBy=multi-user.target

@@ -72,6 +72,9 @@ os.environ['PYGEOAPI_OPENAPI'] = '/xyz/pygeoapi/pygeoapi-openapi.yml'
 os.environ['AQUA90M_CONFIG_FILE'] = '/xyz/pygeoapi/config.json'
 os.environ['DAUGAVA_CONFIG_FILE'] = '/xyz/pygeoapi/config.json'
 os.environ['BOKU_CONFIG_FILE'] = '/xyz/pygeoapi/config.json'
+os.environ['PYOWT_CONFIG_FILE'] = '/xyz/pygeoapi/config.json'
+os.environ['HELCOM_CONFIG_FILE'] = '/xyz/pygeoapi/config.json'
+os.environ['SYKE_CONFIG_FILE'] = '/xyz/pygeoapi/config.json'
 
 
 CONFIG = get_config()
@@ -422,7 +425,7 @@ async def get_processes(request: Request, process_id=None):
     if 'process_id' in request.path_params:
         # Here, we cannot use LOGGER, we need to print!
         # Otherwise: NameError: name 'LOGGER' is not defined
-        # The printed statements end up in the startlette error log!
+        # The printed statements end up in the starlette error log!
         print('PRINT: request.path_params: %s' % request.path_params)
 
         process_id = request.path_params['process_id']
@@ -789,7 +792,7 @@ def serve(ctx, server=None, debug=False):
         "pygeoapi.starlette_app:APP",
         reload=True,
         log_level=log_level,
-        #log_config='/.../.../log_config.json', # This does not seem to be picked up!
+        #log_config='/.../.../log_config.json', # this would only be picked up if we ran this directly, instead of via gunicorn.
         loop='asyncio',
         host=api_.config['server']['bind']['host'],
         port=api_.config['server']['bind']['port'])

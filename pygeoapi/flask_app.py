@@ -60,7 +60,9 @@ os.environ['PYGEOAPI_OPENAPI'] = '/xyz/pygeoapi/pygeoapi-openapi.yml'
 os.environ['AQUA90M_CONFIG_FILE'] = '/xyz/pygeoapi/config.json'
 os.environ['DAUGAVA_CONFIG_FILE'] = '/xyz/pygeoapi/config.json'
 os.environ['BOKU_CONFIG_FILE'] = '/xyz/pygeoapi/config.json'
-
+os.environ['PYOWT_CONFIG_FILE'] = '/xyz/pygeoapi/config.json'
+os.environ['HELCOM_CONFIG_FILE'] = '/xyz/pygeoapi/config.json'
+os.environ['SYKE_CONFIG_FILE'] = '/xyz/pygeoapi/config.json'
 
 
 ## Logging settings:

@@ -1,0 +1,14 @@
+[Unit]
+Description=Gunicorn instance to serve pygeoapi
+After=network.target
+
+[Service]
+User=pyguser
+Group=www-data
+WorkingDirectory=/opt/pyg_aquainfra
+Environment="PATH=/opt/pyg_aquainfra/venv/bin"
+ExecStart=/opt/pyg_aquainfra/venv/bin/gunicorn --workers 3 --bind unix:pygeo.sock -m 007 pygeoapi.flask_app:APP
+
+
+[Install]
+WantedBy=multi-user.target

@@ -52,13 +52,13 @@ server:
         attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
     manager:
         name: TinyDB
-        connection: /tmp/pygeoapi-process-manager.db # TODO Maybe not in tmp?
-        output_dir: /tmp/
+        connection: /opt/processdb/pygeoapi-process-manager.db # change if desired!
+        output_dir: /opt/processdb                             # change if desired!
     # ogc_schemas_location: /opt/schemas.opengis.net
     admin: false # enable admin api
 
 logging:
-    level: ERROR
+    level: ERROR # change if desired!
     #logfile: /tmp/pygeoapi.log
 
 metadata:

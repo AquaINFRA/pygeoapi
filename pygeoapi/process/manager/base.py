@@ -394,6 +394,8 @@ class BaseManager:
             'requested_response': requested_response
         }
 
+        IS_ASYNC = False # (Added by Merret)
+
         if execution_mode == RequestedProcessExecutionMode.respond_async:
             job_control_options = processor.metadata.get(
                 'jobControlOptions', [])
@@ -408,6 +410,8 @@ class BaseManager:
                     'Preference-Applied': (
                         RequestedProcessExecutionMode.respond_async.value)
                 }
+
+                IS_ASYNC = True # (Added by Merret)
             else:
                 LOGGER.debug('Synchronous execution')
                 handler = self._execute_handler_sync
@@ -458,6 +462,32 @@ class BaseManager:
             data_dict,
             requested_outputs,
             **extra_execute_handler_parameters)
+
+        LOGGER.debug('### Outputs after running the process: %s' % outputs)
+        # The "outputs" object is returned from the process directly, or nested
+        # into outputs = {'outputs': [outputs]} in case the user requested a
+        # "document" type response ("RequestedResponse.document.value", see:
+        # function "_execute_handler_sync" in this module!)
+
+        if IS_ASYNC: # (Added by Merret)
+            LOGGER.debug('### These outputs will be overwritten before being returned to the user, because of running the process asynchronously: %s' % outputs)
+
+            # to comply with requirement 34 C / table 11
+            # https://docs.ogc.org/is/18-062r2/18-062r2.html#req_core_process-execute-success-async
+            outputs = {
+                "jobID": job_id,
+                "processID": job_metadata["process_id"],
+                "status": current_status.value,
+                "type": "process",
+                "message": job_metadata["message"],
+                "started": job_metadata["job_start_datetime"],
+                "progress": job_metadata["progress"]
+                #"links": [{
+                #    "href": job_metadata["location"],
+                #    "title": "location",
+                #}]
+            }
+
 
         return job_id, mime_type, outputs, status, response_headers
 

@@ -388,6 +388,7 @@ class BaseManager:
 
         job_id = str(uuid.uuid1())
         processor = self.get_processor(process_id)
+        LOGGER.info('##### Setting job_id: process_id=%s job_id=%s #####' % (process_id, job_id))
         processor.set_job_id(job_id)
         extra_execute_handler_parameters = {
             'requested_response': requested_response

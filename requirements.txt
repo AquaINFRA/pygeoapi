@@ -24,4 +24,8 @@ sshtunnel
 psycopg2-binary # instead of psycopg2
 
 # for subsetting
-gdal==3.4.1 # instead of osgeo
+#gdal==3.4.1 # instead of osgeo
+# Note: Dependency conflicts between various processes using gdal - not installing this
+# automatically, but you can install it manually if needed. This will not be needed any
+# more once all processes are switched to running in Docker images.
+# (The same is true for all the other in-process requirements in this file!)

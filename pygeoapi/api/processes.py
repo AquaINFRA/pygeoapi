@@ -436,7 +436,7 @@ def execute_process(api: API, request: APIRequest,
     try:
         # Parse bytes data, if applicable
         data = data.decode()
-        LOGGER.debug(data)
+        LOGGER.debug('Data received in request: %s' % data)
     except (UnicodeDecodeError, AttributeError):
         pass
 
@@ -450,7 +450,7 @@ def execute_process(api: API, request: APIRequest,
             'InvalidParameterValue', msg)
 
     data_dict = data.get('inputs', {})
-    LOGGER.debug(data_dict)
+    LOGGER.debug('Inputs: %s' % data_dict)
 
     requested_outputs = data.get('outputs')
     LOGGER.debug(f'outputs: {requested_outputs}')
@@ -481,7 +481,7 @@ def execute_process(api: API, request: APIRequest,
     except ValueError:
         execution_mode = None
     try:
-        LOGGER.debug('Executing process')
+        LOGGER.debug('#### Executing process: %s' % process_id)
         result = api.manager.execute_process(
             process_id, data_dict, execution_mode=execution_mode,
             requested_outputs=requested_outputs,

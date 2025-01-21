@@ -52,19 +52,19 @@ from pygeoapi.util import get_mimetype, get_api_rules
 
 
 ## Set the necessary environment variables where they can be read
-os.environ['PYGEOAPI_CONFIG'] = '/opt/pyg_upstream_dev/pygeoapi/pygeoapi-config.yml'
-os.environ['PYGEOAPI_OPENAPI'] = '/opt/pyg_upstream_dev/pygeoapi/pygeoapi-openapi.yml'
+os.environ['PYGEOAPI_CONFIG'] = '/opt/pyg_aquainfra/pygeoapi/pygeoapi-config.yml'
+os.environ['PYGEOAPI_OPENAPI'] = '/opt/pyg_aquainfra/pygeoapi/pygeoapi-openapi.yml'
 ## Where the various modules can find their specific config:
 ## Note: At the moment, one combined file is used, but then all keys must be unique!
 ## Alternatively, we can also specify a different config file for each set of processes.
-os.environ['PYGEOAPI_CONFIG'] = '/opt/pyg_upstream_dev/pygeoapi/pygeoapi-config.yml'
-os.environ['PYGEOAPI_OPENAPI'] = '/opt/pyg_upstream_dev/pygeoapi/pygeoapi-openapi.yml'
-os.environ['AQUA90M_CONFIG_FILE'] = '/opt/pyg_upstream_dev/pygeoapi/config.json'
-os.environ['DAUGAVA_CONFIG_FILE'] = '/opt/pyg_upstream_dev/pygeoapi/config.json'
-os.environ['BOKU_CONFIG_FILE'] = '/opt/pyg_upstream_dev/pygeoapi/config.json'
-os.environ['PYOWT_CONFIG_FILE'] = '/opt/pyg_upstream_dev/pygeoapi/config.json'
-os.environ['HELCOM_CONFIG_FILE'] = '/opt/pyg_upstream_dev/pygeoapi/config.json'
-os.environ['SYKE_CONFIG_FILE'] = '/opt/pyg_upstream_dev/pygeoapi/config.json'
+os.environ['PYGEOAPI_CONFIG'] = '/opt/pyg_aquainfra/pygeoapi/pygeoapi-config.yml'
+os.environ['PYGEOAPI_OPENAPI'] = '/opt/pyg_aquainfra/pygeoapi/pygeoapi-openapi.yml'
+os.environ['AQUA90M_CONFIG_FILE'] = '/opt/pyg_aquainfra/pygeoapi/config.json'
+os.environ['DAUGAVA_CONFIG_FILE'] = '/opt/pyg_aquainfra/pygeoapi/config.json'
+os.environ['BOKU_CONFIG_FILE'] = '/opt/pyg_aquainfra/pygeoapi/config.json'
+os.environ['PYOWT_CONFIG_FILE'] = '/opt/pyg_aquainfra/pygeoapi/config.json'
+os.environ['HELCOM_CONFIG_FILE'] = '/opt/pyg_aquainfra/pygeoapi/config.json'
+os.environ['SYKE_CONFIG_FILE'] = '/opt/pyg_aquainfra/pygeoapi/config.json'
 
 ## Logging settings:
 from logging.config import dictConfig
@@ -99,7 +99,7 @@ dictConfig(
               'level': 'WARNING',
               'formatter': 'default',
               'class': 'logging.FileHandler',
-              'filename': '/opt/pyg_aquainfra/error-pygeoapi.log',
+              'filename': '/opt/pyg_aquainfra/flask-error-pygeoapi.log',
               'mode': 'a',
             }
         },

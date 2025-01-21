@@ -108,7 +108,8 @@ def load_plugin(plugin_type: str, plugin_def: dict) -> Any:
 
     plugin_list = PLUGINS[plugin_type]
 
-    LOGGER.debug(f'Plugins: {plugin_list}')
+    #LOGGER.debug(f'Plugins: {plugin_list}')
+    LOGGER.debug(f'Plugins: (not printing plugin list)')
 
     if '.' not in name and name not in plugin_list.keys():
         msg = f'Plugin {name} not found'

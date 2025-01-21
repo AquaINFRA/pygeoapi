@@ -17,9 +17,9 @@ This explains the specifics of installing the AquaINFRA pygeoapi instance, in qu
 * Install pygeoapi according to pygeoapi's official docs.
 * Make it able to operate asynchronous (we use the TinyDB manager)
 * Make sure you follow the advice about running in production, which includes:
-** Running pygeoapi using a proper webserver (we use gunicorn/starlette/uvicorn)
-** Running pygeoapi behind a reverse proxy (we use nginx)
-** Adding TLS/SSL support (we use nginx, it does SSL termination for us)
+ * Running pygeoapi using a proper webserver (we use gunicorn/starlette/uvicorn)
+ * Running pygeoapi behind a reverse proxy (we use nginx)
+ * Adding TLS/SSL support (we use nginx, it does SSL termination for us)
 
 
 ### Install pygeoapi from GitHub
@@ -31,17 +31,16 @@ Basically, you install and run pygeoapi following their official documentation a
 ```
 cd /opt
 sudo mkdir pyg_aquainfra
-sudo chown ubuntu:ubuntu /opt/pyg_aquainfra
+sudo chown ubuntu:ubuntu /opt/pyg_aquainfra # TODO: eventually don't run as ubuntu:ubuntu
 cd pyg_aquainfra
 git clone https://github.com/geopython/pygeoapi.git
 
 ```
 
 * To add the AquaINFRA-related stuff from this repo, add this repo as a remote:
-
-** At the time of you cloning this, this branch may be outdated in comparison to pygeoapi's official master, as pygeoapi develops quite quickly!
-** In this case, you are welcome to merge their newest developments into aquainfra_ci (or even rebase aquainfra_ci onto their master, if you know what you're doing).
-** However, obviously, if they have change diverged too much, both merging or rebasing might break the functionality of the AquaINFRA stuff.
+ * At the time of you cloning this, this branch may be outdated in comparison to pygeoapi's official master, as pygeoapi develops quite quickly!
+ * In this case, you are welcome to merge their newest developments into aquainfra_ci (or even rebase aquainfra_ci onto their master, if you know what you're doing).
+ * However, obviously, if they have change diverged too much, both merging or rebasing might break the functionality of the AquaINFRA stuff.
 
 ```
 cd /opt/pyg_aquainfra/pygeoapi
@@ -64,10 +63,9 @@ pip3 install -r requirements.txt
 ```
 
 * Modify `pygeoapi-config.yml`:
-
-** Change the line `url: http://localhost:5000` to whatever your IP or URL is. Port 5000 is fine.
-** Change log level to DEBUG, if you like.
-** Note that asynchronous operation is enabled by default in the AquaINFRA branch, by having uncommenting. If you set up from scratch, make sure to uncomment this section to enable asynchronous operations, and put a path to a directory/database file (pygeoapi / the user that runs pygeoapi needs write permissions for that directory:
+ * Change the line `url: http://localhost:5000` to whatever your IP or URL is. Port 5000 is fine.
+ * Change log level to DEBUG, if you like.
+ * Note that asynchronous operation is enabled by default in the AquaINFRA branch, by having uncommenting. If you set up from scratch, make sure to uncomment this section to enable asynchronous operations, and put a path to a directory/database file (pygeoapi / the user that runs pygeoapi needs write permissions for that directory:
 
 ```
     manager:
@@ -80,9 +78,8 @@ pip3 install -r requirements.txt
 
 
 * Modify `starlette_app.py` and `flask_app.py` (in `/opt/pyg_aquainfra/pygeoapi$/pygeoapi/`):
-
-** Correct the paths with `/xyz/` in the logging config
-** Correct the paths with `/xyz/` in the environmental variable definition, i.e. `os.environ['PYGEOAPI_CONFIG']` and `os.environ['PYGEOAPI_OPENAPI']` (the latter has to be before setup.py install)  (TODO or commit with functioning path?)(but without all the other configs...)
+ * Correct the paths with `/xyz/` in the logging config
+ * Correct the paths with `/xyz/` in the environmental variable definition, i.e. `os.environ['PYGEOAPI_CONFIG']` and `os.environ['PYGEOAPI_OPENAPI']` (the latter has to be before setup.py install)  (TODO or commit with functioning path?)(but without all the other configs...)
 
 
 * Now install the actual pygeoapi module (note: if you want to actively develop on this server, consider enabling hot-reloading, see https://docs.pygeoapi.io/en/stable/running.html#hot-reloading)
@@ -378,9 +375,9 @@ As nginx is our reverse proxy in front of gunicorn/pygeoapi, we can let it do th
 ### Where to put this stuff... (TODO)
 
 * Which uid/gid to run pygeoapi and nginx in:
-** Run pygeoapi as the user `pyguser`, group `www-data` - the latter allows to share files with nginx who runs as `www-data`!
+ * Run pygeoapi as the user `pyguser`, group `www-data` - the latter allows to share files with nginx who runs as `www-data`!
 * Templates for unix service files:
-** A template for the unit file `pygeoapi.service` can be found in the folder `deployment` (based on running pygeoapi via `gunicorn`)
+ * A template for the unit file `pygeoapi.service` can be found in the folder `deployment` (based on running pygeoapi via `gunicorn`)
 * Styling, logos, favicon and contact info
 * Testing and monitoring
 * Sandbox and productive instance

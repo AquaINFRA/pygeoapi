@@ -792,7 +792,7 @@ def serve(ctx, server=None, debug=False):
         "pygeoapi.starlette_app:APP",
         reload=True,
         log_level=log_level,
-        #log_config='/.../.../log_config.json', # this would only be picked up if we ran this directly, instead of via gunicorn.
+        log_config='/opt/pyg_aquainfra/pygeoapi/logconfig.json', # this is only picked up if we run this directly, via "pygeoapi serve", instead of via gunicorn.
         loop='asyncio',
         host=api_.config['server']['bind']['host'],
         port=api_.config['server']['bind']['port'])

@@ -353,4 +353,8 @@ resources:
         processor:
             name: OwtClassificationProcessor
 
+    SWATrunR:
+        type: process
+        processor:
+            name: TorderaGloriaProcessor
 

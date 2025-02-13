@@ -1,0 +1,110 @@
+{
+    "version": "0.1.0",
+    "id": "tordera-gloria",
+    "use_case": "Catalunya Inland",
+    "title": {
+        "en": "First process from Amanda"
+    },
+    "description": {
+        "en": "First process blabla tordera gloria..."
+    },
+    "jobControlOptions": ["sync-execute", "async-execute"],
+    "keywords": ["tordera use case", "AquaINFRA", "R"],
+    "links": [{
+        "type": "text/html",
+        "rel": "about",
+        "title": "GitHub repo",
+        "href": "https://github.com/AmandaBatlle/AquaINFRA_CaseUse_MedInlandModel",
+        "hreflang": "en-US"
+    }],
+    "inputs": {
+        "unit": {
+            "title": "Output Spatial unit",
+            "description": "Number of the spatial unit that we want to generate an output for. This could be the spatial unit for a river section, HRU, or LSU as defined by the Tordera watershed delineation in (LINK TO WATERSHED MAP)",
+            "schema": {
+                "type": "integer"
+            },
+            "minOccurs": 1,
+            "maxOccurs": 1,
+            "keywords": []
+        },
+        "file": {
+            "title": "SWAT Output File",
+            "description": "SWAT Output File to use. Example: 'channel_sd_day'. For possible values, please check the SWAT documentation (https://swatplus.gitbook.io/io-docs), SWAT+ OUTPUT FILES section. Outputs can be obtained at different time steps by appending a suffix to the output file: _day for daily, _mon for monthly, _yr for yearly, and _aa for annual average.",
+            "schema": {
+                "type": "string"
+            },
+            "minOccurs": 1,
+            "maxOccurs": 1,
+            "keywords": []
+        },
+        "variable": {
+            "title": "SWAT Variable",
+            "description": "Variable to simulate. Example: 'flo_out'. For possible values, please check the SWAT documentation (https://swatplus.gitbook.io/io-docs) inside each of the SWAT+ OUTPUT FILES sections.",
+            "schema": {
+                "type": "string"
+            },
+            "minOccurs": 1,
+            "maxOccurs": 1,
+            "keywords": []
+        },
+        "start_date": {
+            "title": "Start date",
+            "description": "Start date of the simulation in the format yyyymmdd. Defaults to: 20160101. Earliest possible date: 20000101.",
+            "schema": {
+                "type": "integer"
+            },
+            "minOccurs": 0,
+            "maxOccurs": 1,
+            "keywords": []
+        },
+        "start_date_print": {
+            "title": "Start date",
+            "description": "Start date for printing in the format yyyymmdd. Defaults to: 20190601. Earliest possible date: 20020101. It is recommended to allow for at least two warm-up years between the model simulation start and the model output printing to ensure relevant results",
+            "schema": {
+                "type": "integer"
+            },
+            "minOccurs": 0,
+            "maxOccurs": 1,
+            "keywords": []
+        },
+        "end_date": {
+            "title": "End date",
+            "description": "End date of the simulation in the format yyyymmdd. Defaults to: 20201231. Latest possible date: 20221231.",
+            "schema": {
+                "type": "integer"
+            },
+            "minOccurs": 0,
+            "maxOccurs": 1,
+            "keywords": ["bla"]
+        }
+    },
+    "outputs": {
+        "swat_output_file": {
+            "title": "Some output param Amanda",
+            "description": "The result as a SWAT output file.",
+            "schema": {
+                "type": "object",
+                "contentMediaType": "application/csv"
+            }
+        },
+        "parameter_calibration": {
+            "title": "Parameter Calibration",
+            "description": "SWAT Parameter calibration used by the simulation, calibrated by Amanda Batlle, CREAF, Barcelona, Spain (TODO - AManda what needs to be here?).",
+            "schema": {
+                "type": "object",
+                "contentMediaType": "application/csv"
+            }
+        }
+    },
+    "example": {
+        "inputs": {
+            "unit": 1,
+            "file": "channel",
+            "variable": "flo_out",
+            "start_date": 20160101,
+            "end_date": 20201231,
+            "start_date_print": 20190601
+        }
+    }
+}

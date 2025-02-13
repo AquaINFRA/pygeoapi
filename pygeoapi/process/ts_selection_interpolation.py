@@ -52,6 +52,7 @@ class TsSelectionInterpolationProcessor(BaseProcessor):
 
         download_dir = configJSON["download_dir"]
         own_url = configJSON["own_url"]
+        docker_executable = configJSON.get("docker_executable", "docker")
 
         # Get user inputs
         in_data_url = data.get('input_data')
@@ -80,6 +81,7 @@ class TsSelectionInterpolationProcessor(BaseProcessor):
         #downloadfilepath = download_dir.rstrip('/')+os.sep+downloadfilename
 
         returncode, stdout, stderr = run_docker_container(
+            docker_executable,
             in_data_url, 
             in_rel_cols, 
             in_missing_threshold_percentage, 
@@ -89,6 +91,15 @@ class TsSelectionInterpolationProcessor(BaseProcessor):
             download_dir, 
             downloadfilename
         )
+
+        # print R stderr/stdout to debug log:
+        for line in stdout.split("\n"):
+            if not len(line.strip()) == 0:
+                LOGGER.debug('R stdout: %s' % line)
+
+        for line in stderr.split("\n"):
+            if not len(line.strip()) == 0:
+                LOGGER.debug('R stderr: %s' % line)
 
         if not returncode == 0:
             err_msg = 'Running docker container failed.'
@@ -113,6 +124,7 @@ class TsSelectionInterpolationProcessor(BaseProcessor):
 
 
 def run_docker_container(
+        docker_executable,
         in_data_url, 
         in_rel_cols, 
         in_missing_threshold_percentage, 
@@ -122,7 +134,7 @@ def run_docker_container(
         download_dir, 
         outputFilename
     ):
-    LOGGER.debug('Start running docker container')
+    LOGGER.debug('Prepare running docker container')
     container_name = f'daugava-workflow-image_{os.urandom(5).hex()}'
     image_name = 'daugava-workflow-image'
 
@@ -158,13 +170,21 @@ def run_docker_container(
         in_min_data_point,
         f"{container_out}/{outputFilename}"  # Output filename
     ]
+
+    print(docker_command)
+
+
+    LOGGER.debug('Docker command: %s' % docker_command)
     
     # Run container
     try:
+        LOGGER.debug('Start running docker container')
         result = subprocess.run(docker_command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout = result.stdout.decode()
         stderr = result.stderr.decode()
+        LOGGER.debug('Finished running docker container')
         return result.returncode, stdout, stderr
 
     except subprocess.CalledProcessError as e:
+        LOGGER.debug('Failed running docker container')
         return e.returncode, e.stdout.decode(), e.stderr.decode()

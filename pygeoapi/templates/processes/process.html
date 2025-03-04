@@ -68,10 +68,18 @@
               {% endfor %}
             </tbody>
           </table>
-          <h2>{% trans %}Execution modes{% endtrans %}</h2>
+          <h2>Educational resources and documentation</h2>
           <ul>
-            {% if 'sync-execute' in data.jobControlOptions %}<li>{% trans %}Synchronous{% endtrans %}</li>{% endif %}
-            {% if 'async-execute' in data.jobControlOptions %}<li>{% trans %}Asynchronous{% endtrans %}</li>{% endif %}
+            {% for link in data.links %}
+
+                {% if 'yes' in link.is_oer %}
+                  <li>
+                    <a title={{link.title}} type={{link.type}} rel={{link.rel}} href={{link.href}} hreflang={{link.hreflang}}>
+                      {{ link['title'] }} ({{ link['type'] }})
+                    </a>
+                  </li>
+                {% endif %}
+            {% endfor %}
           </ul>
           <h2>{% trans %}Jobs{% endtrans %}</h2>
           <a title="Browse jobs" href="{{config.server.url}}/jobs">{% trans %}Browse jobs{% endtrans %}</a>
@@ -84,6 +92,11 @@
                   </a>
                 </li>
             {% endfor %}
+          </ul>
+          <h2>{% trans %}Execution modes{% endtrans %}</h2>
+          <ul>
+            {% if 'sync-execute' in data.jobControlOptions %}<li>{% trans %}Synchronous{% endtrans %}</li>{% endif %}
+            {% if 'async-execute' in data.jobControlOptions %}<li>{% trans %}Asynchronous{% endtrans %}</li>{% endif %}
           </ul>
         </div>
       </div>

@@ -3,11 +3,15 @@ Description=Gunicorn instance to serve pygeoapi
 After=network.target
 
 [Service]
-User=pyguser
-Group=www-data
+User=pyguser    # on aquarium: ubuntu
+Group=www-data  # on aquarium: ubuntu
 WorkingDirectory=/opt/pyg_aquainfra
-Environment="PATH=/opt/pyg_aquainfra/venv/bin"
+Environment="PATH=/opt/pyg_aquainfra/venv3/bin"
 ExecStart=/opt/pyg_aquainfra/venv3/bin/gunicorn pygeoapi.starlette_app:APP --log-config-json /opt/pyg_aquainfra/pygeoapi/logconfig.json --capture-output --access-logfile /opt/pyg_aquainfra/gunicorn-starlette-access.log --error-logfile /opt/pyg_aquainfra/gunicorn-starlette-error.log --bind unix:/opt/pyg_aquainfra/pygeo.sock -w 4 -k uvicorn.workers.UvicornH11Worker
+# TODO: On aquarium, we have the following line:
+# TODO: Check if --capture-output --access-logfile and --error-logfile serve any purpose, if we have logconfig.json
+# TODO: And what is besser about binding to a unix socket?
+# ExecStart=/opt/pyg_aquainfra/venv3/bin/gunicorn pygeoapi.starlette_app:APP --log-config-json /opt/pyg_aquainfra/pygeoapi/logconfig.json -w 4 -k uvicorn.workers.UvicornH11Worker
 
 
 [Install]

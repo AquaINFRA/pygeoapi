@@ -31,7 +31,8 @@ server:
     bind:
         host: 0.0.0.0
         port: 5000
-    url: https://<your-ip-or-hostname>/pygeoapi
+    #url: http://localhost:5000 # Use this for testing!
+    url: https://<your-ip-or-hostname>/pygeoapi # TODO: Add your real IP here!
     mimetype: application/json; charset=UTF-8
     encoding: utf-8
     gzip: false

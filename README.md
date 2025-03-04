@@ -370,7 +370,73 @@ pip3 install -r /opt/pyg_aquainfra/pygeoapi/requirements.txt
 * Finally, restart the service: `sudo systemctl restart pygeoapi`
 
 
+## Containerized processes
 
+### Preparing docker
+
+* First, install docker using the official Docker documentation: https://docs.docker.com/engine/install/ubuntu/
+* Test: `date; sudo docker run hello-world`
+* Add your user to the docker group, in order to build the image without using sudo:
+
+```
+sudo groupadd docker
+sudo usermod -aG docker $USER
+# Log out and in again for changes to take effect
+```
+
+* Test without sudo:
+
+```
+date; docker run hello-world
+```
+
+* Add the proper docker executable to config:
+ * Which executable of docker is used? `which docker` (probably something like: `/usr/bin/docker`)
+ * Add it to config (`/opt/pyg_aquainfra/pygeoapi/config.json`), like this: `"docker_executable": "/usr/bin/docker",`
+ * (In the processes, there should be some line that picks up the config setting and uses the provided path, e.g. `docker_executable = configJSON.get("docker_executable", "docker")` )
+
+
+
+### How to deploy a containized service
+
+
+* Go to processes dir: `cd /opt/pyg_aquainfra/pygeoapi/pygeoapi/process/`
+* Clone the repo containing the process, go into the dir and checkout the right branch:
+
+```
+git clone https://github.com/AstraLabuce/aquainfra-usecase-Daugava.git
+cd aquainfra-usecase-Daugava/
+git checkout --track origin/containerize
+```
+
+
+* Build the docker image (if you cannot pull it from some Docker hub or repo)!
+ * The image name has to correspond to the name that is called in the process, so checkout the process python file that you just added to `plugin.py`. You may find the image name using grep: `cat pygeoapi/process/aquainfra-usecase-Daugava/src/ogc_api_processes/points_att_polygon.py | grep "image_name"`. In our example, it is `daugava-workflow-image`.
+ * You have to be in the directory where the corresponding `Dockerfile` is located! Check: `ls -1 | grep Dockerfile`
+ * Build it: `date; docker build -t daugava-workflow-image . ; date` (this may take time!)
+ * Check: `docker image ls | grep  daugava-workflow-image`
+
+
+* Add the process to `plugin.py` and `pygeoapi-config.py`, as above!
+* Rerun install...?
+
+```
+/opt/pyg_aquainfra/pygeoapi
+source venv3/bin/activate
+date; pip install . # instead of deprecated: python setup.py install
+# restart:
+date; sudo systemctl restart pygeoapi
+```
+
+* Now... Test?
+
+
+
+
+
+## Regular updates
+
+TODO: How to regularly pull the pygeoapi master branch!
 
 
 ## AquaINFRA instance: Freshwater Metadatabase Catalogue

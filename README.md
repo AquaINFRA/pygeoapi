@@ -136,6 +136,7 @@ During the first test after installation, which uses flask, the logs are here: `
 
 ```
 sudo mkdir /opt/processdb
+sudo mkdir /opt/processdb/output_dir
 sudo chown ubuntu:ubuntu /opt/processdb/ # TODO: Run as different user: pyguser
 ```
 
@@ -147,7 +148,7 @@ sudo chown ubuntu:ubuntu /opt/processdb/ # TODO: Run as different user: pyguser
     manager:
         name: TinyDB
         connection: /opt/processdb/pygeoapi-process-manager.db
-        output_dir: /opt/processdb
+        output_dir: /opt/processdb/output_dir
 ```
 
 **Important:** If you have two instances on the same machine (e.g. dev and prod), need different TinyDB files, otherwise it messes everything up! In that case you must change the above setting in at least one of the instances!

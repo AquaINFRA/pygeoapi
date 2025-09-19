@@ -138,6 +138,7 @@ TRASH
 TRASH/*
 IGNORE
 IGNORE/*
+pygeoapi-openapi.yml
 pygeoapi/process/TRASH
 pygeoapi/process/TRASH/*
 pygeoapi/process/TEMPLATEPROCESS.py

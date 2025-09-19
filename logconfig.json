@@ -20,7 +20,7 @@
         "debughandler": {
             "class": "logging.handlers.RotatingFileHandler",
             "level": "DEBUG",
-            "filename": "/opt/pyg_aquainfra/pygeoapi-debug.log",
+            "filename": "/opt/pyg_aquainfra/logs/pygeoapi-debug.log",
             "maxBytes": 10485760,
             "backupCount": 40,
             "encoding": "utf8",
@@ -29,7 +29,7 @@
         "errhandler": {
             "class": "logging.handlers.RotatingFileHandler",
             "level": "WARNING",
-            "filename": "/opt/pyg_aquainfra/pygeoapi-warn.log",
+            "filename": "/opt/pyg_aquainfra/logs/pygeoapi-warn.log",
             "maxBytes": 10485760,
             "backupCount": 40,
             "encoding": "utf8",

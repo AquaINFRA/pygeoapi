@@ -115,8 +115,10 @@ Currently, on aquarium, the processes run as user `ubuntu`, group `ubuntu`. On a
 
 In the final setup (i.e. running via starlette, etc.), the logging in configured by JSON file, which is here: `/opt/pyg_aquainfra/pygeoapi/logconfig.json`. It should be fine by default.
 
-* The debug log can be found at `/opt/pyg_aquainfra/pygeoapi-debug.log`
-* The error log can be found at `/opt/pyg_aquainfra/pygeoapi-warn.log`
+* The debug log can be found at `/opt/pyg_aquainfra/logs/pygeoapi-debug.log`
+* The error log can be found at `/opt/pyg_aquainfra/logs/pygeoapi-warn.log`
+
+You have to make the directory `mkdir /opt/pyg_aquainfra/logs`.
 
 The starlette app points to the log config in this line: `log_config='/opt/pyg_aquainfra/pygeoapi/logconfig.json',`, in the definition of `serve(ctx, ...)`.
 

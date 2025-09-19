@@ -9,7 +9,12 @@
         "filelock": { "level": "ERROR" },
         "pygeoapi.l10n": { "level": "WARNING" },
         "pygeoapi.util": { "level": "INFO" },
-        "asyncio": { "level": "INFO" }
+        "asyncio": { "level": "INFO" },
+        "gunicorn.error": {
+            "level": "INFO",
+            "handlers": ["errhandler"],
+            "propagate": false
+	}
     },
     "handlers": {
         "debughandler": {

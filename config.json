@@ -1,0 +1,13 @@
+{
+    "download_dir": "/var/www/nginx/download/",
+    "docker_executable": "/usr/bin/docker",
+    "download_url": "https://YOUR.URL.HERE/download/",
+    "specleanr": {
+    },
+    "syke": {
+    },
+    "helcom_heat": {
+    },
+    "mitgcm": {
+    }
+}
